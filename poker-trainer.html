@@ -412,10 +412,10 @@ const TERMS = [
    illus:"board"},
   {term:"Pocket Pair",cat:"Board & Cards",
    def:"When your two hole cards are of the same rank (e.g., 8♠ 8♦). There are 78 possible pocket pairs in a 52-card deck.",
-   illus:"hole-cards"},
+   illus:"pocket-pair"},
   {term:"Suited",cat:"Board & Cards",
    def:"Hole cards of the same suit. Being suited adds approximately 2–4% equity to a hand's value by enabling flush possibilities.",
-   illus:"hole-cards"},
+   illus:"suited"},
 
   // Bet Types & Strategy
   {term:"Continuation Bet (C-Bet)",cat:"Strategy",
@@ -591,6 +591,8 @@ const ILLUS = {
   'pair': ()=>hand(['A','♠'],['A','♣'],['K','♦'],['J','♥'],['7','♠']),
   'high-card': ()=>hand(['A','♠'],['J','♣'],['9','♦'],['6','♥'],['2','♣']),
   'hole-cards': ()=>`<div class="hand">${card('A','♠',60,86)}${card('K','♥',60,86)}</div>`,
+  'suited': ()=>`<div class="hand">${card('A','♥',60,86)}${card('K','♥',60,86)}</div>`,
+  'pocket-pair': ()=>`<div class="hand">${card('8','♠',60,86)}${card('8','♦',60,86)}</div>`,
   'nuts': ()=>hand(['A','♣'],['K','♣'],['Q','♣'],['J','♣'],['10','♣']),
   'board': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
     <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">COMMUNITY CARDS</div>
