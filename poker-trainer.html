@@ -350,7 +350,7 @@ const TERMS = [
    def:"Posts half the big blind before cards are dealt. Acts first post-flop in every street — the worst post-flop position.",
    illus:"table-sb"},
   {term:"Big Blind (BB)",cat:"Positions",
-   def:"Posts the full forced bet before cards are dealt. Gets the last action pre-flop (after all others) giving the unique option to raise even if unopposed.",
+   def:"Posts the full forced bet before cards are dealt. Acts last pre-flop, with the unique option to check or raise even when facing only limps.",
    illus:"table-bb"},
 
   // Betting Actions
@@ -647,12 +647,12 @@ const ILLUS = {
 function tableIllus(highlight) {
   const pos = [
     {id:'BTN',x:200,y:16,label:'BTN'},
-    {id:'CO', x:320,y:44,label:'CO'},
-    {id:'HJ', x:380,y:110,label:'HJ'},
-    {id:'LJ', x:340,y:176,label:'LJ'},
-    {id:'BB', x:200,y:204,label:'BB'},
-    {id:'SB', x:80, y:176,label:'SB'},
-    {id:'UTG',x:20, y:110,label:'UTG'},
+    {id:'SB', x:320,y:44,label:'SB'},
+    {id:'BB', x:380,y:110,label:'BB'},
+    {id:'UTG',x:340,y:176,label:'UTG'},
+    {id:'LJ', x:200,y:204,label:'LJ'},
+    {id:'HJ', x:80, y:176,label:'HJ'},
+    {id:'CO', x:20, y:110,label:'CO'},
   ];
   const hl = highlight.replace('table-','').toUpperCase().replace('UTG','UTG');
   return `<svg width="400" height="240" viewBox="0 0 400 240">
