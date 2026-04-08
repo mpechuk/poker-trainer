@@ -262,8 +262,12 @@ nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.07
 .rq-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));
   border-radius:4px;transition:width .4s ease}
 .rq-stats{margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(201,168,76,.2)}
-.rq-stats-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--gold-bright);
-  text-align:center;margin-bottom:1rem}
+.rq-stats-header{display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1rem}
+.rq-stats-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--gold-bright)}
+.rq-reset-stats{background:transparent;border:1px solid rgba(192,57,43,.5);color:#e07060;
+  font-size:.72rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.04em;
+  text-transform:uppercase;transition:background .2s,border-color .2s}
+.rq-reset-stats:hover{background:rgba(192,57,43,.15);border-color:#c0392b}
 .rq-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
   margin-bottom:1.2rem}
 .rq-stats-card{background:rgba(0,0,0,.25);border:1px solid rgba(201,168,76,.15);
@@ -1551,6 +1555,12 @@ function showRfiQuizComplete() {
     ${renderRfiStats()}`;
 }
 
+function resetRfiQuizStats() {
+  if (!confirm('Reset all RFI quiz statistics? This cannot be undone.')) return;
+  localStorage.removeItem('rfi-quiz-stats');
+  startRfiQuiz();
+}
+
 function renderRfiStats() {
   const stats = getRfiQuizStats();
   if (!stats||stats.totalQuizzes===0) return '';
@@ -1575,7 +1585,10 @@ function renderRfiStats() {
       <span style="color:${p>=70?'#27ae60':p>=50?'#c9a84c':'#c0392b'}">${r.score}/${r.total} (${p}%)</span></div>`;
   });
   return `<div class="rq-stats">
-    <div class="rq-stats-title">Your Progress</div>
+    <div class="rq-stats-header">
+      <div class="rq-stats-title">Your Progress</div>
+      <button class="rq-reset-stats" onclick="resetRfiQuizStats()">Reset Stats</button>
+    </div>
     <div class="rq-stats-grid">
       <div class="rq-stats-card"><div class="val">${stats.totalQuizzes}</div><div class="lbl">Quizzes</div></div>
       <div class="rq-stats-card"><div class="val">${overallPct}%</div><div class="lbl">Overall</div></div>
