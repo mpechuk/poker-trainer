@@ -1061,9 +1061,8 @@ function showQuizQ() {
 
   qCorrect = t.term;
   document.getElementById('answers').innerHTML = opts.map(o=>
-    `<button class="ans-btn" onclick="answerQuiz(this,'${o.term.replace(/'/g,"\\'")}')">
-      <strong>${o.term}</strong><br>
-      <span style="font-size:.82rem;color:#a09070">${o.def.slice(0,80)}…</span>
+    `<button class="ans-btn" data-term="${o.term.replace(/"/g,'&quot;')}" onclick="answerQuiz(this,'${o.term.replace(/'/g,"\\'")}')">
+      <span style="font-size:.82rem;color:#a09070">${o.def}</span>
     </button>`
   ).join('');
   document.getElementById('quiz-next').style.display='none';
@@ -1077,7 +1076,7 @@ function answerQuiz(btn, chosen) {
   if (isCorrect) { btn.classList.add('correct'); qScore++; qStreak++; }
   else {
     btn.classList.add('wrong'); qStreak=0;
-    btns.forEach(b=>{ if(b.textContent.trim().startsWith(correct)) b.classList.add('correct'); });
+    btns.forEach(b=>{ if(b.dataset.term===correct) b.classList.add('correct'); });
   }
   qTotal++;
   document.getElementById('q-score').textContent=qScore;
