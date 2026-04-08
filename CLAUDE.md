@@ -14,6 +14,8 @@ Texas Hold'em Poker Trainer — a browser-based educational app for learning pok
 poker-trainer/
 ├── poker-trainer.html      # Entire application (HTML + CSS + JS, ~1600 lines)
 ├── index.html              # Redirect shim → poker-trainer.html
+├── README.md               # Project README (keep in sync — see README Maintenance)
+├── CLAUDE.md               # AI development instructions
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Actions → GitHub Pages on push to main
@@ -191,6 +193,21 @@ Use existing CSS variables (`var(--gold)`, `var(--felt)`, etc.) — don't hardco
 | Key | Content |
 |---|---|
 | `rfi-quiz-stats` | JSON: `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
+
+---
+
+## README Maintenance
+
+**Update `README.md` whenever a change affects the project's structure or functionality.** This includes:
+
+- Adding, removing, or renaming files in the repository
+- Adding or changing application modes/tabs
+- Modifying the tech stack (new dependencies, changed hosting, etc.)
+- Changing the deployment process
+- Adding new features or removing existing ones
+- Changing the design system or theme
+
+Keep the README concise and user-facing — it describes *what the project does and how to use it*, not internal implementation details (those belong in CLAUDE.md).
 
 ---
 
