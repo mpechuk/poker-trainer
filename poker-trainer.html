@@ -39,7 +39,7 @@ h1 em{font-style:italic;color:var(--gold)}
 .subtitle{color:var(--muted);font-size:1.05rem;margin-top:0.4rem}
 
 /* ── Tabs ── */
-nav{display:flex;justify-content:center;gap:0;margin:1.5rem auto 0;max-width:480px;
+nav{display:flex;justify-content:center;gap:0;margin:1.5rem auto 0;max-width:600px;
   border:1px solid var(--gold-dark);border-radius:40px;overflow:hidden;background:rgba(0,0,0,0.3)}
 nav button{flex:1;padding:0.6rem 1rem;border:none;background:transparent;
   color:var(--muted);font-family:'Crimson Pro',serif;font-size:1rem;cursor:pointer;
@@ -226,6 +226,73 @@ nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.07
 .rfi-note{color:var(--muted);font-size:.82rem;text-align:center;margin-top:.5rem;
   font-style:italic}
 
+/* ── RFI Quiz panel ── */
+#rfi-quiz-panel{padding:1.5rem 1rem 0;max-width:700px;margin:0 auto;display:none}
+.rq-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.8rem);
+  color:var(--gold-bright);text-align:center;margin-bottom:.3rem}
+.rq-sub{color:var(--muted);text-align:center;font-size:.95rem;margin-bottom:1.2rem}
+.rq-status{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;
+  max-width:500px;margin-left:auto;margin-right:auto}
+.rq-stat{text-align:center}
+.rq-stat .val{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--gold-bright);line-height:1}
+.rq-stat .lbl{font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.rq-card{background:linear-gradient(135deg,#1e3d28,#0c2010);border:1px solid var(--gold-dark);
+  border-radius:14px;padding:1.5rem;margin-bottom:1rem;text-align:center}
+.rq-pos{font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.rq-hand-display{margin:1rem 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.rq-prompt{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-top:.8rem}
+.rq-actions{display:flex;gap:12px;justify-content:center;margin-bottom:1rem}
+.rq-btn{flex:1;max-width:200px;padding:.9rem 1.5rem;border-radius:12px;border:2px solid;
+  font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:600;cursor:pointer;
+  transition:all .2s;letter-spacing:.04em}
+.rq-btn-raise{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.4);color:#a8f0c6}
+.rq-btn-raise:hover:not(:disabled){background:rgba(46,204,113,.25);border-color:#27ae60}
+.rq-btn-fold{background:rgba(192,57,43,.1);border-color:rgba(192,57,43,.4);color:#f0b8b0}
+.rq-btn-fold:hover:not(:disabled){background:rgba(192,57,43,.25);border-color:#c0392b}
+.rq-btn.correct{background:rgba(46,204,113,.3);border-color:#27ae60;color:#a8f0c6}
+.rq-btn.wrong{background:rgba(192,57,43,.3);border-color:#c0392b;color:#f0b8b0}
+.rq-btn:disabled{cursor:default;opacity:.7}
+.rq-feedback{text-align:center;font-size:1rem;margin-bottom:.8rem;min-height:1.5rem}
+.rq-next{display:none;margin:0 auto;padding:.65rem 2rem;background:var(--gold-dark);
+  color:var(--gold-bright);border:none;border-radius:30px;font-family:'Crimson Pro',serif;
+  font-size:1rem;cursor:pointer;transition:background .2s;letter-spacing:.04em}
+.rq-next:hover{background:var(--gold)}
+.rq-progress{max-width:500px;margin:0 auto 1.2rem;height:4px;background:rgba(255,255,255,.1);
+  border-radius:4px;overflow:hidden}
+.rq-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));
+  border-radius:4px;transition:width .4s ease}
+.rq-stats{margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(201,168,76,.2)}
+.rq-stats-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--gold-bright);
+  text-align:center;margin-bottom:1rem}
+.rq-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
+  margin-bottom:1.2rem}
+.rq-stats-card{background:rgba(0,0,0,.25);border:1px solid rgba(201,168,76,.15);
+  border-radius:10px;padding:.75rem;text-align:center}
+.rq-stats-card .val{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold-bright)}
+.rq-stats-card .lbl{font-size:.75rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.rq-pos-stats{margin-top:1rem}
+.rq-pos-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.rq-pos-label{width:40px;font-size:.85rem;color:var(--gold);font-weight:600;text-align:right}
+.rq-pos-bar{flex:1;height:16px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden;
+  position:relative}
+.rq-pos-bar-fill{height:100%;border-radius:8px;transition:width .4s ease}
+.rq-pos-bar-text{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  font-size:.7rem;color:var(--text)}
+.rq-history{margin-top:1rem}
+.rq-history-title{font-size:.85rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:.5rem;text-align:center}
+.rq-history-row{display:flex;justify-content:space-between;padding:4px 8px;
+  border-radius:6px;font-size:.85rem;color:var(--text)}
+.rq-history-row:nth-child(even){background:rgba(255,255,255,.03)}
+.rq-complete{text-align:center;padding:2rem}
+.rq-complete h2{font-family:'Playfair Display',serif;color:var(--gold-bright);font-size:2rem;margin-bottom:.5rem}
+.rq-complete p{color:var(--muted);margin-bottom:1rem}
+.rq-complete .score-big{font-size:2.5rem;color:var(--gold-bright);font-family:'Playfair Display',serif;margin:.5rem 0}
+.rq-restart{padding:.65rem 2rem;background:var(--gold-dark);color:var(--gold-bright);
+  border:none;border-radius:30px;font-family:'Crimson Pro',serif;font-size:1rem;
+  cursor:pointer;letter-spacing:.04em;margin:0 .5rem}
+.rq-restart:hover{background:var(--gold)}
+
 /* ── SVG cards ── */
 .hand{display:flex;gap:6px;align-items:flex-end}
 .playing-card{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
@@ -247,6 +314,7 @@ nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.07
     <button onclick="setMode('quiz')">Quiz</button>
     <button onclick="setMode('ref')">Reference</button>
     <button onclick="setMode('charts')">Charts</button>
+    <button onclick="setMode('rfi-quiz')">RFI Quiz</button>
   </nav>
 </header>
 
@@ -314,6 +382,9 @@ nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.07
   </div>
   <div id="ref-content"></div>
 </div>
+
+<!-- RFI QUIZ MODE -->
+<div id="rfi-quiz-panel"></div>
 
 <!-- CHARTS MODE -->
 <div id="charts-panel">
@@ -1344,10 +1415,181 @@ function renderCharts() {
   renderRFI();
 }
 
+// ─────────────────── RFI QUIZ ───────────────────
+const RFI_QUIZ_LENGTH = 10;
+const RFI_QUIZ_POSITIONS = ['UTG','HJ','CO','BTN','SB'];
+
+function getRfiQuizStats() {
+  try { const d = localStorage.getItem('rfi-quiz-stats'); return d ? JSON.parse(d) : null; }
+  catch(e) { return null; }
+}
+function saveRfiQuizStats(s) {
+  try { localStorage.setItem('rfi-quiz-stats', JSON.stringify(s)); } catch(e) {}
+}
+function initRfiQuizStats() {
+  return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, byPosition:{}, recentScores:[] };
+}
+
+function generateRfiQuizHand() {
+  const pos = RFI_QUIZ_POSITIONS[Math.floor(Math.random()*RFI_QUIZ_POSITIONS.length)];
+  const r = Math.floor(Math.random()*13), c = Math.floor(Math.random()*13);
+  let hand;
+  if (r===c) hand = RANKS[r]+RANKS[c];
+  else if (c>r) hand = RANKS[r]+RANKS[c]+'s';
+  else hand = RANKS[c]+RANKS[r]+'o';
+  return { hand, pos, shouldRaise: RFI_RANGES[pos].has(hand) };
+}
+
+function handToCards(h) {
+  const rank1 = h[0], rank2 = h[1];
+  const type = h.length===2 ? 'pair' : h[2]==='s' ? 'suited' : 'offsuit';
+  if (type==='pair') return card(rank1,'♠',64,90)+card(rank2,'♥',64,90);
+  if (type==='suited') {
+    const s = ['♠','♥','♦','♣'][Math.floor(Math.random()*4)];
+    return card(rank1,s,64,90)+card(rank2,s,64,90);
+  }
+  return card(rank1,'♠',64,90)+card(rank2,'♥',64,90);
+}
+
+let rqDeck=[], rqIdx=0, rqScore=0, rqAnswered=false, rqResults=[];
+
+function startRfiQuiz() {
+  rqDeck=[]; rqIdx=0; rqScore=0; rqAnswered=false; rqResults=[];
+  let raiseN=0, foldN=0, attempts=0;
+  while (rqDeck.length<RFI_QUIZ_LENGTH && attempts<200) {
+    attempts++;
+    const q = generateRfiQuizHand();
+    if (q.shouldRaise && raiseN>=7) continue;
+    if (!q.shouldRaise && foldN>=7) continue;
+    if (rqDeck.some(x=>x.hand===q.hand && x.pos===q.pos)) continue;
+    rqDeck.push(q);
+    if (q.shouldRaise) raiseN++; else foldN++;
+  }
+  renderRfiQuiz();
+}
+
+function renderRfiQuiz() {
+  if (rqIdx>=rqDeck.length) { showRfiQuizComplete(); return; }
+  const q = rqDeck[rqIdx];
+  document.getElementById('rfi-quiz-panel').innerHTML = `
+    <h2 class="rq-title">Preflop Open-Raise Quiz</h2>
+    <p class="rq-sub">Should you raise or fold? &mdash; 6-max, everyone folds to you</p>
+    <div class="rq-progress"><div class="rq-progress-fill" style="width:${rqIdx/RFI_QUIZ_LENGTH*100}%"></div></div>
+    <div class="rq-status">
+      <div class="rq-stat"><div class="val" id="rq-score">${rqScore}</div><div class="lbl">Correct</div></div>
+      <div class="rq-stat"><div class="val">${rqIdx+1} / ${RFI_QUIZ_LENGTH}</div><div class="lbl">Question</div></div>
+      <div class="rq-stat"><div class="val" id="rq-pct">${rqIdx>0?Math.round(rqScore/rqIdx*100)+'%':'—'}</div><div class="lbl">Accuracy</div></div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">${q.pos}</strong></div>
+      <div class="rq-hand-display">${handToCards(q.hand)}</div>
+      <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">${q.hand}</div>
+      <div class="rq-prompt">Everyone folds to you. What do you do?</div>
+    </div>
+    <div class="rq-actions">
+      <button class="rq-btn rq-btn-raise" id="rq-raise" onclick="answerRfiQuiz(true)">Raise</button>
+      <button class="rq-btn rq-btn-fold" id="rq-fold" onclick="answerRfiQuiz(false)">Fold</button>
+    </div>
+    <div class="rq-feedback" id="rq-feedback"></div>
+    <div style="text-align:center">
+      <button class="rq-next" id="rq-next" onclick="nextRfiQuiz()">Next Question &rarr;</button>
+    </div>
+    ${renderRfiStats()}`;
+}
+
+function answerRfiQuiz(choseRaise) {
+  if (rqAnswered) return;
+  rqAnswered = true;
+  const q = rqDeck[rqIdx];
+  const isCorrect = choseRaise===q.shouldRaise;
+  const raiseBtn=document.getElementById('rq-raise'), foldBtn=document.getElementById('rq-fold');
+  raiseBtn.disabled=true; foldBtn.disabled=true;
+  rqResults.push({pos:q.pos, correct:isCorrect});
+  if (isCorrect) {
+    rqScore++;
+    (choseRaise?raiseBtn:foldBtn).classList.add('correct');
+    document.getElementById('rq-feedback').innerHTML=
+      `<span style="color:#27ae60">Correct! ${q.hand} from ${q.pos} is a <strong>${q.shouldRaise?'raise':'fold'}</strong>.</span>`;
+  } else {
+    (choseRaise?raiseBtn:foldBtn).classList.add('wrong');
+    (choseRaise?foldBtn:raiseBtn).classList.add('correct');
+    document.getElementById('rq-feedback').innerHTML=
+      `<span style="color:#c0392b">Incorrect. ${q.hand} from ${q.pos} is a <strong>${q.shouldRaise?'raise':'fold'}</strong>.</span>`;
+  }
+  document.getElementById('rq-score').textContent=rqScore;
+  document.getElementById('rq-pct').textContent=Math.round(rqScore/(rqIdx+1)*100)+'%';
+  document.getElementById('rq-next').style.display='inline-block';
+}
+
+function nextRfiQuiz() { rqIdx++; rqAnswered=false; renderRfiQuiz(); }
+
+function showRfiQuizComplete() {
+  const pct = Math.round(rqScore/RFI_QUIZ_LENGTH*100);
+  let stats = getRfiQuizStats()||initRfiQuizStats();
+  stats.totalQuizzes++;
+  stats.totalQuestions += RFI_QUIZ_LENGTH;
+  stats.totalCorrect += rqScore;
+  rqResults.forEach(r=>{
+    if (!stats.byPosition[r.pos]) stats.byPosition[r.pos]={total:0,correct:0};
+    stats.byPosition[r.pos].total++;
+    if (r.correct) stats.byPosition[r.pos].correct++;
+  });
+  stats.recentScores.push({date:new Date().toLocaleDateString(),score:rqScore,total:RFI_QUIZ_LENGTH});
+  if (stats.recentScores.length>20) stats.recentScores=stats.recentScores.slice(-20);
+  saveRfiQuizStats(stats);
+
+  const msg = pct>=90?'Phenomenal — you know your ranges!':pct>=70?'Well played — solid range knowledge.':
+    pct>=50?'Good start — review the charts.':'Hit the charts and come back!';
+  document.getElementById('rfi-quiz-panel').innerHTML = `
+    <div class="rq-complete">
+      <h2>${pct>=70?'&#127942;':'&#127139;'} Quiz Complete</h2>
+      <div class="score-big">${rqScore} / ${RFI_QUIZ_LENGTH} &mdash; ${pct}%</div>
+      <p>${msg}</p>
+      <button class="rq-restart" onclick="startRfiQuiz()">Play Again</button>
+      <button class="rq-restart" onclick="setMode('charts')" style="background:transparent;border:1px solid var(--gold-dark)">Review Charts</button>
+    </div>
+    ${renderRfiStats()}`;
+}
+
+function renderRfiStats() {
+  const stats = getRfiQuizStats();
+  if (!stats||stats.totalQuizzes===0) return '';
+  const overallPct = Math.round(stats.totalCorrect/stats.totalQuestions*100);
+  let posHtml='';
+  for (const pos of RFI_QUIZ_POSITIONS) {
+    const ps = stats.byPosition[pos];
+    if (!ps||ps.total===0) continue;
+    const pct = Math.round(ps.correct/ps.total*100);
+    const clr = pct>=80?'#27ae60':pct>=60?'#c9a84c':'#c0392b';
+    posHtml+=`<div class="rq-pos-row">
+      <div class="rq-pos-label">${pos}</div>
+      <div class="rq-pos-bar">
+        <div class="rq-pos-bar-fill" style="width:${pct}%;background:${clr}"></div>
+        <div class="rq-pos-bar-text">${pct}% (${ps.correct}/${ps.total})</div>
+      </div></div>`;
+  }
+  let histHtml='';
+  stats.recentScores.slice(-5).reverse().forEach(r=>{
+    const p=Math.round(r.score/r.total*100);
+    histHtml+=`<div class="rq-history-row"><span>${r.date}</span>
+      <span style="color:${p>=70?'#27ae60':p>=50?'#c9a84c':'#c0392b'}">${r.score}/${r.total} (${p}%)</span></div>`;
+  });
+  return `<div class="rq-stats">
+    <div class="rq-stats-title">Your Progress</div>
+    <div class="rq-stats-grid">
+      <div class="rq-stats-card"><div class="val">${stats.totalQuizzes}</div><div class="lbl">Quizzes</div></div>
+      <div class="rq-stats-card"><div class="val">${overallPct}%</div><div class="lbl">Overall</div></div>
+      <div class="rq-stats-card"><div class="val">${stats.totalCorrect}/${stats.totalQuestions}</div><div class="lbl">Correct</div></div>
+    </div>
+    ${posHtml?`<div class="rq-pos-stats">${posHtml}</div>`:''}
+    ${histHtml?`<div class="rq-history"><div class="rq-history-title">Recent Quizzes</div>${histHtml}</div>`:''}
+  </div>`;
+}
+
 // ─────────────────── MODE SWITCH ───────────────────
 function setMode(m) {
   mode=m;
-  const modes = ['study','quiz','ref','charts'];
+  const modes = ['study','quiz','ref','charts','rfi-quiz'];
   modes.forEach(x=>{
     document.getElementById(`${x}-panel`).style.display= x===m?'block':'none';
   });
@@ -1356,10 +1598,11 @@ function setMode(m) {
   });
   const showProgress = m==='study';
   document.getElementById('progress-wrap').style.display=showProgress?'block':'none';
-  document.getElementById('filters').style.display= m==='charts'?'none':'flex';
+  document.getElementById('filters').style.display=(m==='charts'||m==='rfi-quiz')?'none':'flex';
   if (m==='quiz') startQuiz();
   if (m==='ref') renderRef();
   if (m==='charts') renderCharts();
+  if (m==='rfi-quiz') startRfiQuiz();
 }
 
 // ─────────────────── INIT ───────────────────
