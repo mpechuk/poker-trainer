@@ -1023,7 +1023,7 @@ function navCard(dir) {
 }
 
 // ─────────────────── QUIZ ───────────────────
-let quizDeck=[], quizIdx=0, qScore=0, qStreak=0, qTotal=0;
+let quizDeck=[], quizIdx=0, qScore=0, qStreak=0, qTotal=0, qCorrect='';
 
 function startQuiz() {
   quizDeck=[...deck].sort(()=>Math.random()-.5);
@@ -1059,8 +1059,9 @@ function showQuizQ() {
     .sort(()=>Math.random()-.5).slice(0,3);
   const opts = [...wrong,t].sort(()=>Math.random()-.5);
 
+  qCorrect = t.term;
   document.getElementById('answers').innerHTML = opts.map(o=>
-    `<button class="ans-btn" onclick="answerQuiz(this,'${o.term.replace(/'/g,"\\'")}','${t.term.replace(/'/g,"\\'")}')">
+    `<button class="ans-btn" onclick="answerQuiz(this,'${o.term.replace(/'/g,"\\'")}')">
       <strong>${o.term}</strong><br>
       <span style="font-size:.82rem;color:#a09070">${o.def.slice(0,80)}…</span>
     </button>`
@@ -1068,7 +1069,8 @@ function showQuizQ() {
   document.getElementById('quiz-next').style.display='none';
 }
 
-function answerQuiz(btn, chosen, correct) {
+function answerQuiz(btn, chosen) {
+  const correct = qCorrect;
   const btns = document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   const isCorrect = chosen===correct;
