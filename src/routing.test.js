@@ -35,4 +35,16 @@ describe('routing', () => {
       expect(Object.keys(REDIRECTS)).not.toContain(resolved);
     }
   });
+
+  it('empty hash on initial load resolves to a renderable route — no blank page regression', () => {
+    // Reproduces the startup sequence in useHashRoute:
+    //   window.location.hash.slice(1) || '/'
+    // When the page loads with no hash (e.g. https://example.com/poker-trainer/),
+    // hash is '', so slice(1) is '', and '' || '/' gives '/'.
+    // This was the path that previously triggered `return null` and caused a blank page.
+    const path = ''.slice(1) || '/';
+    const effectivePath = resolveRoute(path);
+    expect(effectivePath).toBeTruthy();
+    expect(ROUTES_LIST).toContain(effectivePath);
+  });
 });
