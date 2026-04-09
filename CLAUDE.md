@@ -35,6 +35,7 @@ poker-trainer/
 │   ├── styles/
 │   │   ├── base.css                    # :root vars, body, fonts, global reset
 │   │   ├── header.css                  # Header, section nav, sub-nav tabs
+│   │   ├── welcome.css                 # Welcome page hand rankings, section cards
 │   │   ├── study.css                   # Flashcard scene, 3D flip, card nav
 │   │   ├── quiz.css                    # Term quiz + RFI quiz styles
 │   │   ├── reference.css              # Search input, ref grid, modal
@@ -51,12 +52,14 @@ poker-trainer/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
 │   ├── components/
-│   │   ├── Header.jsx                  # App header + section nav (Terminology | Preflop | Stats)
+│   │   ├── Header.jsx                  # App header + section nav (Home | Terminology | Preflop | Stats)
 │   │   ├── SubNav.jsx                  # Sub-navigation tabs within a section
 │   │   ├── FilterChips.jsx             # Category filter chip bar
 │   │   ├── ProgressBar.jsx             # Study progress bar
 │   │   └── Modal.jsx                   # Term detail modal overlay
 │   └── sections/
+│       ├── welcome/
+│       │   └── Welcome.jsx             # Landing page with hand rankings overview
 │       ├── terminology/
 │       │   ├── Study.jsx               # Flashcard study mode
 │       │   ├── Quiz.jsx                # Multiple-choice terminology quiz
@@ -79,14 +82,15 @@ Hash-based routing (`#/path`) for GitHub Pages compatibility.
 
 | Route | Component | Description |
 |---|---|---|
-| `#/terminology/study` | Study.jsx | Flashcard study mode (default) |
+| `#/welcome` | Welcome.jsx | Landing page with hand rankings overview (default) |
+| `#/terminology/study` | Study.jsx | Flashcard study mode |
 | `#/terminology/quiz` | Quiz.jsx | Multiple-choice terminology quiz |
 | `#/terminology/reference` | Reference.jsx | Searchable glossary |
 | `#/preflop/charts` | Charts.jsx | RFI hand range grids |
 | `#/preflop/quiz` | Quiz.jsx | Raise/fold RFI quiz |
 | `#/stats` | Dashboard.jsx | Full stats dashboard |
 
-Redirects: `/` → `/terminology/study`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
+Redirects: `/` → `/welcome`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
 
 ---
 

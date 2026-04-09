@@ -1,0 +1,27 @@
+.welcome{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.welcome h2{font-family:'Playfair Display',Georgia,serif;color:var(--gold-bright);
+  text-align:center;font-size:1.6rem;margin:1.5rem 0 .4rem}
+.welcome-intro{text-align:center;color:var(--muted);margin-bottom:1.2rem;font-size:1rem}
+
+/* Hand rankings grid */
+.rankings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:2rem}
+.ranking-card{background:rgba(0,0,0,.2);border:1px solid rgba(201,168,76,.15);border-radius:14px;
+  padding:1rem;text-align:center;transition:border-color .25s}
+.ranking-card:hover{border-color:var(--gold)}
+.ranking-rank{display:inline-block;font-family:'Playfair Display',Georgia,serif;
+  font-size:.85rem;color:var(--gold-dark);margin-bottom:.3rem}
+.ranking-name{font-family:'Playfair Display',Georgia,serif;color:var(--gold-bright);
+  font-size:1.15rem;font-weight:600;margin-bottom:.5rem}
+.ranking-illus{display:flex;justify-content:center;margin-bottom:.5rem}
+.ranking-desc{color:var(--muted);font-size:.85rem;line-height:1.3}
+
+/* Sections overview */
+.sections-heading{margin-top:2.5rem}
+.sections-grid{display:grid;gap:1rem;margin-top:.8rem}
+.section-card{display:block;background:rgba(0,0,0,.2);border:1px solid rgba(201,168,76,.15);
+  border-radius:14px;padding:1.2rem 1.4rem;text-decoration:none;transition:all .25s}
+.section-card:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.section-card-title{font-family:'Playfair Display',Georgia,serif;color:var(--gold-bright);
+  font-size:1.15rem;font-weight:600;margin-bottom:.35rem}
+.section-card-desc{color:var(--text);font-size:.95rem;line-height:1.4;margin-bottom:.5rem}
+.section-card-link{color:var(--gold);font-size:.85rem}

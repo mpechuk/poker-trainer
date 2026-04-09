@@ -6,6 +6,7 @@ import { Reference } from './sections/terminology/Reference.jsx';
 import { Charts } from './sections/preflop/Charts.jsx';
 import { PreflopQuiz } from './sections/preflop/Quiz.jsx';
 import { Dashboard } from './sections/stats/Dashboard.jsx';
+import { Welcome } from './sections/welcome/Welcome.jsx';
 import { REDIRECTS } from './routing.js';
 
 function useHashRoute() {
@@ -22,6 +23,7 @@ function useHashRoute() {
 }
 
 const ROUTES = {
+  '/welcome': Welcome,
   '/terminology/study': Study,
   '/terminology/quiz': TermQuiz,
   '/terminology/reference': Reference,
@@ -42,7 +44,7 @@ export function App() {
   }, [redirect]);
 
   const effectivePath = redirect || path;
-  const Page = ROUTES[effectivePath] || Study;
+  const Page = ROUTES[effectivePath] || Welcome;
 
   return (
     <>

@@ -6,6 +6,9 @@
 
 ## Sections
 
+### Welcome
+- **Home** — Landing page with poker hand rankings (Royal Flush through High Card) and an overview of all trainer sections.
+
 ### Terminology
 - **Study** — 3D flashcard system with elegant flip animations. Each card shows a poker term on one side and its definition with a custom SVG illustration on the other.
 - **Quiz** — Multiple-choice questions (4 options) with real-time score, streak tracking, and persistent stats.
@@ -45,7 +48,7 @@ poker-trainer/
 │   ├── utils/                  # illustrations.jsx, shuffle.js, storage.js
 │   ├── hooks/                  # useFilters.js, useDeck.js
 │   ├── components/             # Header, SubNav, FilterChips, ProgressBar, Modal
-│   └── sections/               # terminology/, preflop/, stats/
+│   └── sections/               # welcome/, terminology/, preflop/, stats/
 ├── .github/workflows/deploy.yml
 └── CLAUDE.md
 ```
@@ -71,6 +74,7 @@ All routes use hash-based URLs for GitHub Pages compatibility:
 
 | Route | View |
 |---|---|
+| `#/welcome` | Welcome / hand rankings overview |
 | `#/terminology/study` | Flashcard study mode |
 | `#/terminology/quiz` | Multiple-choice terminology quiz |
 | `#/terminology/reference` | Searchable glossary |

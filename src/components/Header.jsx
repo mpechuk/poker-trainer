@@ -10,7 +10,7 @@ export function Header() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  const section = currentPath.split('/')[1] || 'terminology';
+  const section = currentPath.split('/')[1] || 'welcome';
 
   return (
     <header>
@@ -23,6 +23,7 @@ export function Header() {
       <h1><em>Texas Hold'em</em> Poker Trainer</h1>
       <p class="subtitle">Master the language of the felt</p>
       <nav class="section-nav">
+        <a href="#/welcome" class={section === 'welcome' ? 'active' : ''}>Home</a>
         <a href="#/terminology/study" class={section === 'terminology' ? 'active' : ''}>Terminology</a>
         <a href="#/preflop/charts" class={section === 'preflop' ? 'active' : ''}>Preflop</a>
         <a href="#/stats" class={section === 'stats' ? 'active' : ''}>Stats</a>

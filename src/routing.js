@@ -1,5 +1,6 @@
 // Pure routing logic extracted for testability
 export const ROUTES_LIST = [
+  '/welcome',
   '/terminology/study',
   '/terminology/quiz',
   '/terminology/reference',
@@ -9,7 +10,7 @@ export const ROUTES_LIST = [
 ];
 
 export const REDIRECTS = {
-  '/': '/terminology/study',
+  '/': '/welcome',
   '/terminology': '/terminology/study',
   '/preflop': '/preflop/charts',
 };
