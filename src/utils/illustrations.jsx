@@ -28,7 +28,70 @@ export const ILLUS = {
   'high-card': ()=>hand(['A','♠'],['J','♣'],['9','♦'],['6','♥'],['2','♣']),
   'hole-cards': ()=>`<div class="hand">${cardSvg('A','♠',60,86)}${cardSvg('K','♥',60,86)}</div>`,
   'suited': ()=>`<div class="hand">${cardSvg('A','♥',60,86)}${cardSvg('K','♥',60,86)}</div>`,
+  'offsuit': ()=>`<div class="hand">${cardSvg('A','♠',60,86)}${cardSvg('K','♥',60,86)}</div>`,
+  'suited-conn': ()=>`<div class="hand">${cardSvg('8','♠',60,86)}${cardSvg('7','♠',60,86)}</div>`,
+  'connectors': ()=>`<div class="hand">${cardSvg('9','♦',60,86)}${cardSvg('8','♣',60,86)}</div>`,
+  'broadway': ()=>`<div class="hand">${cardSvg('K','♠',60,86)}${cardSvg('Q','♥',60,86)}</div>`,
   'pocket-pair': ()=>`<div class="hand">${cardSvg('8','♠',60,86)}${cardSvg('8','♦',60,86)}</div>`,
+  'overpair': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('Q','♠',52,74)}${cardSvg('Q','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['J♦','8♣','3♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+  </div>`,
+  'top-pair': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('A','♠',52,74)}${cardSvg('9','♦',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['A♥','7♣','3♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+  </div>`,
+  'set': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('7','♠',52,74)}${cardSvg('7','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['7♦','K♣','2♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+  </div>`,
+  'trips-made': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('A','♠',52,74)}${cardSvg('9','♦',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['9♥','9♣','3♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+  </div>`,
+  'overcards': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('A','♠',52,74)}${cardSvg('K','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['9♦','7♣','3♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+  </div>`,
+  'wheel': ()=>hand(['A','♠'],['2','♥'],['3','♦'],['4','♣'],['5','♠']),
+  'oesd': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('J','♠',52,74)}${cardSvg('10','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['9♦','8♣','2♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+    <div style="font-size:.65rem;color:#27ae60">need 7 or Q \u2014 8 outs</div>
+  </div>`,
+  'gutshot': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('J','♠',52,74)}${cardSvg('10','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['8♦','5♣','2♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+    <div style="font-size:.65rem;color:#27ae60">need 9 only \u2014 4 outs</div>
+  </div>`,
+  'flush-draw': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('A','♥',52,74)}${cardSvg('9','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['K♥','7♥','3♠'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+    <div style="font-size:.65rem;color:#27ae60">4 hearts \u2014 need 1 more \u2014 9 outs</div>
+  </div>`,
+  'combo-draw': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">HOLE CARDS</div>
+    <div class="hand">${cardSvg('J','♥',52,74)}${cardSvg('10','♥',52,74)}</div>
+    <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">BOARD</div>
+    <div class="hand">${['9♥','8♣','2♥'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),40,56)).join('')}</div>
+    <div style="font-size:.65rem;color:#27ae60">flush draw + straight draw \u2014 15 outs</div>
+  </div>`,
   'nuts': ()=>hand(['A','♣'],['K','♣'],['Q','♣'],['J','♣'],['10','♣']),
   'board': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
     <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">COMMUNITY CARDS</div>
