@@ -6,6 +6,7 @@ import { Reference } from './sections/terminology/Reference.jsx';
 import { Charts } from './sections/preflop/Charts.jsx';
 import { PreflopQuiz } from './sections/preflop/Quiz.jsx';
 import { Dashboard } from './sections/stats/Dashboard.jsx';
+import { REDIRECTS } from './routing.js';
 
 function useHashRoute() {
   const getPath = () => window.location.hash.slice(1) || '/';
@@ -29,28 +30,24 @@ const ROUTES = {
   '/stats': Dashboard,
 };
 
-const REDIRECTS = {
-  '/': '/terminology/study',
-  '/terminology': '/terminology/study',
-  '/preflop': '/preflop/charts',
-};
-
 export function App() {
   const path = useHashRoute();
-
-  // Handle redirects
   const redirect = REDIRECTS[path];
-  if (redirect) {
-    window.location.hash = '#' + redirect;
-    return null;
-  }
 
-  const Page = ROUTES[path] || Study;
+  // Update the URL when a redirect is needed, but render the target immediately
+  useEffect(() => {
+    if (redirect) {
+      window.location.hash = '#' + redirect;
+    }
+  }, [redirect]);
+
+  const effectivePath = redirect || path;
+  const Page = ROUTES[effectivePath] || Study;
 
   return (
     <>
       <Header />
-      <Page path={path} />
+      <Page path={effectivePath} />
     </>
   );
 }
