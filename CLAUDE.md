@@ -228,18 +228,19 @@ it('empty hash on initial load resolves to a renderable route — no blank page 
 
 ## Staging Deployments (PR Previews)
 
-Each PR automatically deploys a preview build to the `gh-pages` branch under `pr-<number>/`.
+Each PR automatically builds a preview and uploads it as a GitHub Actions artifact.
 
-**Preview URL**: `https://mpechuk.github.io/poker-trainer/pr-<number>/`
-
-**One-time repo setup required** (do this once in GitHub repo settings):
-> Settings → Pages → Source → "Deploy from a branch" → Branch: `gh-pages` / folder: `/ (root)`
+**How to preview**: When a PR is opened or updated, a bot comments with a link to the Actions run. Download the `preview-pr-<number>` artifact, unzip it, and run `npx serve dist` to test locally.
 
 Workflows:
-- `.github/workflows/preview.yml` — builds and deploys on PR open/update, comments URL on PR, cleans up on PR close
-- `.github/workflows/deploy.yml` — production deploy to root on push to `main`
+- `.github/workflows/preview.yml` — builds on PR open/update, uploads artifact, comments link on PR
+- `.github/workflows/deploy.yml` — production deploy to GitHub Pages on push to `main`
 
-Dynamic base path is controlled by `VITE_BASE_PATH` env var (default: `/poker-trainer/`).
+Dynamic base path is controlled by `VITE_BASE_PATH` env var (default: `/poker-trader/`).
+
+**To enable live staging URLs** (optional, requires one-time repo settings change):
+> Settings → Pages → Source → "Deploy from a branch" → `gh-pages` / `/ (root)`
+> Then update `deploy.yml` and `preview.yml` to use `JamesIves/github-pages-deploy-action@v4` deploying to subdirectories of the `gh-pages` branch.
 
 ---
 
