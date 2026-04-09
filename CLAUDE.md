@@ -196,10 +196,57 @@ Update `README.md` whenever a change affects the project's structure or function
 
 ---
 
+## Testing Requirements
+
+**Every code change must include a test.** No exceptions.
+
+- **Test file location**: `src/<module>.test.js` alongside the module under test
+- **Test runner**: Vitest (`npm test`) — tests in `src/` use `describe`/`it`/`expect` from `vitest`
+- **Run tests before pushing**: `npm test && npm run build`
+- **CI enforces this**: `test.yml` runs both `node test.js` (favicon) and `npm test` (unit tests) on every PR
+
+### What to test
+
+| Change type | What to add |
+|---|---|
+| New routing path / redirect | Test in `src/routing.test.js` — verify `resolveRoute` and `ROUTES_LIST` |
+| New data (terms, RFI hands) | Test that the entry exists and has required fields |
+| New utility function | Pure unit tests for all branches |
+| Bug fix | Regression test that would have caught the bug |
+
+### Regression test pattern
+
+When fixing a bug, add a test named to describe the failure mode:
+```js
+it('empty hash on initial load resolves to a renderable route — no blank page regression', () => {
+  // reproduce the exact conditions that triggered the bug
+  ...
+});
+```
+
+---
+
+## Staging Deployments (PR Previews)
+
+Each PR automatically deploys a preview build to the `gh-pages` branch under `pr-<number>/`.
+
+**Preview URL**: `https://mpechuk.github.io/poker-trainer/pr-<number>/`
+
+**One-time repo setup required** (do this once in GitHub repo settings):
+> Settings → Pages → Source → "Deploy from a branch" → Branch: `gh-pages` / folder: `/ (root)`
+
+Workflows:
+- `.github/workflows/preview.yml` — builds and deploys on PR open/update, comments URL on PR, cleans up on PR close
+- `.github/workflows/deploy.yml` — production deploy to root on push to `main`
+
+Dynamic base path is controlled by `VITE_BASE_PATH` env var (default: `/poker-trainer/`).
+
+---
+
 ## Important Constraints
 
 - **No additional external dependencies** beyond what's in package.json (except existing Google Fonts)
 - **Hash-based routing** — required for GitHub Pages (no server-side rewrites)
 - **Static only** — no server-side rendering, no API endpoints, no database
 - **GitHub Pages compatible** — deployment must remain zero-config static hosting
-- **Run `npm run build`** to verify changes compile before pushing
+- **Run `npm test && npm run build`** to verify changes before pushing
