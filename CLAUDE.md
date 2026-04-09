@@ -2,29 +2,9 @@
 
 ## Project Overview
 
-Texas Hold'em Poker Trainer — a browser-based educational app for learning poker terminology, hand rankings, GTO preflop strategy, and decision-making. Single-page static site deployed to GitHub Pages.
+Texas Hold'em Poker Trainer — a browser-based educational app for learning poker terminology, hand rankings, GTO preflop strategy, and decision-making. Modular Preact SPA deployed to GitHub Pages via Vite.
 
 **Live URL:** `https://mpechuk.github.io/poker-trainer/`
-
----
-
-## Repository Structure
-
-```
-poker-trainer/
-├── poker-trainer.html      # Entire application (HTML + CSS + JS, ~1600 lines)
-├── index.html              # Redirect shim → poker-trainer.html
-├── README.md               # Project README (keep in sync — see README Maintenance)
-├── CLAUDE.md               # AI development instructions
-├── .github/
-│   └── workflows/
-│       └── deploy.yml      # GitHub Actions → GitHub Pages on push to main
-├── .agents/skills/         # Claude Code skill definitions (caveman, caveman-compress)
-├── .claude/skills/         # Symlinks to .agents/skills/
-└── skills-lock.json        # Locked skill versions
-```
-
-**Everything lives in `poker-trainer.html`.** There is no build system, no npm, no framework — pure vanilla HTML/CSS/JS in one file.
 
 ---
 
@@ -32,31 +12,85 @@ poker-trainer/
 
 | Concern | Implementation |
 |---|---|
-| UI | Vanilla HTML5 + CSS3, no framework |
-| Logic | Vanilla JavaScript, no libraries |
+| UI | Preact (JSX components) |
+| Build | Vite + @preact/preset-vite |
+| Routing | Custom hash-based router (`#/section/page`) |
 | Fonts | Google Fonts CDN (Playfair Display, Crimson Pro) |
-| State | Global JS variables + `localStorage` for RFI quiz stats |
-| Build | None — edit and deploy directly |
+| State | Component state (`useState`/`useEffect`) + `localStorage` for persistence |
 | Hosting | GitHub Pages (static) |
-| CI/CD | GitHub Actions (`deploy.yml`) |
+| CI/CD | GitHub Actions (`deploy.yml` — npm ci + vite build + deploy dist/) |
 
 ---
 
-## Application Architecture
+## Repository Structure
 
-### Modes (Tabs)
+```
+poker-trainer/
+├── index.html                          # Vite entry point (minimal shell)
+├── vite.config.js                      # Vite config (preact plugin, base path)
+├── package.json                        # deps: preact; devDeps: vite, @preact/preset-vite
+├── src/
+│   ├── main.jsx                        # Mount <App /> into #app
+│   ├── app.jsx                         # Header + hash router with route table
+│   ├── styles/
+│   │   ├── base.css                    # :root vars, body, fonts, global reset
+│   │   ├── header.css                  # Header, section nav, sub-nav tabs
+│   │   ├── study.css                   # Flashcard scene, 3D flip, card nav
+│   │   ├── quiz.css                    # Term quiz + RFI quiz styles
+│   │   ├── reference.css              # Search input, ref grid, modal
+│   │   ├── charts.css                  # Position tabs, RFI grid, legend
+│   │   └── stats.css                   # Stats dashboard styles
+│   ├── data/
+│   │   ├── terms.js                    # TERMS array (~78 terms), CATS set
+│   │   └── rfi-ranges.js              # RFI_RANGES, RANKS, POS_LIST, quiz constants
+│   ├── utils/
+│   │   ├── illustrations.jsx           # cardSvg(), hand(), ILLUS, getIllus(), handToCards()
+│   │   ├── shuffle.js                  # Immutable Fisher-Yates shuffle
+│   │   └── storage.js                  # localStorage helpers for all 3 stat stores
+│   ├── hooks/
+│   │   ├── useFilters.js               # activeCats state + toggle logic
+│   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
+│   ├── components/
+│   │   ├── Header.jsx                  # App header + section nav (Terminology | Preflop | Stats)
+│   │   ├── SubNav.jsx                  # Sub-navigation tabs within a section
+│   │   ├── FilterChips.jsx             # Category filter chip bar
+│   │   ├── ProgressBar.jsx             # Study progress bar
+│   │   └── Modal.jsx                   # Term detail modal overlay
+│   └── sections/
+│       ├── terminology/
+│       │   ├── Study.jsx               # Flashcard study mode
+│       │   ├── Quiz.jsx                # Multiple-choice terminology quiz
+│       │   └── Reference.jsx           # Searchable glossary
+│       ├── preflop/
+│       │   ├── Charts.jsx              # RFI hand range grid with position tabs
+│       │   └── Quiz.jsx                # Raise/fold RFI quiz
+│       └── stats/
+│           └── Dashboard.jsx           # Full stats dashboard
+├── .github/workflows/deploy.yml        # Build + deploy to GitHub Pages
+├── CLAUDE.md                           # This file
+└── README.md                           # User-facing docs
+```
 
-The app has 5 modes switched via `setMode(m)`:
+---
 
-| Mode ID | Tab Label | Description |
+## Route Structure
+
+Hash-based routing (`#/path`) for GitHub Pages compatibility.
+
+| Route | Component | Description |
 |---|---|---|
-| `study` | Study | 3D flashcard flip — back shows term, front shows definition + illustration |
-| `quiz` | Quiz | Multiple-choice (4 options) with score/streak tracking |
-| `ref` | Reference | Searchable glossary, categorized, with modal detail view |
-| `charts` | Charts | Preflop RFI hand range grids per position |
-| `rfi-quiz` | RFI Quiz | Raise/Fold quiz against GTO ranges, with progress persistence |
+| `#/terminology/study` | Study.jsx | Flashcard study mode (default) |
+| `#/terminology/quiz` | Quiz.jsx | Multiple-choice terminology quiz |
+| `#/terminology/reference` | Reference.jsx | Searchable glossary |
+| `#/preflop/charts` | Charts.jsx | RFI hand range grids |
+| `#/preflop/quiz` | Quiz.jsx | Raise/fold RFI quiz |
+| `#/stats` | Dashboard.jsx | Full stats dashboard |
 
-### Core Data
+Redirects: `/` → `/terminology/study`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
+
+---
+
+## Core Data
 
 **`TERMS` array** — all poker knowledge:
 ```javascript
@@ -72,51 +106,11 @@ RFI_RANGES = { UTG: new Set([...]), HJ: new Set([...]), CO: new Set([...]), BTN:
 
 Hand notation: `"AKs"` (suited), `"AKo"` (offsuit), `"AA"` (pair)
 
-### Global State Variables
-
-| Variable | Purpose |
-|---|---|
-| `mode` | Current view (`'study'`/`'quiz'`/`'ref'`/`'charts'`/`'rfi-quiz'`) |
-| `activeCats` | `Set` of active category filters |
-| `deck` | Filtered + shuffled `TERMS` array |
-| `idx` | Current card index in deck |
-| `flipped` | Boolean — is card showing definition side |
-| `quizState` | `{ score, streak, total, answered }` for quiz mode |
-| `rqDeck` | Array of RFI quiz questions for current round |
-| `rqIdx` | Current RFI question index |
-| `rqScore` | Correct answers in current RFI round |
-| `rqAnswered` | Boolean — has current RFI question been answered |
-| `rqResults` | Array of `{ pos, correct }` for end-of-round stats |
-
-### Key Functions
-
-| Function | What it does |
-|---|---|
-| `setMode(m)` | Switch active panel, show/hide filters, trigger mode init |
-| `rebuildDeck()` | Filter `TERMS` by `activeCats`, shuffle |
-| `shuffle(arr)` | Fisher-Yates in-place shuffle |
-| `flipCard()` | Toggle `.flipped` class for 3D CSS transform |
-| `renderCard()` | Update DOM for current deck card + progress bar |
-| `startQuiz()` | Reset quiz state, shuffle deck |
-| `showQuizQ()` | Render question + 4 answer choices (1 correct, 3 random) |
-| `answerQuiz(btn, chosen)` | Evaluate answer, update score/streak, show feedback |
-| `renderRef()` | Filter by search input, render terms grouped by category |
-| `openModal(termName)` | Show term detail overlay |
-| `renderRFI()` | Render 13×13 hand range grid for active position |
-| `startRfiQuiz()` | Generate balanced raise/fold deck (max 7 of each), reset state |
-| `answerRfiQuiz(choseRaise)` | Check against `RFI_RANGES`, update UI + stats |
-| `nextRfiQuiz()` | Advance index, re-render |
-| `showRfiQuizComplete()` | Save stats to `localStorage`, show results + history |
-| `buildFilters()` | Render category filter chips from `TERMS` categories |
-| `getIllus(t)` | Return SVG illustration for a term |
-| `card(rank, suit, w, h)` | Generate SVG playing card element |
-| `handToCards(h)` | Convert hand notation (e.g. `"AKs"`) to two card SVGs |
-
 ---
 
 ## CSS Design System
 
-CSS variables defined in `:root`:
+CSS variables defined in `:root` (src/styles/base.css):
 
 ```css
 --felt: #0c2416        /* Dark green background */
@@ -133,50 +127,58 @@ CSS variables defined in `:root`:
 --accent: #2ecc71      /* Success green */
 ```
 
-Fonts: `'Playfair Display'` for headings (serif, elegant), `'Crimson Pro'` for body text.
+Fonts: `'Playfair Display'` for headings, `'Crimson Pro'` for body text.
 
-Card flip uses `perspective: 1200px` + `rotateY(180deg)` with `backface-visibility: hidden`.
+---
+
+## localStorage Schema
+
+| Key | Content |
+|---|---|
+| `rfi-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
+| `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, recentScores }` |
+| `study-progress` | `{ cardsSeen: [], totalFlips, byCategory: {} }` |
+
+---
+
+## Development Commands
+
+```bash
+npm run dev      # Start Vite dev server (localhost:5173)
+npm run build    # Production build to dist/
+npm run preview  # Preview production build locally
+```
 
 ---
 
 ## Deployment
 
-Push to `main` → GitHub Actions runs `deploy.yml` → deploys to GitHub Pages automatically. No build step. The workflow uploads the entire repo directory as the artifact.
+Push to `main` → GitHub Actions runs `deploy.yml` → `npm ci` + `npm run build` → deploys `dist/` to GitHub Pages.
 
-**Development branch convention:** `claude/[feature-description]-[uuid]` (e.g. `claude/add-rfi-quiz-XYZ123`)
+**Development branch convention:** `claude/[feature-description]-[uuid]`
 
 ---
 
 ## Development Conventions
 
-### Making Changes
-
-1. Edit `poker-trainer.html` directly — CSS is in `<style>`, JS is in `<script>` at bottom of `<body>`
-2. No transpilation, no bundler — changes are live immediately on file save
-3. Test in browser by opening `poker-trainer.html` locally
-
 ### Adding Poker Terms
 
-Add to the `TERMS` array in `poker-trainer.html`:
+Add to `TERMS` array in `src/data/terms.js`:
 ```javascript
 { term: "Term Name", cat: "Category", def: "Full definition.", illus: "illustration-key" }
 ```
-Valid categories: `"Hand Rankings"`, `"Positions"`, `"Betting Actions"`, `"Board & Cards"`, `"Strategy"`, `"Math & Odds"`, `"Player Types"`, `"Miscellaneous"`
 
 ### Adding RFI Range Hands
 
-Edit the `Set` for the relevant position in `RFI_RANGES`. Hand format:
-- Pairs: `"AA"`, `"KK"`, `"22"`
-- Suited: `"AKs"`, `"87s"` (higher rank first)
-- Offsuit: `"AKo"`, `"87o"` (higher rank first)
+Edit the `Set` for the relevant position in `src/data/rfi-ranges.js`.
 
 ### Adding Illustrations
 
-Add an entry to the `ILLUS` object mapping a key to a function that returns an SVG string. Reference the key via the `illus` field on a `TERMS` entry.
+Add an entry to the `ILLUS` object in `src/utils/illustrations.jsx`. SVG illustration functions return HTML strings, rendered via `dangerouslySetInnerHTML`.
 
 ### Style Additions
 
-Use existing CSS variables (`var(--gold)`, `var(--felt)`, etc.) — don't hardcode color values that duplicate the palette. Follow the minified CSS style already in the file (no extra whitespace).
+Use existing CSS variables — don't hardcode colors. Each section has its own CSS file in `src/styles/`.
 
 ---
 
@@ -184,37 +186,20 @@ Use existing CSS variables (`var(--gold)`, `var(--felt)`, etc.) — don't hardco
 
 **caveman** — Reduces token usage ~75% by dropping articles and filler. Triggered by `/caveman` or user request.
 
-**caveman-compress** — Python utility to compress CLAUDE.md files via Claude API. Located at `.agents/skills/caveman-compress/scripts/`.
-
----
-
-## LocalStorage Keys
-
-| Key | Content |
-|---|---|
-| `rfi-quiz-stats` | JSON: `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
+**caveman-compress** — Python utility to compress CLAUDE.md files via Claude API.
 
 ---
 
 ## README Maintenance
 
-**Update `README.md` whenever a change affects the project's structure or functionality.** This includes:
-
-- Adding, removing, or renaming files in the repository
-- Adding or changing application modes/tabs
-- Modifying the tech stack (new dependencies, changed hosting, etc.)
-- Changing the deployment process
-- Adding new features or removing existing ones
-- Changing the design system or theme
-
-Keep the README concise and user-facing — it describes *what the project does and how to use it*, not internal implementation details (those belong in CLAUDE.md).
+Update `README.md` whenever a change affects the project's structure or functionality.
 
 ---
 
 ## Important Constraints
 
-- **No external dependencies** — do not add npm packages, CDN libraries (except the existing Google Fonts), or backend services
-- **Single file** — keep everything in `poker-trainer.html`; do not split into separate JS/CSS files unless explicitly requested
-- **No build step** — the file must work by opening it directly in a browser
+- **No additional external dependencies** beyond what's in package.json (except existing Google Fonts)
+- **Hash-based routing** — required for GitHub Pages (no server-side rewrites)
 - **Static only** — no server-side rendering, no API endpoints, no database
 - **GitHub Pages compatible** — deployment must remain zero-config static hosting
+- **Run `npm run build`** to verify changes compile before pushing
