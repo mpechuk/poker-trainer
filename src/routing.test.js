@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { REDIRECTS, ROUTES_LIST, resolveRoute } from './routing.js';
 
 describe('routing', () => {
-  it('resolves / to /terminology/study (default landing page)', () => {
-    expect(resolveRoute('/')).toBe('/terminology/study');
+  it('resolves / to /welcome (default landing page)', () => {
+    expect(resolveRoute('/')).toBe('/welcome');
+  });
+
+  it('welcome route exists in routes list', () => {
+    expect(ROUTES_LIST).toContain('/welcome');
   });
 
   it('resolves /terminology shorthand to study page', () => {
