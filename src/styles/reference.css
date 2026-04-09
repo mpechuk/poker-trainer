@@ -1,0 +1,37 @@
+/* Reference panel */
+.ref-panel{padding:1.2rem 1rem 0;max-width:900px;margin:0 auto}
+.search-wrap{position:relative;margin-bottom:1.2rem}
+.search-wrap input{width:100%;padding:.7rem 1rem .7rem 2.5rem;background:rgba(0,0,0,.3);
+  border:1px solid var(--gold-dark);border-radius:30px;color:var(--text);
+  font-family:'Crimson Pro',serif;font-size:1rem}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-wrap input:focus{outline:none;border-color:var(--gold)}
+.search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:1rem;pointer-events:none}
+.ref-group{margin-bottom:1.5rem}
+.ref-group-title{font-family:'Playfair Display',serif;color:var(--gold);
+  font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
+  border-bottom:1px solid var(--gold-dark);padding-bottom:.3rem;margin-bottom:.6rem}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.ref-card{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);
+  border-radius:10px;padding:.75rem 1rem;cursor:pointer;transition:all .2s}
+.ref-card:hover{background:rgba(201,168,76,.08);border-color:var(--gold-dark)}
+.ref-card .rc-term{font-weight:600;color:var(--gold-bright);margin-bottom:.25rem;
+  font-size:1rem}
+.ref-card .rc-def{font-size:.88rem;color:var(--muted);line-height:1.4}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:linear-gradient(135deg,#1e3d28,#0c2010);
+  border:1px solid var(--gold);border-radius:16px;padding:1.5rem;
+  max-width:480px;width:100%;position:relative}
+.modal-close{position:absolute;top:.75rem;right:.75rem;background:transparent;
+  border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal .mc{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.modal .mt{font-family:'Playfair Display',serif;font-size:1.8rem;
+  color:var(--gold-bright);margin:.3rem 0 .8rem}
+.modal .md{font-size:1.05rem;line-height:1.65;color:var(--text)}
+.modal .mi{margin-top:1rem;display:flex;align-items:center;justify-content:center}

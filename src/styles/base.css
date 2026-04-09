@@ -1,0 +1,17 @@
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --felt:#0c2416;--felt-mid:#173527;--felt-rim:#1e4733;
+  --gold:#c9a84c;--gold-bright:#edd97a;--gold-dark:#7a5e1a;
+  --card-bg:#f9f5ea;--red:#c0392b;--black:#1a1a2a;
+  --text:#f0e8d0;--muted:#8a7a5a;--accent:#2ecc71
+}
+body{
+  background:var(--felt);
+  background-image:radial-gradient(ellipse 80% 40% at 50% 0%,#1e4a2e,transparent),
+    url("data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 8 8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='4' cy='4' r='0.8' fill='%23ffffff' fill-opacity='0.025'/%3E%3C/svg%3E");
+  min-height:100vh;font-family:'Crimson Pro',Georgia,serif;
+  color:var(--text);padding-bottom:4rem;overflow-x:hidden
+}
+
+.hand{display:flex;gap:6px;align-items:flex-end}
+.playing-card{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}

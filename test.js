@@ -1,7 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const html = fs.readFileSync(path.join(__dirname, 'poker-trainer.html'), 'utf8');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 let failures = 0;
 
 function assert(condition, message) {
