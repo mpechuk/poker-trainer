@@ -3,14 +3,15 @@ name: PR Preview
 on:
   pull_request:
     branches: ["main"]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
-  preview:
+  deploy-preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,33 +29,32 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build
+      - name: Build with PR base path
         run: npm run build
+        env:
+          VITE_BASE_PATH: /poker-trainer/pr-${{ github.event.number }}/
 
-      - name: Upload preview artifact
-        uses: actions/upload-artifact@v4
+      - name: Deploy preview to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          name: preview-pr-${{ github.event.number }}
-          path: dist/
-          retention-days: 7
+          folder: dist
+          branch: gh-pages
+          target-folder: pr-${{ github.event.number }}
+          clean: true
 
-      - name: Post preview comment
+      - name: Post preview URL on PR
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.issue.number;
-            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const url = `https://mpechuk.github.io/poker-trainer/pr-${pr}/`;
             const body = [
-              '## Preview build ready',
+              '## Preview deployment ready',
               '',
-              `Build succeeded for this PR. Download the artifact from the [Actions run](${runUrl}) to test locally:`,
+              `**[Open preview \u2192](${url})**`,
+              `\`${url}\``,
               '',
-              '```',
-              '# After downloading and unzipping preview-pr-' + pr + '.zip:',
-              'npx serve dist',
-              '```',
-              '',
-              '_Artifact expires after 7 days. Updates on every push._',
+              '_Updates on every push. Removed when the PR is closed._',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -63,7 +63,7 @@ jobs:
             });
 
             const existing = comments.find(
-              c => c.user.type === 'Bot' && c.body.includes('Preview build ready')
+              c => c.user.type === 'Bot' && c.body.includes('Preview deployment ready')
             );
 
             if (existing) {
@@ -79,3 +79,26 @@ jobs:
                 body,
               });
             }
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Remove preview directory and push
+        run: |
+          PR_DIR="pr-${{ github.event.number }}"
+          if [ -d "$PR_DIR" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -rf "$PR_DIR"
+            git commit -m "chore: remove preview for PR #${{ github.event.number }}"
+            git push
+          else
+            echo "No preview directory to clean up for PR #${{ github.event.number }}"
+          fi
