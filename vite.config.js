@@ -3,5 +3,8 @@ import preact from '@preact/preset-vite';
 
 export default defineConfig({
   plugins: [preact()],
-  base: '/poker-trainer/'
+  base: '/poker-trainer/',
+  test: {
+    environment: 'node',
+  },
 });
