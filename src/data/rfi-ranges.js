@@ -1,6 +1,6 @@
 export const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 
-export const STACK_DEPTHS = ['100BB', '50BB', '25BB'];
+export const STACK_DEPTHS = ['100BB', '50BB', '33BB', '25BB'];
 
 export const RFI_RANGES = {
   '100BB': {
@@ -254,6 +254,79 @@ export const RFI_RANGES = {
       'KQo','KJo','KTo',
       'QJo','QTo',
       'JTo',
+      'T9o',
+      '98o',
+      '87o',
+      '76o'
+    ])
+  },
+  '33BB': {
+    // Short-mid stack: remove set-mining pairs from EP, trim suited connectors/gappers
+    // Slots between 50BB (moderate trim) and 25BB (heavy trim)
+    UTG: new Set([
+      'AA','KK','QQ','JJ','TT','99',
+      'AKs','AQs','AJs',
+      'KQs',
+      'AKo','AQo','AJo',
+      'KQo'
+    ]),
+    HJ: new Set([
+      'AA','KK','QQ','JJ','TT','99','88',
+      'AKs','AQs','AJs','ATs','A5s',
+      'KQs','KJs',
+      'QJs',
+      'JTs',
+      'AKo','AQo','AJo','ATo',
+      'KQo','KJo',
+      'QJo'
+    ]),
+    CO: new Set([
+      'AA','KK','QQ','JJ','TT','99','88','77',
+      'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
+      'KQs','KJs','KTs',
+      'QJs','QTs',
+      'JTs','J9s',
+      'T9s',
+      '98s',
+      'AKo','AQo','AJo','ATo',
+      'KQo','KJo','KTo',
+      'QJo','QTo',
+      'JTo'
+    ]),
+    BTN: new Set([
+      'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33',
+      'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s',
+      'KQs','KJs','KTs','K9s',
+      'QJs','QTs','Q9s','Q8s',
+      'JTs','J9s','J8s',
+      'T9s','T8s',
+      '98s','97s',
+      '87s','86s',
+      '76s','75s',
+      '65s',
+      '54s',
+      'AKo','AQo','AJo','ATo','A9o','A8o',
+      'KQo','KJo','KTo',
+      'QJo','QTo',
+      'JTo',
+      'T9o'
+    ]),
+    SB: new Set([
+      'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33',
+      'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s',
+      'KQs','KJs','KTs','K9s','K8s','K7s',
+      'QJs','QTs','Q9s','Q8s',
+      'JTs','J9s','J8s',
+      'T9s','T8s',
+      '98s','97s',
+      '87s','86s',
+      '76s','75s',
+      '65s',
+      '54s',
+      'AKo','AQo','AJo','ATo','A9o','A8o','A7o',
+      'KQo','KJo','KTo','K9o',
+      'QJo','QTo','Q9o',
+      'JTo','J9o',
       'T9o',
       '98o',
       '87o',

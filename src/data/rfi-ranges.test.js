@@ -3,7 +3,7 @@ import { RANKS, RFI_RANGES, STACK_DEPTHS, POS_LIST, RFI_QUIZ_POSITIONS } from '.
 
 describe('RFI_RANGES structure', () => {
   it('exports STACK_DEPTHS with expected values', () => {
-    expect(STACK_DEPTHS).toEqual(['100BB', '50BB', '25BB']);
+    expect(STACK_DEPTHS).toEqual(['100BB', '50BB', '33BB', '25BB']);
   });
 
   it('RFI_RANGES has an entry for each stack depth', () => {
@@ -40,9 +40,15 @@ describe('RFI_RANGES stack depth ordering', () => {
     }
   });
 
-  it('50BB ranges are wider than 25BB for every position', () => {
+  it('50BB ranges are wider than 33BB for every position', () => {
     for (const pos of POS_LIST) {
-      expect(RFI_RANGES['50BB'][pos].size).toBeGreaterThan(RFI_RANGES['25BB'][pos].size);
+      expect(RFI_RANGES['50BB'][pos].size).toBeGreaterThan(RFI_RANGES['33BB'][pos].size);
+    }
+  });
+
+  it('33BB ranges are wider than 25BB for every position', () => {
+    for (const pos of POS_LIST) {
+      expect(RFI_RANGES['33BB'][pos].size).toBeGreaterThan(RFI_RANGES['25BB'][pos].size);
     }
   });
 
