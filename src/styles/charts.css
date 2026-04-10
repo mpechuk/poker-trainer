@@ -1,4 +1,13 @@
 .charts-panel{padding:1.5rem 1rem 0;max-width:960px;margin:0 auto}
+.stack-tabs{display:flex;justify-content:center;gap:0;margin-bottom:.75rem;
+  border:1px solid var(--gold-dark);border-radius:30px;overflow:hidden;background:rgba(0,0,0,.3);
+  flex-wrap:wrap;max-width:280px;margin-left:auto;margin-right:auto}
+.stack-tab{flex:1;min-width:70px;padding:.35rem .5rem;border:none;background:transparent;
+  color:var(--muted);font-family:'Crimson Pro',serif;font-size:.82rem;cursor:pointer;
+  transition:all .25s;letter-spacing:.03em}
+.stack-tab.active{background:var(--gold-dark);color:var(--gold-bright);font-weight:600}
+.stack-tab:hover:not(.active):not(.disabled){color:var(--text);background:rgba(255,255,255,.07)}
+.stack-tab.disabled{cursor:not-allowed;opacity:.5}
 .charts-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.8rem);
   color:var(--gold-bright);text-align:center;margin-bottom:.3rem}
 .charts-sub{color:var(--muted);text-align:center;font-size:.95rem;margin-bottom:1.2rem}

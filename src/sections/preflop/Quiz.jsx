@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
-import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS } from '../../data/rfi-ranges.js';
+import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
 import '../../styles/quiz.css';
@@ -10,7 +10,7 @@ const TABS = [
   { path: '/preflop/quiz', label: 'RFI Quiz' }
 ];
 
-function generateHand() {
+function generateHand(stackDepth) {
   const pos = RFI_QUIZ_POSITIONS[Math.floor(Math.random() * RFI_QUIZ_POSITIONS.length)];
   const r = Math.floor(Math.random() * 13);
   const c = Math.floor(Math.random() * 13);
@@ -18,15 +18,15 @@ function generateHand() {
   if (r === c) hand = RANKS[r] + RANKS[c];
   else if (c > r) hand = RANKS[r] + RANKS[c] + 's';
   else hand = RANKS[c] + RANKS[r] + 'o';
-  return { hand, pos, shouldRaise: RFI_RANGES[pos].has(hand) };
+  return { hand, pos, shouldRaise: RFI_RANGES[stackDepth][pos].has(hand) };
 }
 
-function buildDeck() {
+function buildDeck(stackDepth) {
   const deck = [];
   let raiseN = 0, foldN = 0, attempts = 0;
   while (deck.length < RFI_QUIZ_LENGTH && attempts < 200) {
     attempts++;
-    const q = generateHand();
+    const q = generateHand(stackDepth);
     if (q.shouldRaise && raiseN >= 7) continue;
     if (!q.shouldRaise && foldN >= 7) continue;
     if (deck.some(x => x.hand === q.hand && x.pos === q.pos)) continue;
@@ -38,15 +38,27 @@ function buildDeck() {
 }
 
 export function PreflopQuiz({ path }) {
-  const [deck, setDeck] = useState(() => buildDeck());
+  const [stackDepth, setStackDepth] = useState('100BB');
+  const [deck, setDeck] = useState(() => buildDeck('100BB'));
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [choseRaise, setChoseRaise] = useState(null);
   const [results, setResults] = useState([]);
+  const quizInProgress = qIdx > 0 && qIdx < deck.length;
+
+  function changeStackDepth(depth) {
+    setStackDepth(depth);
+    setDeck(buildDeck(depth));
+    setQIdx(0);
+    setScore(0);
+    setAnswered(false);
+    setChoseRaise(null);
+    setResults([]);
+  }
 
   function restart() {
-    setDeck(buildDeck());
+    setDeck(buildDeck(stackDepth));
     setQIdx(0);
     setScore(0);
     setAnswered(false);
@@ -119,6 +131,19 @@ export function PreflopQuiz({ path }) {
       <div class="rq-panel">
         <h2 class="rq-title">Preflop Open-Raise Quiz</h2>
         <p class="rq-sub">Should you raise or fold? &mdash; 6-max, everyone folds to you</p>
+        <div class="stack-tabs rq-stack-tabs">
+          {STACK_DEPTHS.map(d => (
+            <button
+              key={d}
+              class={`stack-tab${d === stackDepth ? ' active' : ''}${quizInProgress ? ' disabled' : ''}`}
+              onClick={() => !quizInProgress && changeStackDepth(d)}
+              title={quizInProgress ? 'Finish or restart quiz to change stack depth' : ''}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+        {quizInProgress && <p class="rq-stack-note">Stack depth locked during quiz &mdash; finish or restart to change</p>}
         <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / RFI_QUIZ_LENGTH * 100) + '%' }}></div></div>
         <div class="rq-status">
           <div class="rq-stat"><div class="val">{score}</div><div class="lbl">Correct</div></div>
