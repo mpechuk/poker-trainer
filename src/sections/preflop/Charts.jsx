@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
-import { RANKS, RFI_RANGES, POS_LIST } from '../../data/rfi-ranges.js';
+import { RANKS, RFI_RANGES, POS_LIST, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import '../../styles/charts.css';
 
 const TABS = [
@@ -10,8 +10,9 @@ const TABS = [
 
 export function Charts({ path }) {
   const [activePos, setActivePos] = useState('UTG');
+  const [stackDepth, setStackDepth] = useState('100BB');
 
-  const range = RFI_RANGES[activePos];
+  const range = RFI_RANGES[stackDepth][activePos];
   const raiseCount = range.size;
   const totalCombos = 169;
   const pct = Math.round(raiseCount / totalCombos * 100);
@@ -20,6 +21,17 @@ export function Charts({ path }) {
     <div>
       <SubNav tabs={TABS} currentPath="/preflop/charts" />
       <div class="charts-panel">
+        <div class="stack-tabs">
+          {STACK_DEPTHS.map(d => (
+            <button
+              key={d}
+              class={`stack-tab${d === stackDepth ? ' active' : ''}`}
+              onClick={() => setStackDepth(d)}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
         <div class="pos-tabs">
           {POS_LIST.map(p => (
             <button

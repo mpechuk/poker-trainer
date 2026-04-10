@@ -37,6 +37,8 @@
 
 /* RFI Quiz */
 .rq-panel{padding:1.5rem 1rem 0;max-width:700px;margin:0 auto}
+.rq-stack-tabs{margin-bottom:.5rem!important}
+.rq-stack-note{text-align:center;font-size:.78rem;color:var(--muted);font-style:italic;margin:.1rem 0 .6rem}
 .rq-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.8rem);
   color:var(--gold-bright);text-align:center;margin-bottom:.3rem}
 .rq-sub{color:var(--muted);text-align:center;font-size:.95rem;margin-bottom:1.2rem}
