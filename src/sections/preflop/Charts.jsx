@@ -4,8 +4,10 @@ import { RANKS, RFI_RANGES, POS_LIST, STACK_DEPTHS } from '../../data/rfi-ranges
 import '../../styles/charts.css';
 
 const TABS = [
-  { path: '/preflop/charts', label: 'Charts' },
-  { path: '/preflop/quiz', label: 'RFI Quiz' }
+  { path: '/preflop/charts', label: 'RFI' },
+  { path: '/preflop/limp', label: 'vs Limp' },
+  { path: '/preflop/vs-raise', label: 'vs Raise' },
+  { path: '/preflop/quiz', label: 'Quiz' },
 ];
 
 export function Charts({ path }) {
