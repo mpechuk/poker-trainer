@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import { TERMS, CATS } from '../../data/terms.js';
 import { RFI_QUIZ_POSITIONS } from '../../data/rfi-ranges.js';
-import { getStudyProgress, initStudyProgress, getTermQuizStats, initTermQuizStats, getRfiQuizStats, initRfiQuizStats } from '../../utils/storage.js';
+import { getStudyProgress, initStudyProgress, getTermQuizStats, initTermQuizStats, getRfiQuizStats, initRfiQuizStats, getLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
+import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
 import '../../styles/stats.css';
 
 export function Dashboard({ path }) {
@@ -10,7 +11,10 @@ export function Dashboard({ path }) {
 
   const study = getStudyProgress() || initStudyProgress();
   const termQuiz = getTermQuizStats() || initTermQuizStats();
-  const rfiQuiz = getRfiQuizStats() || initRfiQuizStats();
+  const rfiQuiz    = getRfiQuizStats()     || initRfiQuizStats();
+  const limpQuiz   = getLimpQuizStats()    || initLimpQuizStats();
+  const vsRaiseQuiz = getVsRaiseQuizStats() || initVsRaiseQuizStats();
+  const allModes   = getAllModesQuizStats() || initAllModesQuizStats();
 
   const totalTerms = TERMS.length;
   const cardsSeen = study.cardsSeen.length;
@@ -35,6 +39,21 @@ export function Dashboard({ path }) {
   function resetRfiQuiz() {
     if (!confirm('Reset all RFI quiz stats? This cannot be undone.')) return;
     localStorage.removeItem('rfi-quiz-stats');
+    refresh();
+  }
+  function resetLimpQuiz() {
+    if (!confirm('Reset all vs Limp quiz stats? This cannot be undone.')) return;
+    localStorage.removeItem('limp-quiz-stats');
+    refresh();
+  }
+  function resetVsRaiseQuiz() {
+    if (!confirm('Reset all vs Raise quiz stats? This cannot be undone.')) return;
+    localStorage.removeItem('vs-raise-quiz-stats');
+    refresh();
+  }
+  function resetAllModes() {
+    if (!confirm('Reset all All-Modes quiz stats? This cannot be undone.')) return;
+    localStorage.removeItem('all-modes-quiz-stats');
     refresh();
   }
 
@@ -196,6 +215,96 @@ export function Dashboard({ path }) {
                 })}
               </div>
             )}
+          </>
+        )}
+      </div>
+      {/* vs Limp Quiz */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Preflop vs Limp Quiz</h3>
+          <button class="stats-reset" onClick={resetLimpQuiz}>Reset</button>
+        </div>
+        {limpQuiz.totalQuizzes === 0 ? (
+          <p class="stats-empty">No quizzes taken yet. <a href="#/preflop/quiz">Take a quiz</a></p>
+        ) : (
+          <>
+            <div class="stats-grid">
+              <div class="stats-card"><div class="stats-val">{limpQuiz.totalQuizzes}</div><div class="stats-lbl">Quizzes</div></div>
+              <div class="stats-card"><div class="stats-val">{Math.round(limpQuiz.totalCorrect/limpQuiz.totalQuestions*100)}%</div><div class="stats-lbl">Accuracy</div></div>
+              <div class="stats-card"><div class="stats-val">{limpQuiz.totalCorrect}/{limpQuiz.totalQuestions}</div><div class="stats-lbl">Correct</div></div>
+            </div>
+            {Object.keys(limpQuiz.byHeroPosition).length > 0 && (
+              <div class="stats-bars">
+                <div class="stats-bars-title">Accuracy by Your Position</div>
+                {LIMP_HERO_POSITIONS.map(pos => {
+                  const ps = limpQuiz.byHeroPosition[pos];
+                  if (!ps || ps.total === 0) return null;
+                  const pct = Math.round(ps.correct/ps.total*100);
+                  const clr = pct>=80?'#27ae60':pct>=60?'#c9a84c':'#c0392b';
+                  return (<div class="stats-cat-row" key={pos}><div class="stats-cat-label">{pos}</div><div class="stats-cat-bar"><div class="stats-cat-bar-fill" style={{width:pct+'%',background:clr}}></div><div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div></div></div>);
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* vs Raise Quiz */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Preflop vs Raise Quiz</h3>
+          <button class="stats-reset" onClick={resetVsRaiseQuiz}>Reset</button>
+        </div>
+        {vsRaiseQuiz.totalQuizzes === 0 ? (
+          <p class="stats-empty">No quizzes taken yet. <a href="#/preflop/quiz">Take a quiz</a></p>
+        ) : (
+          <>
+            <div class="stats-grid">
+              <div class="stats-card"><div class="stats-val">{vsRaiseQuiz.totalQuizzes}</div><div class="stats-lbl">Quizzes</div></div>
+              <div class="stats-card"><div class="stats-val">{Math.round(vsRaiseQuiz.totalCorrect/vsRaiseQuiz.totalQuestions*100)}%</div><div class="stats-lbl">Accuracy</div></div>
+              <div class="stats-card"><div class="stats-val">{vsRaiseQuiz.totalCorrect}/{vsRaiseQuiz.totalQuestions}</div><div class="stats-lbl">Correct</div></div>
+            </div>
+            {Object.keys(vsRaiseQuiz.byHeroPosition).length > 0 && (
+              <div class="stats-bars">
+                <div class="stats-bars-title">Accuracy by Your Position</div>
+                {RAISE_HERO_POSITIONS.map(pos => {
+                  const ps = vsRaiseQuiz.byHeroPosition[pos];
+                  if (!ps || ps.total === 0) return null;
+                  const pct = Math.round(ps.correct/ps.total*100);
+                  const clr = pct>=80?'#27ae60':pct>=60?'#c9a84c':'#c0392b';
+                  return (<div class="stats-cat-row" key={pos}><div class="stats-cat-label">{pos}</div><div class="stats-cat-bar"><div class="stats-cat-bar-fill" style={{width:pct+'%',background:clr}}></div><div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div></div></div>);
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* All Modes Quiz */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Preflop All-Modes Quiz</h3>
+          <button class="stats-reset" onClick={resetAllModes}>Reset</button>
+        </div>
+        {allModes.totalQuizzes === 0 ? (
+          <p class="stats-empty">No quizzes taken yet. <a href="#/preflop/quiz">Take a quiz</a></p>
+        ) : (
+          <>
+            <div class="stats-grid">
+              <div class="stats-card"><div class="stats-val">{allModes.totalQuizzes}</div><div class="stats-lbl">Quizzes</div></div>
+              <div class="stats-card"><div class="stats-val">{Math.round(allModes.totalCorrect/allModes.totalQuestions*100)}%</div><div class="stats-lbl">Accuracy</div></div>
+              <div class="stats-card"><div class="stats-val">{allModes.totalCorrect}/{allModes.totalQuestions}</div><div class="stats-lbl">Correct</div></div>
+            </div>
+            <div class="stats-bars">
+              <div class="stats-bars-title">Accuracy by Mode</div>
+              {[['rfi','RFI'],['limp','vs Limp'],['vsRaise','vs Raise']].map(([key,lbl]) => {
+                const ps = allModes.byMode[key];
+                if (!ps || ps.total === 0) return null;
+                const pct = Math.round(ps.correct/ps.total*100);
+                const clr = pct>=80?'#27ae60':pct>=60?'#c9a84c':'#c0392b';
+                return (<div class="stats-cat-row" key={key}><div class="stats-cat-label">{lbl}</div><div class="stats-cat-bar"><div class="stats-cat-bar-fill" style={{width:pct+'%',background:clr}}></div><div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div></div></div>);
+              })}
+            </div>
           </>
         )}
       </div>

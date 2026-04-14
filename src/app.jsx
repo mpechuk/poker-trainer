@@ -4,6 +4,8 @@ import { Study } from './sections/terminology/Study.jsx';
 import { Quiz as TermQuiz } from './sections/terminology/Quiz.jsx';
 import { Reference } from './sections/terminology/Reference.jsx';
 import { Charts } from './sections/preflop/Charts.jsx';
+import { LimpCharts } from './sections/preflop/LimpCharts.jsx';
+import { RaiseCharts } from './sections/preflop/RaiseCharts.jsx';
 import { PreflopQuiz } from './sections/preflop/Quiz.jsx';
 import { Dashboard } from './sections/stats/Dashboard.jsx';
 import { Welcome } from './sections/welcome/Welcome.jsx';
@@ -28,6 +30,8 @@ const ROUTES = {
   '/terminology/quiz': TermQuiz,
   '/terminology/reference': Reference,
   '/preflop/charts': Charts,
+  '/preflop/limp': LimpCharts,
+  '/preflop/vs-raise': RaiseCharts,
   '/preflop/quiz': PreflopQuiz,
   '/stats': Dashboard,
 };

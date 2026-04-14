@@ -40,6 +40,19 @@ describe('routing', () => {
     }
   });
 
+  it('/preflop/limp exists in routes list', () => {
+    expect(ROUTES_LIST).toContain('/preflop/limp');
+  });
+
+  it('/preflop/vs-raise exists in routes list', () => {
+    expect(ROUTES_LIST).toContain('/preflop/vs-raise');
+  });
+
+  it('resolveRoute passes through new preflop routes unchanged', () => {
+    expect(resolveRoute('/preflop/limp')).toBe('/preflop/limp');
+    expect(resolveRoute('/preflop/vs-raise')).toBe('/preflop/vs-raise');
+  });
+
   it('empty hash on initial load resolves to a renderable route — no blank page regression', () => {
     // Reproduces the startup sequence in useHashRoute:
     //   window.location.hash.slice(1) || '/'
