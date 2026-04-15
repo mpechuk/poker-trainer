@@ -441,12 +441,12 @@ export function getIllus(t) {
 }
 
 
-export function handToCards(h) {
+export function handToCards(h, suit) {
   const rank1 = h[0], rank2 = h[1];
   const type = h.length===2 ? 'pair' : h[2]==='s' ? 'suited' : 'offsuit';
   if (type==='pair') return cardSvg(rank1,'♠',64,90)+cardSvg(rank2,'♥',64,90);
   if (type==='suited') {
-    const s = ['♠','♥','♦','♣'][Math.floor(Math.random()*4)];
+    const s = suit || ['♠','♥','♦','♣'][Math.floor(Math.random()*4)];
     return cardSvg(rank1,s,64,90)+cardSvg(rank2,s,64,90);
   }
   return cardSvg(rank1,'♠',64,90)+cardSvg(rank2,'♥',64,90);
