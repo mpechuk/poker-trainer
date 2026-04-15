@@ -21,6 +21,9 @@ const MODES = [
 ];
 
 // ---------- hand generators ----------
+const SUITS = ['♠','♥','♦','♣'];
+function randomSuit() { return SUITS[Math.floor(Math.random() * SUITS.length)]; }
+
 function randomHand() {
   const r = Math.floor(Math.random() * 13);
   const c = Math.floor(Math.random() * 13);
@@ -32,7 +35,7 @@ function randomHand() {
 function generateRfiHand(stackDepth) {
   const pos = RFI_QUIZ_POSITIONS[Math.floor(Math.random() * RFI_QUIZ_POSITIONS.length)];
   const hand = randomHand();
-  return { type: 'rfi', hand, heroPos: pos, villainPos: null, stackDepth, correctAction: RFI_RANGES[stackDepth][pos].has(hand) ? 'raise' : 'fold' };
+  return { type: 'rfi', hand, heroPos: pos, villainPos: null, stackDepth, suit: randomSuit(), correctAction: RFI_RANGES[stackDepth][pos].has(hand) ? 'raise' : 'fold' };
 }
 
 function generateLimpHand(stackDepth) {
@@ -43,7 +46,7 @@ function generateLimpHand(stackDepth) {
   const range = LIMP_RANGES[stackDepth]?.[heroPos]?.[villainPos];
   if (!range) return generateLimpHand(stackDepth);
   const correctAction = range.raise.has(hand) ? 'raise' : range.call.has(hand) ? 'call' : 'fold';
-  return { type: 'limp', hand, heroPos, villainPos, stackDepth, correctAction };
+  return { type: 'limp', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
 function generateVsRaiseHand(stackDepth) {
@@ -54,7 +57,7 @@ function generateVsRaiseHand(stackDepth) {
   const range = VS_RAISE_RANGES[stackDepth]?.[heroPos]?.[villainPos];
   if (!range) return generateVsRaiseHand(stackDepth);
   const correctAction = range.threebet.has(hand) ? 'threebet' : range.call.has(hand) ? 'call' : 'fold';
-  return { type: 'vsRaise', hand, heroPos, villainPos, stackDepth, correctAction };
+  return { type: 'vsRaise', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
 function buildDeck(mode, stackDepth) {
@@ -317,7 +320,7 @@ export function PreflopQuiz() {
               <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">{current.heroPos}</strong>
                 {current.villainPos && <span style="margin-left:.8rem;color:var(--muted)">Villain: <strong style="color:var(--text)">{current.villainPos}</strong></span>}
               </div>
-              <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand) }} />
+              <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit) }} />
               <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">{current.hand}</div>
               <div class="rq-prompt">{promptText(current)}</div>
             </div>
