@@ -17,7 +17,7 @@
 
 /* Sections overview */
 .sections-heading{margin-top:2.5rem}
-.sections-grid{display:grid;gap:1rem;margin-top:.8rem}
+.sections-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:.8rem}
 .section-card{display:block;background:rgba(0,0,0,.2);border:1px solid rgba(201,168,76,.15);
   border-radius:14px;padding:1.2rem 1.4rem;text-decoration:none;transition:all .25s}
 .section-card:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
