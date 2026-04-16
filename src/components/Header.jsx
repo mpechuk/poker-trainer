@@ -26,6 +26,7 @@ export function Header() {
         <a href="#/welcome" class={section === 'welcome' ? 'active' : ''}>Home</a>
         <a href="#/terminology/study" class={section === 'terminology' ? 'active' : ''}>Terminology</a>
         <a href="#/preflop/charts" class={section === 'preflop' ? 'active' : ''}>Preflop</a>
+        <a href="#/quizzes/terminology" class={section === 'quizzes' ? 'active' : ''}>Quizzes</a>
         <a href="#/stats" class={section === 'stats' ? 'active' : ''}>Stats</a>
       </nav>
     </header>

@@ -9,9 +9,8 @@ import { getTermQuizStats, saveTermQuizStats, initTermQuizStats } from '../../ut
 import '../../styles/quiz.css';
 
 const TABS = [
-  { path: '/terminology/study', label: 'Study' },
-  { path: '/terminology/quiz', label: 'Quiz' },
-  { path: '/terminology/reference', label: 'Reference' }
+  { path: '/quizzes/terminology', label: 'Terminology' },
+  { path: '/quizzes/preflop', label: 'Preflop' },
 ];
 
 export function Quiz({ path }) {
@@ -98,7 +97,7 @@ export function Quiz({ path }) {
 
     return (
       <div>
-        <SubNav tabs={TABS} currentPath="/terminology/quiz" />
+        <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
         <FilterChips activeCats={activeCats} onToggle={handleFilterToggle} />
         <div class="quiz-panel">
           <div class="quiz-complete">
@@ -118,7 +117,7 @@ export function Quiz({ path }) {
 
   return (
     <div>
-      <SubNav tabs={TABS} currentPath="/terminology/quiz" />
+      <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
       <FilterChips activeCats={activeCats} onToggle={handleFilterToggle} />
       <div class="quiz-panel">
         <div class="quiz-status">
