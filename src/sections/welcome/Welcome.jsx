@@ -18,12 +18,17 @@ const SECTIONS = [
   {
     href: '#/terminology/study',
     title: 'Terminology',
-    desc: 'Learn the language of poker with interactive flashcards, quizzes, and a searchable glossary of 78+ terms.',
+    desc: 'Learn the language of poker with interactive flashcards and a searchable glossary of 78+ terms.',
   },
   {
     href: '#/preflop/charts',
     title: 'Preflop Strategy',
-    desc: 'Study GTO-optimal preflop raise ranges for every position with interactive charts and a raise-or-fold quiz.',
+    desc: 'Study GTO-optimal preflop raise ranges for every position with interactive charts.',
+  },
+  {
+    href: '#/quizzes/terminology',
+    title: 'Quizzes',
+    desc: 'Test your knowledge with terminology and preflop decision quizzes across all positions and stack depths.',
   },
   {
     href: '#/stats',
@@ -35,6 +40,18 @@ const SECTIONS = [
 export function Welcome({ path }) {
   return (
     <div class="welcome">
+      <h2 class="sections-heading">Explore the Trainer</h2>
+
+      <div class="sections-grid">
+        {SECTIONS.map(s => (
+          <a class="section-card" href={s.href} key={s.href}>
+            <div class="section-card-title">{s.title}</div>
+            <div class="section-card-desc">{s.desc}</div>
+            <span class="section-card-link">Start learning &rarr;</span>
+          </a>
+        ))}
+      </div>
+
       <h2>Poker Hand Rankings</h2>
       <p class="welcome-intro">From strongest to weakest — know these by heart.</p>
 
@@ -46,18 +63,6 @@ export function Welcome({ path }) {
             <div class="ranking-illus" dangerouslySetInnerHTML={{ __html: ILLUS[h.key]() }} />
             <div class="ranking-desc">{h.desc}</div>
           </div>
-        ))}
-      </div>
-
-      <h2 class="sections-heading">Explore the Trainer</h2>
-
-      <div class="sections-grid">
-        {SECTIONS.map(s => (
-          <a class="section-card" href={s.href} key={s.href}>
-            <div class="section-card-title">{s.title}</div>
-            <div class="section-card-desc">{s.desc}</div>
-            <span class="section-card-link">Start learning &rarr;</span>
-          </a>
         ))}
       </div>
     </div>
