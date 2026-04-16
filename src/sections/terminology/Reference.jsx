@@ -8,8 +8,7 @@ import '../../styles/reference.css';
 
 const TABS = [
   { path: '/terminology/study', label: 'Study' },
-  { path: '/terminology/quiz', label: 'Quiz' },
-  { path: '/terminology/reference', label: 'Reference' }
+  { path: '/terminology/reference', label: 'Reference' },
 ];
 
 export function Reference({ path }) {

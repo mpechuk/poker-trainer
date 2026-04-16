@@ -53,6 +53,31 @@ describe('routing', () => {
     expect(resolveRoute('/preflop/vs-raise')).toBe('/preflop/vs-raise');
   });
 
+  it('/quizzes/terminology exists in routes list', () => {
+    expect(ROUTES_LIST).toContain('/quizzes/terminology');
+  });
+
+  it('/quizzes/preflop exists in routes list', () => {
+    expect(ROUTES_LIST).toContain('/quizzes/preflop');
+  });
+
+  it('resolves /quizzes shorthand to terminology quiz', () => {
+    expect(resolveRoute('/quizzes')).toBe('/quizzes/terminology');
+  });
+
+  it('old /terminology/quiz redirects to /quizzes/terminology — backward compat', () => {
+    expect(resolveRoute('/terminology/quiz')).toBe('/quizzes/terminology');
+  });
+
+  it('old /preflop/quiz redirects to /quizzes/preflop — backward compat', () => {
+    expect(resolveRoute('/preflop/quiz')).toBe('/quizzes/preflop');
+  });
+
+  it('/terminology/quiz and /preflop/quiz no longer exist as direct routes', () => {
+    expect(ROUTES_LIST).not.toContain('/terminology/quiz');
+    expect(ROUTES_LIST).not.toContain('/preflop/quiz');
+  });
+
   it('empty hash on initial load resolves to a renderable route — no blank page regression', () => {
     // Reproduces the startup sequence in useHashRoute:
     //   window.location.hash.slice(1) || '/'

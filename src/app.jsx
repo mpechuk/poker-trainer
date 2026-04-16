@@ -27,12 +27,12 @@ function useHashRoute() {
 const ROUTES = {
   '/welcome': Welcome,
   '/terminology/study': Study,
-  '/terminology/quiz': TermQuiz,
   '/terminology/reference': Reference,
   '/preflop/charts': Charts,
   '/preflop/limp': LimpCharts,
   '/preflop/vs-raise': RaiseCharts,
-  '/preflop/quiz': PreflopQuiz,
+  '/quizzes/terminology': TermQuiz,
+  '/quizzes/preflop': PreflopQuiz,
   '/stats': Dashboard,
 };
 

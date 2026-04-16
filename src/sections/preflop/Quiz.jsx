@@ -7,10 +7,8 @@ import { handToCards } from '../../utils/illustrations.jsx';
 import '../../styles/quiz.css';
 
 const TABS = [
-  { path: '/preflop/charts', label: 'RFI' },
-  { path: '/preflop/limp', label: 'vs Limp' },
-  { path: '/preflop/vs-raise', label: 'vs Raise' },
-  { path: '/preflop/quiz', label: 'Quiz' },
+  { path: '/quizzes/terminology', label: 'Terminology' },
+  { path: '/quizzes/preflop', label: 'Preflop' },
 ];
 
 const MODES = [
@@ -256,7 +254,7 @@ export function PreflopQuiz() {
 
     return (
       <div>
-        <SubNav tabs={TABS} currentPath="/preflop/quiz" />
+        <SubNav tabs={TABS} currentPath="/quizzes/preflop" />
         <div class="rq-panel">
           <div class="rq-complete">
             <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Quiz Complete</h2>
@@ -278,7 +276,7 @@ export function PreflopQuiz() {
 
   return (
     <div>
-      <SubNav tabs={TABS} currentPath="/preflop/quiz" />
+      <SubNav tabs={TABS} currentPath="/quizzes/preflop" />
       <div class="rq-panel">
         <h2 class="rq-title">Preflop Quiz</h2>
 

@@ -8,7 +8,6 @@ const TABS = [
   { path: '/preflop/charts', label: 'RFI' },
   { path: '/preflop/limp', label: 'vs Limp' },
   { path: '/preflop/vs-raise', label: 'vs Raise' },
-  { path: '/preflop/quiz', label: 'Quiz' },
 ];
 
 export function RaiseCharts() {
