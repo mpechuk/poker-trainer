@@ -209,7 +209,7 @@ export function PreflopQuiz() {
   const [answered, setAnswered]     = useState(false);
   const [choseAction, setChoseAction] = useState(null);
   const [results, setResults]       = useState([]);
-  const [countdown, setCountdown]   = useState(15);
+  const [countdown, setCountdown]   = useState(5);
 
   function resetQuiz(mode, depth) {
     setDeck(buildDeck(mode, depth));
@@ -252,11 +252,11 @@ export function PreflopQuiz() {
     setChoseAction(null);
   }
 
-  // Auto-advance 15s after answering; cleanup cancels timer when next() is called manually
+  // Auto-advance 5s after answering; cleanup cancels timer when next() is called manually
   useEffect(() => {
     if (!answered || phase !== 'playing') return;
-    setCountdown(15);
-    let secs = 15;
+    setCountdown(5);
+    let secs = 5;
     const id = setInterval(() => {
       secs -= 1;
       setCountdown(secs);
