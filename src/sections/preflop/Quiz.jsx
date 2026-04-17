@@ -269,13 +269,14 @@ function saveStats(results, mode, score, stackDepth) {
 }
 
 // ---------- main component ----------
-export function PreflopQuiz() {
+export function PreflopQuiz({ query }) {
+  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'rfi';
   const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
-  const [quizMode, setQuizMode]     = useState('rfi');
+  const [quizMode, setQuizMode]     = useState(initialMode);
   const [stackDepth, setStackDepth] = useState('100BB');
   const [selectedPos, setSelectedPos] = useState('all');
   const [selectedVillainPos, setSelectedVillainPos] = useState('all');
-  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB', 'all', 'all'));
+  const [deck, setDeck]             = useState(() => buildDeck(initialMode, '100BB', 'all', 'all'));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
   const [answered, setAnswered]     = useState(false);

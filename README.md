@@ -19,7 +19,7 @@
 - **RFI Quiz** — Practice raise/fold decisions against GTO-optimal preflop ranges with persistent progress tracking.
 
 ### Stats
-- **Dashboard** — Full statistics view showing study progress, terminology quiz accuracy, and RFI quiz performance by position.
+- **Dashboard** — Full statistics view showing study progress, terminology quiz accuracy, and RFI quiz performance by position. Surfaces a "Recommended Next Quiz" card that points you at your weakest area (or an untaken quiz for a baseline) with a one-click button to start it.
 
 ## Technology
 

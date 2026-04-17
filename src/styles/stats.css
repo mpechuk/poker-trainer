@@ -38,3 +38,16 @@
   border-radius:6px;font-size:.85rem;color:var(--text)}
 .stats-history-row:nth-child(even){background:rgba(255,255,255,.03)}
 .stats-empty{text-align:center;color:var(--muted);padding:1.5rem;font-style:italic}
+.stats-recommendation{margin-bottom:1.5rem;padding:1.2rem;
+  background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(46,204,113,.08));
+  border:1px solid rgba(201,168,76,.4);border-radius:14px;text-align:center}
+.stats-rec-label{font-size:.72rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:.35rem}
+.stats-rec-title{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--gold-bright);
+  margin-bottom:.4rem}
+.stats-rec-reason{color:var(--text);font-size:.92rem;margin-bottom:.9rem;line-height:1.4}
+.stats-rec-btn{display:inline-block;background:var(--gold);color:#1a1a2a;padding:.55rem 1.4rem;
+  border-radius:8px;font-weight:600;letter-spacing:.04em;text-decoration:none;font-size:.92rem;
+  border:1px solid var(--gold-bright);transition:background .2s,transform .1s}
+.stats-rec-btn:hover{background:var(--gold-bright)}
+.stats-rec-btn:active{transform:translateY(1px)}
