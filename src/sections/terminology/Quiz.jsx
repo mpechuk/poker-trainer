@@ -70,7 +70,8 @@ export function Quiz({ path }) {
     setTotal(t => t + 1);
   }, [answered, quizDeck, qIdx]);
 
-  function nextQuiz() {
+  function nextQuiz(e) {
+    e.currentTarget.blur();
     const nextIdx = qIdx + 1;
     setQIdx(nextIdx);
     setAnswered(false);
