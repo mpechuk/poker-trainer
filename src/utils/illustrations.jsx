@@ -442,7 +442,8 @@ export function getIllus(t) {
 
 
 export function handToCards(h, suit) {
-  const rank1 = h[0], rank2 = h[1];
+  const toRank = r => r==='T' ? '10' : r;
+  const rank1 = toRank(h[0]), rank2 = toRank(h[1]);
   const type = h.length===2 ? 'pair' : h[2]==='s' ? 'suited' : 'offsuit';
   if (type==='pair') return cardSvg(rank1,'♠',64,90)+cardSvg(rank2,'♥',64,90);
   if (type==='suited') {

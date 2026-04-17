@@ -50,4 +50,16 @@ describe('handToCards', () => {
     expect(a).toContain('♠');
     expect(a).toContain('♥');
   });
+
+  it('T notation renders as 10 on the card face — not the letter T', () => {
+    const tt = handToCards('TT');
+    const t9s = handToCards('T9s', '♠');
+    const ato = handToCards('ATo');
+    expect(tt).toContain('>10<');
+    expect(t9s).toContain('>10<');
+    expect(ato).toContain('>10<');
+    expect(tt).not.toContain('>T<');
+    expect(t9s).not.toContain('>T<');
+    expect(ato).not.toContain('>T<');
+  });
 });
