@@ -22,6 +22,8 @@
 .ans-btn.correct{background:rgba(46,204,113,.18);border-color:#27ae60;color:#a8f0c6}
 .ans-btn.wrong{background:rgba(192,57,43,.18);border-color:#c0392b;color:#f0b8b0}
 .ans-btn:disabled{cursor:default}
+.ans-def{font-size:.82rem;color:#a09070}
+.ans-btn.correct .ans-def,.ans-btn.wrong .ans-def{color:inherit}
 .quiz-next{display:none;margin:0 auto;padding:.65rem 2rem;
   background:var(--gold-dark);color:var(--gold-bright);border:none;border-radius:30px;
   font-family:'Crimson Pro',serif;font-size:1rem;cursor:pointer;

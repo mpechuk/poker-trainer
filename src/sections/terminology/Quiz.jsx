@@ -9,9 +9,21 @@ import { getTermQuizStats, saveTermQuizStats, initTermQuizStats } from '../../ut
 import '../../styles/quiz.css';
 
 const TABS = [
-  { path: '/quizzes/terminology', label: 'Terminology' },
   { path: '/quizzes/preflop', label: 'Preflop' },
+  { path: '/quizzes/terminology', label: 'Terminology' },
 ];
+
+export function buildDeck(cats) {
+  return shuffle(TERMS.filter(t => cats.has(t.cat)));
+}
+
+export function buildOptions(deck, idx) {
+  if (idx >= deck.length) return [];
+  const t = deck[idx];
+  const wrong = TERMS.filter(x => x.term !== t.term);
+  const picked = shuffle(wrong).slice(0, 3);
+  return shuffle([...picked, t]);
+}
 
 export function Quiz({ path }) {
   const { activeCats, toggleCat } = useFilters();
@@ -22,19 +34,8 @@ export function Quiz({ path }) {
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [options, setOptions] = useState(() => buildOptions(buildDeck(activeCats), 0));
-
-  function buildDeck(cats) {
-    return shuffle(TERMS.filter(t => cats.has(t.cat)));
-  }
-
-  function buildOptions(deck, idx) {
-    if (idx >= deck.length) return [];
-    const t = deck[idx];
-    const wrong = TERMS.filter(x => x.term !== t.term);
-    const picked = shuffle(wrong).slice(0, 3);
-    return shuffle([...picked, t]);
-  }
+  // quizDeck is already set above; use the same deck for initial options so q0 answer is always present
+  const [options, setOptions] = useState(() => buildOptions(quizDeck, 0));
 
   function restart() {
     const newDeck = buildDeck(activeCats);
@@ -147,7 +148,7 @@ export function Quiz({ path }) {
                     disabled={answered}
                     onClick={() => answerQuiz(o.term)}
                   >
-                    <span style="font-size:.82rem;color:#a09070">{o.def}</span>
+                    <span class="ans-def">{o.def}</span>
                   </button>
                 );
               })}
