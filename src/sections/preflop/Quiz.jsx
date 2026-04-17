@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'preact/hooks';
+import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_RANGES, LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, VS_RAISE_RANGES, RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS } from '../../data/preflop-ranges.js';
@@ -200,16 +200,16 @@ function saveStats(results, mode, score, stackDepth) {
 
 // ---------- main component ----------
 export function PreflopQuiz() {
-  const [quizMode, setQuizMode]   = useState('rfi');
+  const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
+  const [quizMode, setQuizMode]     = useState('rfi');
   const [stackDepth, setStackDepth] = useState('100BB');
-  const [deck, setDeck]           = useState(() => buildDeck('rfi', '100BB'));
-  const [qIdx, setQIdx]           = useState(0);
-  const [score, setScore]         = useState(0);
-  const [answered, setAnswered]   = useState(false);
+  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB'));
+  const [qIdx, setQIdx]             = useState(0);
+  const [score, setScore]           = useState(0);
+  const [answered, setAnswered]     = useState(false);
   const [choseAction, setChoseAction] = useState(null);
-  const [results, setResults]     = useState([]);
-
-  const quizInProgress = qIdx > 0 && qIdx < deck.length;
+  const [results, setResults]       = useState([]);
+  const [countdown, setCountdown]   = useState(15);
 
   function resetQuiz(mode, depth) {
     setDeck(buildDeck(mode, depth));
@@ -217,18 +217,24 @@ export function PreflopQuiz() {
   }
 
   function changeMode(m) {
-    if (quizInProgress) return;
     setQuizMode(m);
     resetQuiz(m, stackDepth);
   }
 
   function changeStackDepth(d) {
-    if (quizInProgress) return;
     setStackDepth(d);
     resetQuiz(quizMode, d);
   }
 
-  function restart() { resetQuiz(quizMode, stackDepth); }
+  function startQuiz() {
+    resetQuiz(quizMode, stackDepth);
+    setPhase('playing');
+  }
+
+  function exitQuiz() {
+    setPhase('setup');
+    setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
+  }
 
   const answer = useCallback((action) => {
     if (answered) return;
@@ -240,9 +246,71 @@ export function PreflopQuiz() {
     setResults(r => [...r, { type: q.type, heroPos: q.heroPos, villainPos: q.villainPos, correct: isCorrect }]);
   }, [answered, deck, qIdx]);
 
-  function next() { setQIdx(i => i + 1); setAnswered(false); setChoseAction(null); }
+  function next() {
+    setQIdx(i => i + 1);
+    setAnswered(false);
+    setChoseAction(null);
+  }
 
-  // Quiz complete
+  // Auto-advance 15s after answering; cleanup cancels timer when next() is called manually
+  useEffect(() => {
+    if (!answered || phase !== 'playing') return;
+    setCountdown(15);
+    let secs = 15;
+    const id = setInterval(() => {
+      secs -= 1;
+      setCountdown(secs);
+      if (secs <= 0) {
+        clearInterval(id);
+        setQIdx(i => i + 1);
+        setAnswered(false);
+        setChoseAction(null);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [answered, phase]);
+
+  // ── Setup screen ──────────────────────────────────────────────────────────
+  if (phase === 'setup') {
+    return (
+      <div>
+        <SubNav tabs={TABS} currentPath="/quizzes/preflop" />
+        <div class="rq-panel">
+          <h2 class="rq-title">Preflop Quiz</h2>
+
+          <div class="rq-setup-label">Mode</div>
+          <div class="rq-selector-group">
+            {MODES.map(m => (
+              <button
+                key={m.id}
+                class={`rq-selector-btn${m.id === quizMode ? ' active' : ''}`}
+                onClick={() => changeMode(m.id)}
+              >{m.label}</button>
+            ))}
+          </div>
+
+          <div class="rq-setup-label">Stack Depth</div>
+          <div class="rq-selector-group">
+            {STACK_DEPTHS.map(d => (
+              <button
+                key={d}
+                class={`rq-selector-btn${d === stackDepth ? ' active' : ''}`}
+                onClick={() => changeStackDepth(d)}
+              >{d}</button>
+            ))}
+          </div>
+
+          <div class="rq-start-row">
+            <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
+          </div>
+
+          <QuizStats mode={quizMode} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Complete screen ───────────────────────────────────────────────────────
   if (qIdx >= deck.length && deck.length > 0) {
     const pct = Math.round(score / RFI_QUIZ_LENGTH * 100);
     const msg = pct >= 90 ? 'Phenomenal \u2014 you know your ranges!' :
@@ -260,7 +328,8 @@ export function PreflopQuiz() {
             <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Quiz Complete</h2>
             <div class="score-big">{score} / {RFI_QUIZ_LENGTH} &mdash; {pct}%</div>
             <p>{msg}</p>
-            <button class="rq-restart" onClick={restart}>Play Again</button>
+            <button class="rq-restart" onClick={startQuiz}>Play Again</button>
+            <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
           </div>
           <QuizStats mode={quizMode} />
@@ -269,41 +338,20 @@ export function PreflopQuiz() {
     );
   }
 
+  // ── Playing screen ────────────────────────────────────────────────────────
   const current = deck[qIdx];
   const pctDisplay = qIdx > 0 ? Math.round(score / qIdx * 100) + '%' : '\u2014';
   const isCorrect = answered && current ? (choseAction === current.correctAction) : null;
   const buttons = current ? getButtons(current.type) : [];
+  const modeLabel = MODES.find(m => m.id === quizMode)?.label ?? quizMode;
 
   return (
-    <div>
-      <SubNav tabs={TABS} currentPath="/quizzes/preflop" />
+    <div class="rq-playing-wrapper">
       <div class="rq-panel">
-        <h2 class="rq-title">Preflop Quiz</h2>
-
-        {/* Mode selector */}
-        <div class="stack-tabs" style="margin-bottom:.5rem">
-          {MODES.map(m => (
-            <button
-              key={m.id}
-              class={`stack-tab${m.id === quizMode ? ' active' : ''}${quizInProgress ? ' disabled' : ''}`}
-              onClick={() => changeMode(m.id)}
-              title={quizInProgress ? 'Finish or restart to change mode' : ''}
-            >{m.label}</button>
-          ))}
+        <div class="rq-playing-header">
+          <div class="rq-mode-badge">{modeLabel} &middot; {stackDepth}</div>
+          <button class="rq-exit-btn" onClick={exitQuiz}>Exit</button>
         </div>
-
-        {/* Stack depth selector */}
-        <div class="stack-tabs rq-stack-tabs">
-          {STACK_DEPTHS.map(d => (
-            <button
-              key={d}
-              class={`stack-tab${d === stackDepth ? ' active' : ''}${quizInProgress ? ' disabled' : ''}`}
-              onClick={() => changeStackDepth(d)}
-              title={quizInProgress ? 'Finish or restart quiz to change stack depth' : ''}
-            >{d}</button>
-          ))}
-        </div>
-        {quizInProgress && <p class="rq-stack-note">Mode &amp; stack locked during quiz &mdash; finish or restart to change</p>}
 
         <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / RFI_QUIZ_LENGTH * 100) + '%' }}></div></div>
         <div class="rq-status">
@@ -348,13 +396,17 @@ export function PreflopQuiz() {
                 }
               </div>
             )}
-            <div style="text-align:center">
-              {answered && <button class="rq-next" style="display:inline-block" onClick={next}>Next Question {'\u2192'}</button>}
+
+            <div class="rq-next-row">
+              {answered && (
+                <>
+                  <button class="rq-next" style="display:inline-block" onClick={next}>Next Question {'\u2192'}</button>
+                  <div class="rq-countdown">Auto-advancing in {countdown}s</div>
+                </>
+              )}
             </div>
           </>
         )}
-
-        <QuizStats mode={quizMode} />
       </div>
     </div>
   );

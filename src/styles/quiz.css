@@ -37,10 +37,41 @@
 
 /* RFI Quiz */
 .rq-panel{padding:1.5rem 1rem 0;max-width:700px;margin:0 auto}
-.rq-stack-tabs{margin-bottom:.5rem!important}
-.rq-stack-note{text-align:center;font-size:.78rem;color:var(--muted);font-style:italic;margin:.1rem 0 .6rem}
+.rq-playing-wrapper{padding-top:0}
 .rq-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.8rem);
   color:var(--gold-bright);text-align:center;margin-bottom:.3rem}
+
+/* Setup screen selectors — mobile-first, no overflow clipping */
+.rq-setup-label{text-align:center;font-size:.75rem;color:var(--muted);letter-spacing:.1em;
+  text-transform:uppercase;margin:.8rem 0 .4rem}
+.rq-selector-group{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  margin-bottom:.5rem}
+.rq-selector-btn{padding:.45rem 1rem;border-radius:30px;border:1px solid var(--gold-dark);
+  background:rgba(0,0,0,.3);color:var(--muted);font-family:'Crimson Pro',serif;
+  font-size:.9rem;cursor:pointer;transition:all .2s;white-space:nowrap;
+  min-width:64px;text-align:center}
+.rq-selector-btn:hover:not(.active){color:var(--text);background:rgba(255,255,255,.07)}
+.rq-selector-btn.active{background:var(--gold-dark);color:var(--gold-bright);font-weight:600;
+  border-color:var(--gold)}
+.rq-start-row{text-align:center;margin:1.5rem 0 1rem}
+.rq-start-btn{padding:.7rem 2.5rem;background:var(--gold-dark);color:var(--gold-bright);
+  border:none;border-radius:30px;font-family:'Crimson Pro',serif;font-size:1.1rem;
+  font-weight:600;cursor:pointer;letter-spacing:.06em;transition:background .2s}
+.rq-start-btn:hover{background:var(--gold)}
+
+/* Playing header */
+.rq-playing-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:.8rem}
+.rq-mode-badge{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.rq-exit-btn{padding:.35rem .9rem;background:transparent;border:1px solid rgba(192,57,43,.5);
+  color:#f0b8b0;border-radius:20px;font-family:'Crimson Pro',serif;font-size:.85rem;
+  cursor:pointer;transition:all .2s}
+.rq-exit-btn:hover{background:rgba(192,57,43,.15);border-color:#c0392b}
+
+/* Next row with countdown */
+.rq-next-row{text-align:center;min-height:2.5rem;display:flex;flex-direction:column;
+  align-items:center;gap:.4rem;margin-bottom:.5rem}
+.rq-countdown{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
 .rq-sub{color:var(--muted);text-align:center;font-size:.95rem;margin-bottom:1.2rem}
 .rq-status{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;
   max-width:500px;margin-left:auto;margin-right:auto}
