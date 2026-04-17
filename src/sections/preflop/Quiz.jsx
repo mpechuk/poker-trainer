@@ -2,6 +2,19 @@ import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_RANGES, LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, VS_RAISE_RANGES, RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS } from '../../data/preflop-ranges.js';
+
+export function getPositionsForMode(mode) {
+  if (mode === 'rfi')     return RFI_QUIZ_POSITIONS;
+  if (mode === 'limp')    return LIMP_HERO_POSITIONS;
+  if (mode === 'vsRaise') return RAISE_HERO_POSITIONS;
+  // 'all' mode — union of all positions
+  const seen = new Set();
+  const union = [];
+  for (const p of [...RFI_QUIZ_POSITIONS, ...LIMP_HERO_POSITIONS, ...RAISE_HERO_POSITIONS]) {
+    if (!seen.has(p)) { seen.add(p); union.push(p); }
+  }
+  return union;
+}
 import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
 import '../../styles/quiz.css';
@@ -30,35 +43,36 @@ function randomHand() {
   return RANKS[c] + RANKS[r] + 'o';
 }
 
-function generateRfiHand(stackDepth) {
-  const pos = RFI_QUIZ_POSITIONS[Math.floor(Math.random() * RFI_QUIZ_POSITIONS.length)];
+function generateRfiHand(stackDepth, posOverride = null) {
+  const pos = posOverride || RFI_QUIZ_POSITIONS[Math.floor(Math.random() * RFI_QUIZ_POSITIONS.length)];
   const hand = randomHand();
   return { type: 'rfi', hand, heroPos: pos, villainPos: null, stackDepth, suit: randomSuit(), correctAction: RFI_RANGES[stackDepth][pos].has(hand) ? 'raise' : 'fold' };
 }
 
-function generateLimpHand(stackDepth) {
-  const heroPos = LIMP_HERO_POSITIONS[Math.floor(Math.random() * LIMP_HERO_POSITIONS.length)];
+function generateLimpHand(stackDepth, posOverride = null) {
+  const heroPos = posOverride || LIMP_HERO_POSITIONS[Math.floor(Math.random() * LIMP_HERO_POSITIONS.length)];
   const villains = VALID_LIMP_VILLAINS[heroPos];
   const villainPos = villains[Math.floor(Math.random() * villains.length)];
   const hand = randomHand();
   const range = LIMP_RANGES[stackDepth]?.[heroPos]?.[villainPos];
-  if (!range) return generateLimpHand(stackDepth);
+  if (!range) return generateLimpHand(stackDepth, posOverride);
   const correctAction = range.raise.has(hand) ? 'raise' : range.call.has(hand) ? 'call' : 'fold';
   return { type: 'limp', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
-function generateVsRaiseHand(stackDepth) {
-  const heroPos = RAISE_HERO_POSITIONS[Math.floor(Math.random() * RAISE_HERO_POSITIONS.length)];
+function generateVsRaiseHand(stackDepth, posOverride = null) {
+  const heroPos = posOverride || RAISE_HERO_POSITIONS[Math.floor(Math.random() * RAISE_HERO_POSITIONS.length)];
   const villains = VALID_RAISE_VILLAINS[heroPos];
   const villainPos = villains[Math.floor(Math.random() * villains.length)];
   const hand = randomHand();
   const range = VS_RAISE_RANGES[stackDepth]?.[heroPos]?.[villainPos];
-  if (!range) return generateVsRaiseHand(stackDepth);
+  if (!range) return generateVsRaiseHand(stackDepth, posOverride);
   const correctAction = range.threebet.has(hand) ? 'threebet' : range.call.has(hand) ? 'call' : 'fold';
   return { type: 'vsRaise', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
-function buildDeck(mode, stackDepth) {
+function buildDeck(mode, stackDepth, heroPos = 'all') {
+  const posOverride = heroPos !== 'all' ? heroPos : null;
   const deck = [];
   const counts = {};
   let attempts = 0;
@@ -67,14 +81,21 @@ function buildDeck(mode, stackDepth) {
   while (deck.length < RFI_QUIZ_LENGTH && attempts < 300) {
     attempts++;
     let q;
-    if (mode === 'rfi') q = generateRfiHand(stackDepth);
-    else if (mode === 'limp') q = generateLimpHand(stackDepth);
-    else if (mode === 'vsRaise') q = generateVsRaiseHand(stackDepth);
+    if (mode === 'rfi') q = generateRfiHand(stackDepth, posOverride);
+    else if (mode === 'limp') q = generateLimpHand(stackDepth, posOverride);
+    else if (mode === 'vsRaise') q = generateVsRaiseHand(stackDepth, posOverride);
     else {
-      const r = Math.random();
-      if (r < 0.33) q = generateRfiHand(stackDepth);
-      else if (r < 0.66) q = generateLimpHand(stackDepth);
-      else q = generateVsRaiseHand(stackDepth);
+      const canRfi     = !posOverride || RFI_QUIZ_POSITIONS.includes(posOverride);
+      const canLimp    = !posOverride || LIMP_HERO_POSITIONS.includes(posOverride);
+      const canVsRaise = !posOverride || RAISE_HERO_POSITIONS.includes(posOverride);
+      const avail = [];
+      if (canRfi)     avail.push('rfi');
+      if (canLimp)    avail.push('limp');
+      if (canVsRaise) avail.push('vsRaise');
+      const picked = avail[Math.floor(Math.random() * avail.length)];
+      if (picked === 'rfi')     q = generateRfiHand(stackDepth, posOverride);
+      else if (picked === 'limp') q = generateLimpHand(stackDepth, posOverride);
+      else                        q = generateVsRaiseHand(stackDepth, posOverride);
     }
     const key = `${q.type}:${q.hand}:${q.heroPos}:${q.villainPos}`;
     if (deck.some(x => `${x.type}:${x.hand}:${x.heroPos}:${x.villainPos}` === key)) continue;
@@ -203,7 +224,8 @@ export function PreflopQuiz() {
   const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
   const [quizMode, setQuizMode]     = useState('rfi');
   const [stackDepth, setStackDepth] = useState('100BB');
-  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB'));
+  const [selectedPos, setSelectedPos] = useState('all');
+  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB', 'all'));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
   const [answered, setAnswered]     = useState(false);
@@ -211,23 +233,29 @@ export function PreflopQuiz() {
   const [results, setResults]       = useState([]);
   const [countdown, setCountdown]   = useState(5);
 
-  function resetQuiz(mode, depth) {
-    setDeck(buildDeck(mode, depth));
+  function resetQuiz(mode, depth, pos) {
+    setDeck(buildDeck(mode, depth, pos));
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 
   function changeMode(m) {
     setQuizMode(m);
-    resetQuiz(m, stackDepth);
+    setSelectedPos('all');
+    resetQuiz(m, stackDepth, 'all');
   }
 
   function changeStackDepth(d) {
     setStackDepth(d);
-    resetQuiz(quizMode, d);
+    resetQuiz(quizMode, d, selectedPos);
+  }
+
+  function changePosition(pos) {
+    setSelectedPos(pos);
+    resetQuiz(quizMode, stackDepth, pos);
   }
 
   function startQuiz() {
-    resetQuiz(quizMode, stackDepth);
+    resetQuiz(quizMode, stackDepth, selectedPos);
     setPhase('playing');
   }
 
@@ -297,6 +325,21 @@ export function PreflopQuiz() {
                 class={`rq-selector-btn${d === stackDepth ? ' active' : ''}`}
                 onClick={() => changeStackDepth(d)}
               >{d}</button>
+            ))}
+          </div>
+
+          <div class="rq-setup-label">Position</div>
+          <div class="rq-selector-group">
+            <button
+              class={`rq-selector-btn${'all' === selectedPos ? ' active' : ''}`}
+              onClick={() => changePosition('all')}
+            >All</button>
+            {getPositionsForMode(quizMode).map(pos => (
+              <button
+                key={pos}
+                class={`rq-selector-btn${pos === selectedPos ? ' active' : ''}`}
+                onClick={() => changePosition(pos)}
+              >{pos}</button>
             ))}
           </div>
 
