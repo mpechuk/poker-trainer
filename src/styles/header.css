@@ -29,11 +29,13 @@ h1 em{font-style:italic;color:var(--gold)}
   .section-nav a:nth-last-child(2),.section-nav a:last-child{flex:1 0 50%}
 }
 
-/* Sub nav */
-.sub-nav{display:flex;justify-content:center;gap:0;margin:1rem auto 0;max-width:520px;
-  border:1px solid rgba(201,168,76,.25);border-radius:30px;overflow:hidden;background:rgba(0,0,0,0.2)}
-.sub-nav a{flex:1;padding:0.45rem 0.8rem;background:transparent;
+/* Sub nav — gap-based so tabs never get clipped by overflow:hidden on narrow screens */
+.sub-nav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+  margin:1rem auto 0;padding:.3rem;max-width:520px;
+  border:1px solid rgba(201,168,76,.25);border-radius:30px;background:rgba(0,0,0,0.2)}
+.sub-nav a{padding:0.35rem 0.9rem;border-radius:20px;background:transparent;
   color:var(--muted);font-family:'Crimson Pro',serif;font-size:.9rem;cursor:pointer;
-  transition:all .25s;letter-spacing:.03em;text-decoration:none;text-align:center}
+  transition:all .25s;letter-spacing:.03em;text-decoration:none;text-align:center;
+  white-space:nowrap}
 .sub-nav a.active{background:rgba(201,168,76,.2);color:var(--gold-bright);font-weight:600}
 .sub-nav a:hover:not(.active){color:var(--text);background:rgba(255,255,255,.05)}
