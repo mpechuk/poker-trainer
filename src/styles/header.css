@@ -14,6 +14,11 @@ h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.8rem,5vw,3rem)
 h1 em{font-style:italic;color:var(--gold)}
 .subtitle{color:var(--muted);font-size:1.05rem;margin-top:0.4rem}
 
+/* Compact header (non-welcome screens) — only the suits-row is shown,
+   vertically aligned with the hamburger button (top:1rem, height:44px → center y ≈ 38px). */
+header.is-compact{padding:1.2rem 1rem 1rem}
+header.is-compact .suits-row{margin-bottom:0}
+
 /* Hamburger button — fixed to the top-left corner on all screens */
 .hamburger{
   position:fixed;top:1rem;left:1rem;z-index:60;

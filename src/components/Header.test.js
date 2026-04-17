@@ -42,4 +42,14 @@ describe('Header — hamburger menu', () => {
     // The backdrop's onClick must also call setMenuOpen(false)
     expect(source).toMatch(/nav-backdrop[\s\S]{0,200}setMenuOpen\(false\)/);
   });
+
+  it('renders the Texas Hold\'em title and subtitle only on the welcome screen', () => {
+    // Title and subtitle must be guarded by an isWelcome check so they hide on other screens.
+    expect(source).toMatch(/const\s+isWelcome\s*=\s*section\s*===\s*'welcome'/);
+    expect(source).toMatch(/isWelcome\s*&&[\s\S]{0,200}Texas Hold'em[\s\S]{0,200}Master the language of the felt/);
+  });
+
+  it('applies an is-compact class to the header on non-welcome screens — used to align the suits-row with the hamburger', () => {
+    expect(source).toMatch(/class=\{isWelcome\s*\?\s*''\s*:\s*'is-compact'\}/);
+  });
 });
