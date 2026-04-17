@@ -35,4 +35,10 @@ describe('header.css hamburger nav', () => {
     expect(css).toMatch(/\.nav-backdrop\s*\{[^}]*position:fixed/);
     expect(css).toMatch(/\.nav-backdrop\s*\{[^}]*inset:0/);
   });
+
+  it('compact header reduces top padding so the suits-row aligns vertically with the hamburger', () => {
+    // header.is-compact must override the default 2.5rem top padding with a smaller value
+    // so the suits-row sits at roughly the same vertical position as the hamburger button.
+    expect(css).toMatch(/header\.is-compact\s*\{[^}]*padding:1\.2rem/);
+  });
 });

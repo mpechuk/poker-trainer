@@ -30,9 +30,10 @@ export function Header() {
   }, [menuOpen]);
 
   const section = currentPath.split('/')[1] || 'welcome';
+  const isWelcome = section === 'welcome';
 
   return (
-    <header>
+    <header class={isWelcome ? '' : 'is-compact'}>
       <button
         type="button"
         class={`hamburger${menuOpen ? ' is-open' : ''}`}
@@ -74,8 +75,12 @@ export function Header() {
         <span class="d">{'\u2666'}</span>
         <span class="c">{'\u2663'}</span>
       </div>
-      <h1><em>Texas Hold'em</em> Poker Trainer</h1>
-      <p class="subtitle">Master the language of the felt</p>
+      {isWelcome && (
+        <>
+          <h1><em>Texas Hold'em</em> Poker Trainer</h1>
+          <p class="subtitle">Master the language of the felt</p>
+        </>
+      )}
     </header>
   );
 }
