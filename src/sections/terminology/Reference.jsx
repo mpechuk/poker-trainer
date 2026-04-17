@@ -36,7 +36,7 @@ export function Reference({ path }) {
           <span class="search-icon">{'\u2660'}</span>
           <input
             type="text"
-            placeholder="Search terms\u2026"
+            placeholder="Search terminology…"
             value={search}
             onInput={e => setSearch(e.target.value)}
           />
