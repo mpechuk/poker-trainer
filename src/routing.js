@@ -15,7 +15,7 @@ export const REDIRECTS = {
   '/': '/welcome',
   '/terminology': '/terminology/study',
   '/preflop': '/preflop/charts',
-  '/quizzes': '/quizzes/terminology',
+  '/quizzes': '/quizzes/preflop',
   '/terminology/quiz': '/quizzes/terminology',
   '/preflop/quiz': '/quizzes/preflop',
 };
