@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
-import { getPositionsForMode } from './Quiz.jsx';
+import { getPositionsForMode, getVillainsForSelection, getHeroesForVillain } from './Quiz.jsx';
 
 // Replicate the pure logic from Quiz.jsx for testing
 const SUITS = ['♠','♥','♦','♣'];
@@ -137,5 +137,46 @@ describe('PreflopQuiz — position selector', () => {
     expect(getPositionsForMode('rfi')).not.toContain('BB');
     expect(getPositionsForMode('limp')).toContain('BB');
     expect(getPositionsForMode('vsRaise')).toContain('BB');
+  });
+});
+
+describe('PreflopQuiz — villain position selector', () => {
+  it('getVillainsForSelection limp with hero=HJ returns only UTG', () => {
+    expect(getVillainsForSelection('limp', 'HJ')).toEqual(['UTG']);
+  });
+
+  it('getVillainsForSelection limp with hero=BB returns all positions', () => {
+    const v = getVillainsForSelection('limp', 'BB');
+    expect(v).toContain('UTG');
+    expect(v).toContain('SB');
+    expect(v.length).toBe(5);
+  });
+
+  it('getVillainsForSelection limp with hero=all returns deduplicated union', () => {
+    const v = getVillainsForSelection('limp', 'all');
+    const unique = [...new Set(v)];
+    expect(v).toEqual(unique);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it('getVillainsForSelection vsRaise mirrors limp structure', () => {
+    expect(getVillainsForSelection('vsRaise', 'HJ')).toEqual(['UTG']);
+    expect(getVillainsForSelection('vsRaise', 'BB').length).toBe(5);
+  });
+
+  it('getHeroesForVillain limp UTG returns all hero positions', () => {
+    const heroes = getHeroesForVillain('limp', 'UTG');
+    expect(heroes).toContain('HJ');
+    expect(heroes).toContain('BB');
+    expect(heroes.length).toBe(5);
+  });
+
+  it('getHeroesForVillain limp SB returns only BB', () => {
+    expect(getHeroesForVillain('limp', 'SB')).toEqual(['BB']);
+  });
+
+  it('getHeroesForVillain vsRaise mirrors limp structure', () => {
+    expect(getHeroesForVillain('vsRaise', 'SB')).toEqual(['BB']);
+    expect(getHeroesForVillain('vsRaise', 'UTG').length).toBe(5);
   });
 });

@@ -15,6 +15,28 @@ export function getPositionsForMode(mode) {
   }
   return union;
 }
+
+// Returns valid villain positions given a mode and the selected hero position.
+export function getVillainsForSelection(mode, heroPos) {
+  const map = mode === 'limp' ? VALID_LIMP_VILLAINS : VALID_RAISE_VILLAINS;
+  if (heroPos === 'all') {
+    const seen = new Set();
+    const union = [];
+    for (const villains of Object.values(map)) {
+      for (const v of villains) {
+        if (!seen.has(v)) { seen.add(v); union.push(v); }
+      }
+    }
+    return union;
+  }
+  return map[heroPos] || [];
+}
+
+// Returns hero positions that can face the given villain position.
+export function getHeroesForVillain(mode, villainPos) {
+  const map = mode === 'limp' ? VALID_LIMP_VILLAINS : VALID_RAISE_VILLAINS;
+  return Object.entries(map).filter(([, v]) => v.includes(villainPos)).map(([h]) => h);
+}
 import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
 import '../../styles/quiz.css';
@@ -49,30 +71,57 @@ function generateRfiHand(stackDepth, posOverride = null) {
   return { type: 'rfi', hand, heroPos: pos, villainPos: null, stackDepth, suit: randomSuit(), correctAction: RFI_RANGES[stackDepth][pos].has(hand) ? 'raise' : 'fold' };
 }
 
-function generateLimpHand(stackDepth, posOverride = null) {
-  const heroPos = posOverride || LIMP_HERO_POSITIONS[Math.floor(Math.random() * LIMP_HERO_POSITIONS.length)];
-  const villains = VALID_LIMP_VILLAINS[heroPos];
-  const villainPos = villains[Math.floor(Math.random() * villains.length)];
+function generateLimpHand(stackDepth, heroOverride = null, villainOverride = null) {
+  let heroPos, villainPos;
+  if (heroOverride && villainOverride) {
+    heroPos = heroOverride; villainPos = villainOverride;
+  } else if (heroOverride) {
+    heroPos = heroOverride;
+    const v = VALID_LIMP_VILLAINS[heroPos];
+    villainPos = v[Math.floor(Math.random() * v.length)];
+  } else if (villainOverride) {
+    villainPos = villainOverride;
+    const heroes = getHeroesForVillain('limp', villainOverride);
+    heroPos = heroes[Math.floor(Math.random() * heroes.length)];
+  } else {
+    heroPos = LIMP_HERO_POSITIONS[Math.floor(Math.random() * LIMP_HERO_POSITIONS.length)];
+    const v = VALID_LIMP_VILLAINS[heroPos];
+    villainPos = v[Math.floor(Math.random() * v.length)];
+  }
   const hand = randomHand();
   const range = LIMP_RANGES[stackDepth]?.[heroPos]?.[villainPos];
-  if (!range) return generateLimpHand(stackDepth, posOverride);
+  if (!range) return generateLimpHand(stackDepth, heroOverride, villainOverride);
   const correctAction = range.raise.has(hand) ? 'raise' : range.call.has(hand) ? 'call' : 'fold';
   return { type: 'limp', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
-function generateVsRaiseHand(stackDepth, posOverride = null) {
-  const heroPos = posOverride || RAISE_HERO_POSITIONS[Math.floor(Math.random() * RAISE_HERO_POSITIONS.length)];
-  const villains = VALID_RAISE_VILLAINS[heroPos];
-  const villainPos = villains[Math.floor(Math.random() * villains.length)];
+function generateVsRaiseHand(stackDepth, heroOverride = null, villainOverride = null) {
+  let heroPos, villainPos;
+  if (heroOverride && villainOverride) {
+    heroPos = heroOverride; villainPos = villainOverride;
+  } else if (heroOverride) {
+    heroPos = heroOverride;
+    const v = VALID_RAISE_VILLAINS[heroPos];
+    villainPos = v[Math.floor(Math.random() * v.length)];
+  } else if (villainOverride) {
+    villainPos = villainOverride;
+    const heroes = getHeroesForVillain('vsRaise', villainOverride);
+    heroPos = heroes[Math.floor(Math.random() * heroes.length)];
+  } else {
+    heroPos = RAISE_HERO_POSITIONS[Math.floor(Math.random() * RAISE_HERO_POSITIONS.length)];
+    const v = VALID_RAISE_VILLAINS[heroPos];
+    villainPos = v[Math.floor(Math.random() * v.length)];
+  }
   const hand = randomHand();
   const range = VS_RAISE_RANGES[stackDepth]?.[heroPos]?.[villainPos];
-  if (!range) return generateVsRaiseHand(stackDepth, posOverride);
+  if (!range) return generateVsRaiseHand(stackDepth, heroOverride, villainOverride);
   const correctAction = range.threebet.has(hand) ? 'threebet' : range.call.has(hand) ? 'call' : 'fold';
   return { type: 'vsRaise', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
-function buildDeck(mode, stackDepth, heroPos = 'all') {
-  const posOverride = heroPos !== 'all' ? heroPos : null;
+function buildDeck(mode, stackDepth, heroPos = 'all', villainPos = 'all') {
+  const heroOv    = heroPos    !== 'all' ? heroPos    : null;
+  const villainOv = villainPos !== 'all' ? villainPos : null;
   const deck = [];
   const counts = {};
   let attempts = 0;
@@ -81,21 +130,21 @@ function buildDeck(mode, stackDepth, heroPos = 'all') {
   while (deck.length < RFI_QUIZ_LENGTH && attempts < 300) {
     attempts++;
     let q;
-    if (mode === 'rfi') q = generateRfiHand(stackDepth, posOverride);
-    else if (mode === 'limp') q = generateLimpHand(stackDepth, posOverride);
-    else if (mode === 'vsRaise') q = generateVsRaiseHand(stackDepth, posOverride);
+    if (mode === 'rfi') q = generateRfiHand(stackDepth, heroOv);
+    else if (mode === 'limp') q = generateLimpHand(stackDepth, heroOv, villainOv);
+    else if (mode === 'vsRaise') q = generateVsRaiseHand(stackDepth, heroOv, villainOv);
     else {
-      const canRfi     = !posOverride || RFI_QUIZ_POSITIONS.includes(posOverride);
-      const canLimp    = !posOverride || LIMP_HERO_POSITIONS.includes(posOverride);
-      const canVsRaise = !posOverride || RAISE_HERO_POSITIONS.includes(posOverride);
+      const canRfi     = !heroOv || RFI_QUIZ_POSITIONS.includes(heroOv);
+      const canLimp    = !heroOv || LIMP_HERO_POSITIONS.includes(heroOv);
+      const canVsRaise = !heroOv || RAISE_HERO_POSITIONS.includes(heroOv);
       const avail = [];
       if (canRfi)     avail.push('rfi');
       if (canLimp)    avail.push('limp');
       if (canVsRaise) avail.push('vsRaise');
       const picked = avail[Math.floor(Math.random() * avail.length)];
-      if (picked === 'rfi')     q = generateRfiHand(stackDepth, posOverride);
-      else if (picked === 'limp') q = generateLimpHand(stackDepth, posOverride);
-      else                        q = generateVsRaiseHand(stackDepth, posOverride);
+      if (picked === 'rfi')       q = generateRfiHand(stackDepth, heroOv);
+      else if (picked === 'limp') q = generateLimpHand(stackDepth, heroOv, null);
+      else                        q = generateVsRaiseHand(stackDepth, heroOv, null);
     }
     const key = `${q.type}:${q.hand}:${q.heroPos}:${q.villainPos}`;
     if (deck.some(x => `${x.type}:${x.hand}:${x.heroPos}:${x.villainPos}` === key)) continue;
@@ -225,7 +274,8 @@ export function PreflopQuiz() {
   const [quizMode, setQuizMode]     = useState('rfi');
   const [stackDepth, setStackDepth] = useState('100BB');
   const [selectedPos, setSelectedPos] = useState('all');
-  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB', 'all'));
+  const [selectedVillainPos, setSelectedVillainPos] = useState('all');
+  const [deck, setDeck]             = useState(() => buildDeck('rfi', '100BB', 'all', 'all'));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
   const [answered, setAnswered]     = useState(false);
@@ -233,29 +283,36 @@ export function PreflopQuiz() {
   const [results, setResults]       = useState([]);
   const [countdown, setCountdown]   = useState(5);
 
-  function resetQuiz(mode, depth, pos) {
-    setDeck(buildDeck(mode, depth, pos));
+  function resetQuiz(mode, depth, pos, villainPos) {
+    setDeck(buildDeck(mode, depth, pos, villainPos));
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 
   function changeMode(m) {
     setQuizMode(m);
     setSelectedPos('all');
-    resetQuiz(m, stackDepth, 'all');
+    setSelectedVillainPos('all');
+    resetQuiz(m, stackDepth, 'all', 'all');
   }
 
   function changeStackDepth(d) {
     setStackDepth(d);
-    resetQuiz(quizMode, d, selectedPos);
+    resetQuiz(quizMode, d, selectedPos, selectedVillainPos);
   }
 
   function changePosition(pos) {
     setSelectedPos(pos);
-    resetQuiz(quizMode, stackDepth, pos);
+    setSelectedVillainPos('all');
+    resetQuiz(quizMode, stackDepth, pos, 'all');
+  }
+
+  function changeVillainPosition(pos) {
+    setSelectedVillainPos(pos);
+    resetQuiz(quizMode, stackDepth, selectedPos, pos);
   }
 
   function startQuiz() {
-    resetQuiz(quizMode, stackDepth, selectedPos);
+    resetQuiz(quizMode, stackDepth, selectedPos, selectedVillainPos);
     setPhase('playing');
   }
 
@@ -328,7 +385,7 @@ export function PreflopQuiz() {
             ))}
           </div>
 
-          <div class="rq-setup-label">Position</div>
+          <div class="rq-setup-label">Your Position</div>
           <div class="rq-selector-group">
             <button
               class={`rq-selector-btn${'all' === selectedPos ? ' active' : ''}`}
@@ -342,6 +399,25 @@ export function PreflopQuiz() {
               >{pos}</button>
             ))}
           </div>
+
+          {(quizMode === 'limp' || quizMode === 'vsRaise') && (
+            <>
+              <div class="rq-setup-label">{quizMode === 'limp' ? 'Limper' : 'Raiser'} Position</div>
+              <div class="rq-selector-group">
+                <button
+                  class={`rq-selector-btn${'all' === selectedVillainPos ? ' active' : ''}`}
+                  onClick={() => changeVillainPosition('all')}
+                >All</button>
+                {getVillainsForSelection(quizMode, selectedPos).map(pos => (
+                  <button
+                    key={pos}
+                    class={`rq-selector-btn${pos === selectedVillainPos ? ' active' : ''}`}
+                    onClick={() => changeVillainPosition(pos)}
+                  >{pos}</button>
+                ))}
+              </div>
+            </>
+          )}
 
           <div class="rq-start-row">
             <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
