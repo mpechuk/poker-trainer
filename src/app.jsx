@@ -11,17 +11,30 @@ import { Dashboard } from './sections/stats/Dashboard.jsx';
 import { Welcome } from './sections/welcome/Welcome.jsx';
 import { REDIRECTS } from './routing.js';
 
+function parseHash() {
+  const raw = window.location.hash.slice(1) || '/';
+  const qIdx = raw.indexOf('?');
+  if (qIdx < 0) return { path: raw, query: {} };
+  const path = raw.slice(0, qIdx);
+  const query = {};
+  for (const pair of raw.slice(qIdx + 1).split('&')) {
+    if (!pair) continue;
+    const [k, v = ''] = pair.split('=');
+    query[decodeURIComponent(k)] = decodeURIComponent(v);
+  }
+  return { path, query };
+}
+
 function useHashRoute() {
-  const getPath = () => window.location.hash.slice(1) || '/';
-  const [path, setPath] = useState(getPath);
+  const [route, setRoute] = useState(parseHash);
 
   useEffect(() => {
-    const onHash = () => setPath(getPath());
+    const onHash = () => setRoute(parseHash());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  return path;
+  return route;
 }
 
 const ROUTES = {
@@ -37,7 +50,7 @@ const ROUTES = {
 };
 
 export function App() {
-  const path = useHashRoute();
+  const { path, query } = useHashRoute();
   const redirect = REDIRECTS[path];
 
   // Update the URL when a redirect is needed, but render the target immediately
@@ -53,7 +66,7 @@ export function App() {
   return (
     <>
       <Header />
-      <Page path={effectivePath} />
+      <Page path={effectivePath} query={query} />
     </>
   );
 }

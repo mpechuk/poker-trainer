@@ -3,6 +3,7 @@ import { TERMS, CATS } from '../../data/terms.js';
 import { RFI_QUIZ_POSITIONS } from '../../data/rfi-ranges.js';
 import { getStudyProgress, initStudyProgress, getTermQuizStats, initTermQuizStats, getRfiQuizStats, initRfiQuizStats, getLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
 import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
+import { getRecommendation } from '../../utils/recommendation.js';
 import '../../styles/stats.css';
 
 export function Dashboard({ path }) {
@@ -25,6 +26,13 @@ export function Dashboard({ path }) {
 
   const rfiAccuracy = rfiQuiz.totalQuestions > 0
     ? Math.round(rfiQuiz.totalCorrect / rfiQuiz.totalQuestions * 100) : 0;
+
+  const recommendation = getRecommendation({
+    terminology: termQuiz,
+    rfi: rfiQuiz,
+    limp: limpQuiz,
+    vsRaise: vsRaiseQuiz,
+  });
 
   function resetStudy() {
     if (!confirm('Reset all study progress? This cannot be undone.')) return;
@@ -60,6 +68,17 @@ export function Dashboard({ path }) {
   return (
     <div class="stats-dashboard">
       <h2 class="stats-title">Your Stats</h2>
+
+      {recommendation && (
+        <div class="stats-recommendation" data-testid="stats-recommendation">
+          <div class="stats-rec-label">Recommended Next Quiz</div>
+          <div class="stats-rec-title">{recommendation.label}</div>
+          <div class="stats-rec-reason">{recommendation.reason}</div>
+          <a class="stats-rec-btn" href={recommendation.href}>
+            {recommendation.accuracy === null ? 'Start Quiz' : 'Practice Now'} &rarr;
+          </a>
+        </div>
+      )}
 
       {/* Study Progress */}
       <div class="stats-section">
