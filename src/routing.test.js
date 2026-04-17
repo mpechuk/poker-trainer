@@ -61,8 +61,8 @@ describe('routing', () => {
     expect(ROUTES_LIST).toContain('/quizzes/preflop');
   });
 
-  it('resolves /quizzes shorthand to terminology quiz', () => {
-    expect(resolveRoute('/quizzes')).toBe('/quizzes/terminology');
+  it('resolves /quizzes shorthand to preflop quiz — preflop is default quiz mode', () => {
+    expect(resolveRoute('/quizzes')).toBe('/quizzes/preflop');
   });
 
   it('old /terminology/quiz redirects to /quizzes/terminology — backward compat', () => {
