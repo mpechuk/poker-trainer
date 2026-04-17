@@ -34,7 +34,7 @@ poker-trainer/
 │   ├── app.jsx                         # Header + hash router with route table
 │   ├── styles/
 │   │   ├── base.css                    # :root vars, body, fonts, global reset
-│   │   ├── header.css                  # Header, section nav, sub-nav tabs
+│   │   ├── header.css                  # Header, hamburger menu drawer, sub-nav tabs
 │   │   ├── welcome.css                 # Welcome page hand rankings, section cards
 │   │   ├── study.css                   # Flashcard scene, 3D flip, card nav
 │   │   ├── quiz.css                    # Term quiz + RFI quiz styles
@@ -52,7 +52,7 @@ poker-trainer/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
 │   ├── components/
-│   │   ├── Header.jsx                  # App header + section nav (Home | Terminology | Preflop | Stats)
+│   │   ├── Header.jsx                  # App header + hamburger menu drawer (Home | Terminology | Preflop | Quizzes | Stats)
 │   │   ├── SubNav.jsx                  # Sub-navigation tabs within a section
 │   │   ├── FilterChips.jsx             # Category filter chip bar
 │   │   ├── ProgressBar.jsx             # Study progress bar
