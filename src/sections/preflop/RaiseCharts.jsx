@@ -3,6 +3,7 @@ import { SubNav } from '../../components/SubNav.jsx';
 import { PositionTable } from '../../components/PositionTable.jsx';
 import { RANKS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS, VS_RAISE_RANGES } from '../../data/preflop-ranges.js';
+import { describeVsRaise } from '../../utils/range-description.js';
 import '../../styles/charts.css';
 
 const TABS = [
@@ -81,6 +82,10 @@ export function RaiseCharts() {
               <span class="rfi-legend-item"><span class="rfi-swatch rfi-call"></span> Call ({callCount}, {Math.round(callCount/totalCombos*100)}%)</span>
               <span class="rfi-legend-item"><span class="rfi-swatch rfi-fold"></span> Fold</span>
             </div>
+            <p class="range-desc">
+              <span class="range-desc-label">{heroPos} vs {villainPos} raise · {stackDepth}:</span>{' '}
+              {describeVsRaise(rangeSet)}
+            </p>
           </>
         )}
       </div>
