@@ -57,6 +57,19 @@
 .rq-selector-btn:hover:not(.active){color:var(--text);background:rgba(255,255,255,.07)}
 .rq-selector-btn.active{background:var(--gold-dark);color:var(--gold-bright);font-weight:600;
   border-color:var(--gold)}
+/* Visual position selector (table map) */
+.pt-wrap{margin:0 auto .6rem;max-width:420px}
+.pt-svg-wrap{position:relative;width:100%;line-height:0}
+.pt-svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))}
+.pt-seat{transition:transform .15s ease}
+.pt-seat-enabled{cursor:pointer}
+.pt-seat-enabled:hover circle{stroke:#f0d060;stroke-width:2}
+.pt-seat-enabled:focus{outline:none}
+.pt-seat-enabled:focus-visible circle{stroke:#f0d060;stroke-width:2.5}
+.pt-seat:not(.pt-seat-enabled){cursor:not-allowed}
+.pt-all-row{text-align:center;margin-top:.5rem}
+.pt-villain .pt-svg{filter:drop-shadow(0 6px 14px rgba(0,0,0,.35)) hue-rotate(-10deg)}
+
 .rq-start-row{text-align:center;margin:1.5rem 0 1rem}
 .rq-start-btn{padding:.7rem 2.5rem;background:var(--gold-dark);color:var(--gold-bright);
   border:none;border-radius:30px;font-family:'Crimson Pro',serif;font-size:1.1rem;
