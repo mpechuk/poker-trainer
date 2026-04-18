@@ -13,28 +13,53 @@ describe('PositionTable — visual position selector', () => {
     }
   });
 
-  it('calls onSelect only for available seats — disabled seats cannot be clicked', () => {
-    expect(source).toMatch(/enabled\s*\?\s*\(\)\s*=>\s*onSelect\(seat\.id\)\s*:\s*undefined/);
+  it('selects hero and villain on the same chart — no second table instance', () => {
+    expect(source).toMatch(/heroSelected/);
+    expect(source).toMatch(/villainSelected/);
+    expect(source).toMatch(/onHeroSelect/);
+    expect(source).toMatch(/onVillainSelect/);
+  });
+
+  it('renders a dealer button chip near the BTN seat — so the button position is obvious', () => {
+    expect(source).toMatch(/pt-dealer-chip/);
+    // Chip must be derived from BTN_SEAT coordinates, not a magic pair.
+    expect(source).toMatch(/BTN_SEAT\.x\s*\+/);
+    expect(source).toMatch(/BTN_SEAT\.y\s*\+/);
+    // And it must actually be a filled yellow circle.
+    expect(source).toMatch(/fill="#f5e27a"/);
+  });
+
+  it('role tabs toggle which role a seat click targets', () => {
+    expect(source).toMatch(/role="tablist"/);
+    expect(source).toMatch(/setActiveRole\('hero'\)/);
+    expect(source).toMatch(/setActiveRole\('villain'\)/);
+    expect(source).toMatch(/active\s*===\s*'hero'/);
+  });
+
+  it('forces active role back to hero when villain is not applicable (e.g. RFI mode)', () => {
+    expect(source).toMatch(/!showVillain[\s\S]{0,120}setActiveRole\('hero'\)/);
+  });
+
+  it('ignores clicks on seats that are not in the active role\'s available set', () => {
+    expect(source).toMatch(/if\s*\(\s*!heroAvailSet\.has\(id\)\s*\)\s*return/);
+    expect(source).toMatch(/if\s*\(\s*!villainAvailSet\.has\(id\)\s*\)\s*return/);
   });
 
   it('supports keyboard activation (Enter/Space) for a11y', () => {
     expect(source).toMatch(/e\.key\s*===\s*'Enter'\s*\|\|\s*e\.key\s*===\s*' '/);
-    expect(source).toMatch(/onSelect\(seat\.id\)/);
+    expect(source).toMatch(/handleSeatClick\(seat\.id\)/);
   });
 
-  it('renders an "All Positions" option when allowAll is true', () => {
-    expect(source).toMatch(/allowAll\s*=\s*true/);
-    expect(source).toMatch(/All Positions/);
-    expect(source).toMatch(/onSelect\('all'\)/);
+  it('renders an "All" button for the currently active role', () => {
+    expect(source).toMatch(/setAllForActive/);
+    expect(source).toMatch(/onHeroSelect\('all'\)/);
+    expect(source).toMatch(/onVillainSelect\('all'\)/);
   });
 
-  it('highlights the selected seat and marks it aria-pressed', () => {
-    expect(source).toMatch(/aria-pressed/);
-    expect(source).toMatch(/active\s*=\s*enabled\s*&&\s*selected\s*===\s*seat\.id/);
-  });
-
-  it('visually dims seats that are not in the available set — no dead-click feedback', () => {
-    expect(source).toMatch(/availSet\.has\(seat\.id\)/);
-    expect(source).toMatch(/dimmed/);
+  it('distinguishes hero (gold) and villain (red) seats visually', () => {
+    expect(source).toMatch(/HERO_FILL\s*=\s*'#c9a84c'/);
+    expect(source).toMatch(/VILL_FILL/);
+    expect(source).toMatch(/pt-seat-hero/);
+    expect(source).toMatch(/pt-seat-villain/);
   });
 });

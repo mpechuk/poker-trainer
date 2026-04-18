@@ -387,25 +387,18 @@ export function PreflopQuiz({ query }) {
             ))}
           </div>
 
-          <div class="rq-setup-label">Your Position</div>
+          <div class="rq-setup-label">Positions</div>
           <PositionTable
-            selected={selectedPos}
-            available={getPositionsForMode(quizMode)}
-            onSelect={changePosition}
-            variant="hero"
+            heroSelected={selectedPos}
+            villainSelected={selectedVillainPos}
+            heroAvailable={getPositionsForMode(quizMode)}
+            villainAvailable={getVillainsForSelection(quizMode, selectedPos)}
+            onHeroSelect={changePosition}
+            onVillainSelect={changeVillainPosition}
+            showVillain={quizMode === 'limp' || quizMode === 'vsRaise'}
+            heroLabel="Your Position"
+            villainLabel={quizMode === 'limp' ? 'Limper' : 'Raiser'}
           />
-
-          {(quizMode === 'limp' || quizMode === 'vsRaise') && (
-            <>
-              <div class="rq-setup-label">{quizMode === 'limp' ? 'Limper' : 'Raiser'} Position</div>
-              <PositionTable
-                selected={selectedVillainPos}
-                available={getVillainsForSelection(quizMode, selectedPos)}
-                onSelect={changeVillainPosition}
-                variant="villain"
-              />
-            </>
-          )}
 
           <div class="rq-start-row">
             <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
