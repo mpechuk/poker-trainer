@@ -50,16 +50,46 @@ describe('PositionTable — visual position selector', () => {
     expect(source).toMatch(/handleSeatClick\(seat\.id\)/);
   });
 
-  it('renders an "All" button for the currently active role', () => {
-    expect(source).toMatch(/setAllForActive/);
-    expect(source).toMatch(/onHeroSelect\('all'\)/);
-    expect(source).toMatch(/onVillainSelect\('all'\)/);
-  });
-
   it('distinguishes hero (gold) and villain (red) seats visually', () => {
     expect(source).toMatch(/HERO_FILL\s*=\s*'#c9a84c'/);
     expect(source).toMatch(/VILL_FILL/);
     expect(source).toMatch(/pt-seat-hero/);
     expect(source).toMatch(/pt-seat-villain/);
+  });
+
+  // ── New behavior: auto-switch active role after a seat click ────────────
+  it('auto-switches to villain after a hero seat is picked — so user flows hero → villain without clicking the role tab', () => {
+    expect(source).toMatch(/onHeroSelect\(id\);[\s\S]{0,120}setActiveRole\('villain'\)/);
+  });
+
+  it('auto-switches back to hero after a villain seat is picked — so user flows villain → hero next', () => {
+    expect(source).toMatch(/onVillainSelect\(id\);[\s\S]{0,120}setActiveRole\('hero'\)/);
+  });
+
+  it('auto-switch only fires when showVillain is true — otherwise there is no other role to switch to', () => {
+    expect(source).toMatch(/showVillain\s*&&\s*autoSwitchRole/);
+  });
+
+  it('auto-switch can be disabled via the autoSwitchRole prop', () => {
+    expect(source).toMatch(/autoSwitchRole\s*=\s*true/);
+  });
+
+  // ── New behavior: two separate "All" buttons (hero + villain) ──────────
+  it('renders separate "All" buttons for hero and villain — both accessible without toggling the active role', () => {
+    // Hero "All" button calls onHeroSelect('all').
+    expect(source).toMatch(/onHeroSelect\('all'\)/);
+    // Villain "All" button calls onVillainSelect('all').
+    expect(source).toMatch(/onVillainSelect\('all'\)/);
+    // Both buttons must live inside the same pt-all-row container.
+    expect(source).toMatch(/pt-all-row[\s\S]+onHeroSelect\('all'\)[\s\S]+onVillainSelect\('all'\)/);
+  });
+
+  it('the villain "All" button only renders when showVillain is true', () => {
+    expect(source).toMatch(/showVillain\s*&&\s*\(\s*<button[\s\S]+?onVillainSelect\('all'\)/);
+  });
+
+  it('the All-buttons row can be hidden via the showAllButtons prop (for chart use where "All" is not meaningful)', () => {
+    expect(source).toMatch(/showAllButtons\s*=\s*true/);
+    expect(source).toMatch(/showAllButtons\s*&&\s*\(/);
   });
 });

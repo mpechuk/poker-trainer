@@ -84,7 +84,8 @@
 .pt-seat-enabled:focus-visible circle{stroke:#f0d060;stroke-width:2.5}
 .pt-seat:not(.pt-seat-enabled){cursor:not-allowed}
 .pt-dealer-chip{pointer-events:none}
-.pt-all-row{text-align:center;margin-top:.5rem}
+.pt-all-row{text-align:center;margin-top:.5rem;display:flex;justify-content:center;
+  gap:8px;flex-wrap:wrap}
 
 .rq-start-row{text-align:center;margin:1.5rem 0 1rem}
 .rq-start-btn{padding:.7rem 2.5rem;background:var(--gold-dark);color:var(--gold-bright);
