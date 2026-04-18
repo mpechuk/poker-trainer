@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
+import { PositionTable } from '../../components/PositionTable.jsx';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_RANGES, LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, VS_RAISE_RANGES, RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS } from '../../data/preflop-ranges.js';
 
@@ -386,39 +387,18 @@ export function PreflopQuiz({ query }) {
             ))}
           </div>
 
-          <div class="rq-setup-label">Your Position</div>
-          <div class="rq-selector-group">
-            <button
-              class={`rq-selector-btn${'all' === selectedPos ? ' active' : ''}`}
-              onClick={() => changePosition('all')}
-            >All</button>
-            {getPositionsForMode(quizMode).map(pos => (
-              <button
-                key={pos}
-                class={`rq-selector-btn${pos === selectedPos ? ' active' : ''}`}
-                onClick={() => changePosition(pos)}
-              >{pos}</button>
-            ))}
-          </div>
-
-          {(quizMode === 'limp' || quizMode === 'vsRaise') && (
-            <>
-              <div class="rq-setup-label">{quizMode === 'limp' ? 'Limper' : 'Raiser'} Position</div>
-              <div class="rq-selector-group">
-                <button
-                  class={`rq-selector-btn${'all' === selectedVillainPos ? ' active' : ''}`}
-                  onClick={() => changeVillainPosition('all')}
-                >All</button>
-                {getVillainsForSelection(quizMode, selectedPos).map(pos => (
-                  <button
-                    key={pos}
-                    class={`rq-selector-btn${pos === selectedVillainPos ? ' active' : ''}`}
-                    onClick={() => changeVillainPosition(pos)}
-                  >{pos}</button>
-                ))}
-              </div>
-            </>
-          )}
+          <div class="rq-setup-label">Positions</div>
+          <PositionTable
+            heroSelected={selectedPos}
+            villainSelected={selectedVillainPos}
+            heroAvailable={getPositionsForMode(quizMode)}
+            villainAvailable={getVillainsForSelection(quizMode, selectedPos)}
+            onHeroSelect={changePosition}
+            onVillainSelect={changeVillainPosition}
+            showVillain={quizMode === 'limp' || quizMode === 'vsRaise'}
+            heroLabel="Your Position"
+            villainLabel={quizMode === 'limp' ? 'Limper' : 'Raiser'}
+          />
 
           <div class="rq-start-row">
             <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>

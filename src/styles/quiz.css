@@ -57,6 +57,35 @@
 .rq-selector-btn:hover:not(.active){color:var(--text);background:rgba(255,255,255,.07)}
 .rq-selector-btn.active{background:var(--gold-dark);color:var(--gold-bright);font-weight:600;
   border-color:var(--gold)}
+/* Visual position selector (table map) */
+.pt-wrap{margin:0 auto .6rem;max-width:460px}
+.pt-roles{display:flex;gap:8px;justify-content:center;margin-bottom:.5rem;flex-wrap:wrap}
+.pt-role{display:inline-flex;flex-direction:column;align-items:center;gap:2px;
+  padding:.35rem .9rem;border-radius:14px;border:1px solid var(--gold-dark);
+  background:rgba(0,0,0,.3);color:var(--muted);
+  font-family:'Crimson Pro',serif;cursor:pointer;transition:all .2s;
+  min-width:120px}
+.pt-role:hover:not(.active){color:var(--text);background:rgba(255,255,255,.07)}
+.pt-role .pt-role-lbl{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted)}
+.pt-role .pt-role-val{font-size:1rem;font-weight:600;color:var(--text);line-height:1.1}
+.pt-role.active .pt-role-lbl{color:rgba(26,32,16,.75)}
+.pt-role-hero.active{background:var(--gold-dark);border-color:var(--gold);color:var(--gold-bright)}
+.pt-role-hero.active .pt-role-val{color:var(--gold-bright)}
+.pt-role-villain.active{background:#5a1e15;border-color:#e85c4a;color:#ffe7d9}
+.pt-role-villain.active .pt-role-lbl{color:rgba(255,231,217,.7)}
+.pt-role-villain.active .pt-role-val{color:#ffe7d9}
+.pt-svg-wrap{position:relative;width:100%;line-height:0}
+.pt-svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))}
+.pt-seat{transition:transform .15s ease}
+.pt-seat-enabled{cursor:pointer}
+.pt-seat-enabled:hover circle{stroke:#f0d060;stroke-width:2}
+.pt-seat-enabled:focus{outline:none}
+.pt-seat-enabled:focus-visible circle{stroke:#f0d060;stroke-width:2.5}
+.pt-seat:not(.pt-seat-enabled){cursor:not-allowed}
+.pt-dealer-chip{pointer-events:none}
+.pt-all-row{text-align:center;margin-top:.5rem}
+
 .rq-start-row{text-align:center;margin:1.5rem 0 1rem}
 .rq-start-btn{padding:.7rem 2.5rem;background:var(--gold-dark);color:var(--gold-bright);
   border:none;border-radius:30px;font-family:'Crimson Pro',serif;font-size:1.1rem;
