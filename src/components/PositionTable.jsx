@@ -29,6 +29,8 @@ export function PositionTable({
   onHeroSelect,
   onVillainSelect,
   showVillain = false,
+  showAllButtons = true,
+  autoSwitchRole = true,
   heroLabel = 'Your Position',
   villainLabel = 'Villain',
 }) {
@@ -47,20 +49,16 @@ export function PositionTable({
     if (active === 'hero') {
       if (!heroAvailSet.has(id)) return;
       onHeroSelect(id);
+      if (showVillain && autoSwitchRole) setActiveRole('villain');
     } else {
       if (!villainAvailSet.has(id)) return;
       onVillainSelect(id);
+      if (showVillain && autoSwitchRole) setActiveRole('hero');
     }
-  };
-
-  const setAllForActive = () => {
-    if (active === 'hero') onHeroSelect('all');
-    else onVillainSelect('all');
   };
 
   const heroIsAll    = heroSelected === 'all' || heroSelected == null;
   const villainIsAll = villainSelected === 'all' || villainSelected == null;
-  const allActive    = active === 'hero' ? heroIsAll : villainIsAll;
 
   return (
     <div class="pt-wrap">
@@ -163,13 +161,22 @@ export function PositionTable({
         </svg>
       </div>
 
-      <div class="pt-all-row">
-        <button
-          type="button"
-          class={`rq-selector-btn${allActive ? ' active' : ''}`}
-          onClick={setAllForActive}
-        >{active === 'hero' ? `All ${heroLabel.toLowerCase()}s` : `All ${villainLabel.toLowerCase()}s`}</button>
-      </div>
+      {showAllButtons && (
+        <div class="pt-all-row">
+          <button
+            type="button"
+            class={`rq-selector-btn pt-all-hero${heroIsAll ? ' active' : ''}`}
+            onClick={() => onHeroSelect('all')}
+          >All {heroLabel.toLowerCase()}s</button>
+          {showVillain && (
+            <button
+              type="button"
+              class={`rq-selector-btn pt-all-villain${villainIsAll ? ' active' : ''}`}
+              onClick={() => onVillainSelect('all')}
+            >All {villainLabel.toLowerCase()}s</button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
+import { PositionTable } from '../../components/PositionTable.jsx';
 import { RANKS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, LIMP_RANGES } from '../../data/preflop-ranges.js';
 import '../../styles/charts.css';
@@ -38,20 +39,18 @@ export function LimpCharts() {
           ))}
         </div>
 
-        <div class="pos-selectors">
-          <div class="pos-selector-group">
-            <span class="pos-selector-label">Your Position</span>
-            <select class="pos-selector-select" value={heroPos} onChange={e => changeHero(e.target.value)}>
-              {LIMP_HERO_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-          <div class="pos-selector-group">
-            <span class="pos-selector-label">Limper Position</span>
-            <select class="pos-selector-select" value={villainPos} onChange={e => setVillainPos(e.target.value)}>
-              {validVillains.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-        </div>
+        <PositionTable
+          heroSelected={heroPos}
+          villainSelected={villainPos}
+          heroAvailable={LIMP_HERO_POSITIONS}
+          villainAvailable={validVillains}
+          onHeroSelect={changeHero}
+          onVillainSelect={setVillainPos}
+          showVillain={true}
+          showAllButtons={false}
+          heroLabel="Your Position"
+          villainLabel="Limper"
+        />
 
         {!rangeSet ? (
           <p style="text-align:center;color:var(--muted);padding:2rem">Select positions above to view chart.</p>

@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
+import { PositionTable } from '../../components/PositionTable.jsx';
 import { RANKS, RFI_RANGES, POS_LIST, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import '../../styles/charts.css';
 
@@ -33,17 +34,14 @@ export function Charts({ path }) {
             </button>
           ))}
         </div>
-        <div class="pos-tabs">
-          {POS_LIST.map(p => (
-            <button
-              key={p}
-              class={`pos-tab${p === activePos ? ' active' : ''}`}
-              onClick={() => setActivePos(p)}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+        <PositionTable
+          heroSelected={activePos}
+          heroAvailable={POS_LIST}
+          onHeroSelect={setActivePos}
+          showVillain={false}
+          showAllButtons={false}
+          heroLabel="Your Position"
+        />
         <div class="rfi-grid">
           <div class="rfi-cell rfi-hdr"></div>
           {RANKS.map(r => (
