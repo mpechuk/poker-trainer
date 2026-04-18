@@ -26,7 +26,7 @@ const SECTIONS = [
     desc: 'Study GTO-optimal preflop raise ranges for every position with interactive charts.',
   },
   {
-    href: '#/quizzes/terminology',
+    href: '#/quizzes/preflop',
     title: 'Quizzes',
     desc: 'Test your knowledge with terminology and preflop decision quizzes across all positions and stack depths.',
   },
