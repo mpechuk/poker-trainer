@@ -43,3 +43,8 @@
 .pos-selector-select:focus{outline:none;border-color:var(--gold)}
 .rfi-legend-item{display:flex;align-items:center;gap:.4rem}
 .rfi-swatch{width:14px;height:14px;border-radius:3px;display:inline-block}
+.range-desc{color:var(--text);font-family:'Crimson Pro',serif;font-size:.9rem;line-height:1.5;
+  max-width:860px;margin:1rem auto 0;padding:.85rem 1.1rem;
+  background:rgba(0,0,0,.25);border:1px solid var(--gold-dark);border-radius:10px;
+  text-align:left}
+.range-desc-label{color:var(--gold-bright);font-weight:600;letter-spacing:.03em}

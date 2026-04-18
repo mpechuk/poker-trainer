@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { RANKS, RFI_RANGES, POS_LIST, STACK_DEPTHS } from '../../data/rfi-ranges.js';
+import { describeRfi } from '../../utils/range-description.js';
 import '../../styles/charts.css';
 
 const TABS = [
@@ -72,6 +73,10 @@ export function Charts({ path }) {
           <span class="rfi-legend-item"><span class="rfi-swatch rfi-raise"></span> Raise ({raiseCount} combos, {pct}%)</span>
           <span class="rfi-legend-item"><span class="rfi-swatch rfi-fold"></span> Fold</span>
         </div>
+        <p class="range-desc">
+          <span class="range-desc-label">{activePos} · {stackDepth}:</span>{' '}
+          {describeRfi(range)}
+        </p>
       </div>
     </div>
   );

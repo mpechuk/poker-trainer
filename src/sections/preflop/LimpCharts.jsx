@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { RANKS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, LIMP_RANGES } from '../../data/preflop-ranges.js';
+import { describeLimp } from '../../utils/range-description.js';
 import '../../styles/charts.css';
 
 const TABS = [
@@ -83,6 +84,10 @@ export function LimpCharts() {
               <span class="rfi-legend-item"><span class="rfi-swatch rfi-call"></span> {heroPos === 'BB' ? 'Check' : 'Call'} ({callCount}, {Math.round(callCount/totalCombos*100)}%)</span>
               <span class="rfi-legend-item"><span class="rfi-swatch rfi-fold"></span> Fold</span>
             </div>
+            <p class="range-desc">
+              <span class="range-desc-label">{heroPos} vs {villainPos} limp · {stackDepth}:</span>{' '}
+              {describeLimp(rangeSet, heroPos === 'BB')}
+            </p>
           </>
         )}
       </div>
