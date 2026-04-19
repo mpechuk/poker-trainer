@@ -9,6 +9,7 @@ import { RaiseCharts } from './sections/preflop/RaiseCharts.jsx';
 import { PreflopQuiz } from './sections/preflop/Quiz.jsx';
 import { Dashboard } from './sections/stats/Dashboard.jsx';
 import { Welcome } from './sections/welcome/Welcome.jsx';
+import { Settings } from './sections/settings/Settings.jsx';
 import { REDIRECTS } from './routing.js';
 
 function parseHash() {
@@ -47,6 +48,7 @@ const ROUTES = {
   '/quizzes/terminology': TermQuiz,
   '/quizzes/preflop': PreflopQuiz,
   '/stats': Dashboard,
+  '/settings': Settings,
 };
 
 export function App() {

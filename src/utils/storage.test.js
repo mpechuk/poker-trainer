@@ -3,6 +3,7 @@ import {
   getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats,
   getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats,
   getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats,
+  getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES,
 } from './storage.js';
 
 // Provide a minimal localStorage shim for the node test environment
@@ -60,6 +61,67 @@ describe('initVsRaiseQuizStats', () => {
     s.totalQuizzes = 2;
     saveVsRaiseQuizStats(s);
     expect(getVsRaiseQuizStats().totalQuizzes).toBe(2);
+  });
+});
+
+describe('Settings', () => {
+  it('returns defaults when nothing is stored (auto-advance off)', () => {
+    const s = getSettings();
+    expect(s).toEqual(DEFAULT_SETTINGS);
+    expect(s.autoAdvance).toBe(false);
+    expect(s.autoAdvanceSeconds).toBe(10);
+    expect(s.cardSize).toBe('medium');
+  });
+
+  it('persists and reloads user changes', () => {
+    saveSettings({ autoAdvance: true, autoAdvanceSeconds: 7, cardSize: 'large' });
+    const s = getSettings();
+    expect(s.autoAdvance).toBe(true);
+    expect(s.autoAdvanceSeconds).toBe(7);
+    expect(s.cardSize).toBe('large');
+  });
+
+  it('merges partial saves with defaults', () => {
+    saveSettings({ cardSize: 'xlarge' });
+    const s = getSettings();
+    expect(s.cardSize).toBe('xlarge');
+    expect(s.autoAdvance).toBe(DEFAULT_SETTINGS.autoAdvance);
+    expect(s.autoAdvanceSeconds).toBe(DEFAULT_SETTINGS.autoAdvanceSeconds);
+  });
+
+  it('clamps invalid autoAdvanceSeconds back to the default', () => {
+    saveSettings({ autoAdvanceSeconds: 0 });
+    expect(getSettings().autoAdvanceSeconds).toBe(DEFAULT_SETTINGS.autoAdvanceSeconds);
+
+    saveSettings({ autoAdvanceSeconds: 999 });
+    expect(getSettings().autoAdvanceSeconds).toBe(DEFAULT_SETTINGS.autoAdvanceSeconds);
+
+    saveSettings({ autoAdvanceSeconds: 'nope' });
+    expect(getSettings().autoAdvanceSeconds).toBe(DEFAULT_SETTINGS.autoAdvanceSeconds);
+  });
+
+  it('rejects unknown cardSize keys', () => {
+    saveSettings({ cardSize: 'giant' });
+    expect(getSettings().cardSize).toBe(DEFAULT_SETTINGS.cardSize);
+  });
+
+  it('resetSettings wipes the stored value', () => {
+    saveSettings({ autoAdvance: true, cardSize: 'large' });
+    resetSettings();
+    expect(getSettings()).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it('survives malformed JSON in storage', () => {
+    localStorage.setItem('settings', '{not valid json');
+    expect(getSettings()).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it('CARD_SIZES exposes labels for every available size', () => {
+    for (const key of Object.keys(CARD_SIZES)) {
+      expect(CARD_SIZES[key].label).toBeTruthy();
+      expect(CARD_SIZES[key].w).toBeGreaterThan(0);
+      expect(CARD_SIZES[key].h).toBeGreaterThan(0);
+    }
   });
 });
 

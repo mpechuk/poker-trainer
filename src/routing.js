@@ -9,6 +9,7 @@ export const ROUTES_LIST = [
   '/quizzes/terminology',
   '/quizzes/preflop',
   '/stats',
+  '/settings',
 ];
 
 export const REDIRECTS = {

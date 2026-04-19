@@ -78,6 +78,11 @@ describe('routing', () => {
     expect(ROUTES_LIST).not.toContain('/preflop/quiz');
   });
 
+  it('/settings exists as a top-level route', () => {
+    expect(ROUTES_LIST).toContain('/settings');
+    expect(resolveRoute('/settings')).toBe('/settings');
+  });
+
   it('empty hash on initial load resolves to a renderable route — no blank page regression', () => {
     // Reproduces the startup sequence in useHashRoute:
     //   window.location.hash.slice(1) || '/'
