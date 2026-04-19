@@ -209,6 +209,15 @@ describe('PreflopQuiz — complete screen', () => {
     expect(quizSource).toMatch(/import\s*\{\s*Recommendation\s*\}\s*from\s*['"][^'"]*Recommendation\.jsx['"]/);
     expect(quizSource).toMatch(/<Recommendation\s*\/>/);
   });
+
+  it('resets to setup screen when query.mode changes — fixes stuck Practice Now navigation', () => {
+    // Regression: previously, clicking "Practice Now" from the complete screen
+    // only updated the URL hash; the component stayed mounted showing the old
+    // complete screen because useState initializers don't re-run on prop change.
+    // A useEffect watching query?.mode must reset phase + mode + deck so the
+    // user lands on the setup screen for the requested mode.
+    expect(quizSource).toMatch(/useEffect\(\(\)\s*=>\s*\{[\s\S]*?query\?\.mode[\s\S]*?setPhase\(['"]setup['"]\)[\s\S]*?\},\s*\[query\?\.mode\]\)/);
+  });
 });
 
 describe('PreflopQuiz — playing screen position table', () => {

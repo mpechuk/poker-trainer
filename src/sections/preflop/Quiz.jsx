@@ -326,6 +326,21 @@ export function PreflopQuiz({ query }) {
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 
+  // When the URL's ?mode= changes (e.g. via the Stats page's "Practice Now"
+  // link landing on the same /quizzes/preflop route), reset to the setup
+  // screen in the requested mode. Without this, the component stays mounted
+  // and the previous complete screen persists.
+  useEffect(() => {
+    const urlMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : null;
+    if (!urlMode) return;
+    if (urlMode === quizMode && phase === 'setup') return;
+    setQuizMode(urlMode);
+    setSelectedPos('all');
+    setSelectedVillainPos('all');
+    setPhase('setup');
+    resetQuiz(urlMode, stackDepth, 'all', 'all');
+  }, [query?.mode]);
+
   const answer = useCallback((action) => {
     if (answered) return;
     setAnswered(true);
