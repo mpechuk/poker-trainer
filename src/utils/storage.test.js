@@ -4,6 +4,7 @@ import {
   getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats,
   getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats,
   getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES,
+  QUIZ_LENGTH_MIN, QUIZ_LENGTH_MAX,
 } from './storage.js';
 
 // Provide a minimal localStorage shim for the node test environment
@@ -134,6 +135,39 @@ describe('Settings', () => {
   it('persists xsmall as a valid cardSize selection', () => {
     saveSettings({ cardSize: 'xsmall' });
     expect(getSettings().cardSize).toBe('xsmall');
+  });
+
+  it('exposes a default quizLength in DEFAULT_SETTINGS', () => {
+    expect(DEFAULT_SETTINGS.quizLength).toBe(10);
+    expect(getSettings().quizLength).toBe(10);
+  });
+
+  it('persists quizLength selections within range', () => {
+    saveSettings({ quizLength: 25 });
+    expect(getSettings().quizLength).toBe(25);
+    saveSettings({ quizLength: QUIZ_LENGTH_MAX });
+    expect(getSettings().quizLength).toBe(QUIZ_LENGTH_MAX);
+  });
+
+  it('clamps invalid quizLength back to the default', () => {
+    saveSettings({ quizLength: 0 });
+    expect(getSettings().quizLength).toBe(DEFAULT_SETTINGS.quizLength);
+
+    saveSettings({ quizLength: QUIZ_LENGTH_MAX + 1 });
+    expect(getSettings().quizLength).toBe(DEFAULT_SETTINGS.quizLength);
+
+    saveSettings({ quizLength: 'nope' });
+    expect(getSettings().quizLength).toBe(DEFAULT_SETTINGS.quizLength);
+  });
+
+  it('rounds non-integer quizLength values', () => {
+    saveSettings({ quizLength: 12.7 });
+    expect(getSettings().quizLength).toBe(13);
+  });
+
+  it('quiz length range is at least 5..100', () => {
+    expect(QUIZ_LENGTH_MIN).toBeLessThanOrEqual(5);
+    expect(QUIZ_LENGTH_MAX).toBeGreaterThanOrEqual(100);
   });
 });
 

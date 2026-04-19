@@ -146,7 +146,7 @@ Fonts: `'Playfair Display'` for headings, `'Crimson Pro'` for body text.
 | `rfi-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
 | `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, recentScores }` |
 | `study-progress` | `{ cardsSeen: [], totalFlips, byCategory: {} }` |
-| `settings` | `{ autoAdvance, autoAdvanceSeconds, cardSize }` |
+| `settings` | `{ autoAdvance, autoAdvanceSeconds, cardSize, quizLength }` |
 
 ---
 

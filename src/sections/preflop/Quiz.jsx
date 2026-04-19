@@ -122,15 +122,19 @@ function generateVsRaiseHand(stackDepth, heroOverride = null, villainOverride = 
   return { type: 'vsRaise', hand, heroPos, villainPos, stackDepth, suit: randomSuit(), correctAction };
 }
 
-function buildDeck(mode, stackDepth, heroPos = 'all', villainPos = 'all') {
+export function buildDeck(mode, stackDepth, heroPos = 'all', villainPos = 'all', length = RFI_QUIZ_LENGTH) {
   const heroOv    = heroPos    !== 'all' ? heroPos    : null;
   const villainOv = villainPos !== 'all' ? villainPos : null;
   const deck = [];
   const counts = {};
   let attempts = 0;
-  const maxPerAction = mode === 'rfi' ? 7 : 4;
+  // Cap per action scales with quiz length so the balance constraint doesn't
+  // stall deck-building for longer quizzes. Same ratios as the original 10-q
+  // defaults (7/10 for rfi, 4/10 for the other modes).
+  const maxPerAction = mode === 'rfi' ? Math.ceil(length * 0.7) : Math.ceil(length * 0.4);
+  const maxAttempts = Math.max(300, length * 30);
 
-  while (deck.length < RFI_QUIZ_LENGTH && attempts < 300) {
+  while (deck.length < length && attempts < maxAttempts) {
     attempts++;
     let q;
     if (mode === 'rfi') q = generateRfiHand(stackDepth, heroOv);
@@ -183,7 +187,7 @@ function promptText(q) {
 }
 
 // ---------- save stats helpers ----------
-function saveStats(results, mode, score, stackDepth) {
+function saveStats(results, mode, score, stackDepth, quizLength) {
   if (mode === 'rfi' || mode === 'all') {
     const rfi = getRfiQuizStats() || initRfiQuizStats();
     const rfiResults = results.filter(r => r.type === 'rfi');
@@ -197,7 +201,7 @@ function saveStats(results, mode, score, stackDepth) {
         if (r.correct) rfi.byPosition[r.heroPos].correct++;
       });
       if (mode === 'rfi') {
-        rfi.recentScores.push({ date: new Date().toLocaleDateString(), score, total: RFI_QUIZ_LENGTH });
+        rfi.recentScores.push({ date: new Date().toLocaleDateString(), score, total: quizLength });
         if (rfi.recentScores.length > 20) rfi.recentScores = rfi.recentScores.slice(-20);
       }
       saveRfiQuizStats(rfi);
@@ -222,7 +226,7 @@ function saveStats(results, mode, score, stackDepth) {
         }
       });
       if (mode === 'limp') {
-        limp.recentScores.push({ date: new Date().toLocaleDateString(), score, total: RFI_QUIZ_LENGTH });
+        limp.recentScores.push({ date: new Date().toLocaleDateString(), score, total: quizLength });
         if (limp.recentScores.length > 20) limp.recentScores = limp.recentScores.slice(-20);
       }
       saveLimpQuizStats(limp);
@@ -247,7 +251,7 @@ function saveStats(results, mode, score, stackDepth) {
         }
       });
       if (mode === 'vsRaise') {
-        vsr.recentScores.push({ date: new Date().toLocaleDateString(), score, total: RFI_QUIZ_LENGTH });
+        vsr.recentScores.push({ date: new Date().toLocaleDateString(), score, total: quizLength });
         if (vsr.recentScores.length > 20) vsr.recentScores = vsr.recentScores.slice(-20);
       }
       saveVsRaiseQuizStats(vsr);
@@ -257,7 +261,7 @@ function saveStats(results, mode, score, stackDepth) {
   if (mode === 'all') {
     const all = getAllModesQuizStats() || initAllModesQuizStats();
     all.totalQuizzes++;
-    all.totalQuestions += RFI_QUIZ_LENGTH;
+    all.totalQuestions += quizLength;
     all.totalCorrect += score;
     results.forEach(r => {
       const modeKey = r.type === 'vsRaise' ? 'vsRaise' : r.type;
@@ -265,7 +269,7 @@ function saveStats(results, mode, score, stackDepth) {
       all.byMode[modeKey].total++;
       if (r.correct) all.byMode[modeKey].correct++;
     });
-    all.recentScores.push({ date: new Date().toLocaleDateString(), score, total: RFI_QUIZ_LENGTH });
+    all.recentScores.push({ date: new Date().toLocaleDateString(), score, total: quizLength });
     if (all.recentScores.length > 20) all.recentScores = all.recentScores.slice(-20);
     saveAllModesQuizStats(all);
   }
@@ -279,17 +283,21 @@ export function PreflopQuiz({ query }) {
   const [stackDepth, setStackDepth] = useState('100BB');
   const [selectedPos, setSelectedPos] = useState('all');
   const [selectedVillainPos, setSelectedVillainPos] = useState('all');
-  const [deck, setDeck]             = useState(() => buildDeck(initialMode, '100BB', 'all', 'all'));
+  const [settings, setSettings]     = useState(() => getSettings());
+  const [deck, setDeck]             = useState(() => buildDeck(initialMode, '100BB', 'all', 'all', settings.quizLength));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
   const [answered, setAnswered]     = useState(false);
   const [choseAction, setChoseAction] = useState(null);
   const [results, setResults]       = useState([]);
-  const [settings]                  = useState(() => getSettings());
   const [countdown, setCountdown]   = useState(settings.autoAdvanceSeconds);
 
   function resetQuiz(mode, depth, pos, villainPos) {
-    setDeck(buildDeck(mode, depth, pos, villainPos));
+    // Re-read settings at quiz-start so a length change on the Settings page
+    // takes effect the next time the user starts a quiz without a reload.
+    const fresh = getSettings();
+    setSettings(fresh);
+    setDeck(buildDeck(mode, depth, pos, villainPos, fresh.quizLength));
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 
@@ -433,13 +441,13 @@ export function PreflopQuiz({ query }) {
 
   // ── Complete screen ───────────────────────────────────────────────────────
   if (qIdx >= deck.length && deck.length > 0) {
-    const pct = Math.round(score / RFI_QUIZ_LENGTH * 100);
+    const pct = Math.round(score / deck.length * 100);
     const msg = pct >= 90 ? 'Phenomenal \u2014 you know your ranges!' :
                 pct >= 70 ? 'Well played \u2014 solid range knowledge.' :
                 pct >= 50 ? 'Good start \u2014 review the charts.' :
                 'Hit the charts and come back!';
 
-    saveStats(results, quizMode, score, stackDepth);
+    saveStats(results, quizMode, score, stackDepth, deck.length);
 
     return (
       <div>
@@ -447,7 +455,7 @@ export function PreflopQuiz({ query }) {
         <div class="rq-panel">
           <div class="rq-complete">
             <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Quiz Complete</h2>
-            <div class="score-big">{score} / {RFI_QUIZ_LENGTH} &mdash; {pct}%</div>
+            <div class="score-big">{score} / {deck.length} &mdash; {pct}%</div>
             <p>{msg}</p>
             <button class="rq-restart" onClick={startQuiz}>Play Again</button>
             <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
@@ -477,10 +485,10 @@ export function PreflopQuiz({ query }) {
           <button class="rq-exit-btn" onClick={exitQuiz}>Exit</button>
         </div>
 
-        <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / RFI_QUIZ_LENGTH * 100) + '%' }}></div></div>
+        <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / deck.length * 100) + '%' }}></div></div>
         <div class="rq-status">
           <div class="rq-stat"><div class="val">{score}</div><div class="lbl">Correct</div></div>
-          <div class="rq-stat"><div class="val">{qIdx + 1} / {RFI_QUIZ_LENGTH}</div><div class="lbl">Question</div></div>
+          <div class="rq-stat"><div class="val">{qIdx + 1} / {deck.length}</div><div class="lbl">Question</div></div>
           <div class="rq-stat"><div class="val">{pctDisplay}</div><div class="lbl">Accuracy</div></div>
         </div>
 

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
-import { getPositionsForMode, getVillainsForSelection, getHeroesForVillain } from './Quiz.jsx';
+import { getPositionsForMode, getVillainsForSelection, getHeroesForVillain, buildDeck } from './Quiz.jsx';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const quizSource = readFileSync(resolve(__dirname, 'Quiz.jsx'), 'utf8');
@@ -194,7 +194,7 @@ describe('PreflopQuiz — default mode', () => {
   });
 
   it('initial deck is built with the resolved initialMode (so default-all hits all hand generators)', () => {
-    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'\)/);
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'(?:,\s*settings\.quizLength)?\)/);
   });
 });
 
@@ -217,6 +217,43 @@ describe('PreflopQuiz — complete screen', () => {
     // A useEffect watching query?.mode must reset phase + mode + deck so the
     // user lands on the setup screen for the requested mode.
     expect(quizSource).toMatch(/useEffect\(\(\)\s*=>\s*\{[\s\S]*?query\?\.mode[\s\S]*?setPhase\(['"]setup['"]\)[\s\S]*?\},\s*\[query\?\.mode\]\)/);
+  });
+});
+
+describe('PreflopQuiz — configurable quiz length', () => {
+  it('buildDeck honors the length parameter (rfi mode)', () => {
+    for (const len of [5, 10, 20, 30]) {
+      const deck = buildDeck('rfi', '100BB', 'all', 'all', len);
+      expect(deck.length).toBe(len);
+    }
+  });
+
+  it('buildDeck honors the length parameter (all mode)', () => {
+    for (const len of [5, 15, 25]) {
+      const deck = buildDeck('all', '100BB', 'all', 'all', len);
+      expect(deck.length).toBe(len);
+    }
+  });
+
+  it('buildDeck defaults to RFI_QUIZ_LENGTH when no length is passed', () => {
+    const deck = buildDeck('rfi', '100BB', 'all', 'all');
+    expect(deck.length).toBe(RFI_QUIZ_LENGTH);
+  });
+
+  it('component reads settings.quizLength and threads it through buildDeck', () => {
+    // Regression: if buildDeck is called without the length arg, the preflop
+    // quiz silently ignores the Settings page "Quiz length" choice.
+    expect(quizSource).toMatch(/buildDeck\([^)]*,\s*fresh\.quizLength\)/);
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all',\s*settings\.quizLength\)/);
+  });
+
+  it('component renders deck.length in playing/complete UI (not a hardcoded constant)', () => {
+    // Progress bar, "Question X / N", and complete-screen score must scale
+    // with the user-chosen quiz length.
+    expect(quizSource).toMatch(/qIdx \/ deck\.length \* 100/);
+    expect(quizSource).toMatch(/\{qIdx \+ 1\} \/ \{deck\.length\}/);
+    expect(quizSource).toMatch(/score \/ deck\.length \* 100/);
+    expect(quizSource).toMatch(/\{score\} \/ \{deck\.length\}/);
   });
 });
 
