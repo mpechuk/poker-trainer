@@ -198,6 +198,13 @@ describe('PreflopQuiz — default mode', () => {
   });
 });
 
+describe('PreflopQuiz — complete screen', () => {
+  it('renders a Stats link pointing to #/stats on the complete screen', () => {
+    // Lets users jump straight to their overall stats after finishing a quiz.
+    expect(quizSource).toMatch(/href="#\/stats"[^>]*>Stats<\/a>/);
+  });
+});
+
 describe('PreflopQuiz — playing screen position table', () => {
   it('renders the PositionTable inside the playing card — visual context for the question', () => {
     expect(quizSource).toMatch(/import\s*\{\s*PositionTable\s*\}/);

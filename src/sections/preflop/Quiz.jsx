@@ -436,6 +436,7 @@ export function PreflopQuiz({ query }) {
             <button class="rq-restart" onClick={startQuiz}>Play Again</button>
             <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
+            <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
           </div>
           <QuizStats mode={quizMode} />
         </div>
