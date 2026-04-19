@@ -21,6 +21,24 @@ const HERO_STROKE = '#f0d060';
 const VILL_FILL   = '#7a2a1e';
 const VILL_STROKE = '#e85c4a';
 
+// Visual chip shown next to a villain seat to indicate their preflop action.
+// Keys here are the action ids accepted by the `villainAction` prop.
+const ACTION_CHIPS = {
+  raise: { symbol: '\u2191', label: 'Raise', fill: '#c0392b', stroke: '#f0b8b0', textColor: '#fff5ec' },
+  check: { symbol: '\u2713', label: 'Check', fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
+  limp:  { symbol: 'L',      label: 'Limp',  fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
+};
+
+// Place the chip a fixed distance from the seat toward the table center so it
+// reads as "next to that seat" without overlapping the seat label.
+function chipPosFor(seat) {
+  const cx = 200, cy = 115;
+  const dx = cx - seat.x, dy = cy - seat.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const off = 30;
+  return { x: seat.x + (dx / len) * off, y: seat.y + (dy / len) * off };
+}
+
 export function PositionTable({
   heroSelected = 'all',
   villainSelected = 'all',
@@ -33,6 +51,8 @@ export function PositionTable({
   autoSwitchRole = true,
   heroLabel = 'Your Position',
   villainLabel = 'Villain',
+  readOnly = false,
+  villainAction = null,
 }) {
   const [activeRole, setActiveRole] = useState('hero');
 
@@ -46,6 +66,7 @@ export function PositionTable({
   const active = showVillain ? activeRole : 'hero';
 
   const handleSeatClick = (id) => {
+    if (readOnly) return;
     if (active === 'hero') {
       if (!heroAvailSet.has(id)) return;
       onHeroSelect(id);
@@ -62,7 +83,7 @@ export function PositionTable({
 
   return (
     <div class="pt-wrap">
-      {showVillain && (
+      {showVillain && !readOnly && (
         <div class="pt-roles" role="tablist">
           <button
             type="button"
@@ -115,7 +136,7 @@ export function PositionTable({
             const isVillain = !villainIsAll && villainSelected === seat.id;
             const roleAvail = active === 'hero' ? heroAvailSet : villainAvailSet;
             const enabled   = roleAvail.has(seat.id);
-            const dimmed    = !enabled && !isHero && !isVillain;
+            const dimmed    = !enabled && !isHero && !isVillain && !readOnly;
             const r         = (isHero || isVillain) ? 22 : 18;
 
             let fill, stroke, strokeWidth, textColor, fontWeight;
@@ -133,7 +154,7 @@ export function PositionTable({
               strokeWidth = 1.25; textColor = '#c9a84c'; fontWeight = 500;
             }
 
-            const clickable = enabled;
+            const clickable = enabled && !readOnly;
             return (
               <g key={seat.id}
                  class={`pt-seat${clickable ? ' pt-seat-enabled' : ''}${isHero ? ' pt-seat-hero' : ''}${isVillain ? ' pt-seat-villain' : ''}`}
@@ -158,10 +179,31 @@ export function PositionTable({
               </g>
             );
           })}
+
+          {/* Action chip next to the villain seat (e.g. "↑" for raise, "✓" for check). */}
+          {(() => {
+            const chip = ACTION_CHIPS[villainAction];
+            if (!chip) return null;
+            const seat = SEATS.find(s => s.id === villainSelected);
+            if (!seat) return null;
+            const pos = chipPosFor(seat);
+            return (
+              <g class="pt-action-chip" aria-label={`Villain action: ${chip.label}`}>
+                <circle cx={pos.x} cy={pos.y} r="11"
+                  fill="rgba(0,0,0,.45)"/>
+                <circle cx={pos.x} cy={pos.y} r="10"
+                  fill={chip.fill} stroke={chip.stroke} stroke-width="1.5"/>
+                <text x={pos.x} y={pos.y + 4} text-anchor="middle"
+                  font-size="12" font-weight="700" fill={chip.textColor}
+                  font-family="Georgia"
+                  style="pointer-events:none;user-select:none">{chip.symbol}</text>
+              </g>
+            );
+          })()}
         </svg>
       </div>
 
-      {showAllButtons && (
+      {showAllButtons && !readOnly && (
         <div class="pt-all-row">
           <button
             type="button"

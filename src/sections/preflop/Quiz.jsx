@@ -444,6 +444,7 @@ export function PreflopQuiz({ query }) {
   const isCorrect = answered && current ? (choseAction === current.correctAction) : null;
   const buttons = current ? getButtons(current.type) : [];
   const modeLabel = MODES.find(m => m.id === quizMode)?.label ?? quizMode;
+  const villainAction = current?.type === 'vsRaise' ? 'raise' : current?.type === 'limp' ? 'limp' : null;
 
   return (
     <div class="rq-playing-wrapper">
@@ -466,6 +467,16 @@ export function PreflopQuiz({ query }) {
               <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">{current.heroPos}</strong>
                 {current.villainPos && <span style="margin-left:.8rem;color:var(--muted)">Villain: <strong style="color:var(--text)">{current.villainPos}</strong></span>}
               </div>
+              <PositionTable
+                heroSelected={current.heroPos}
+                villainSelected={current.villainPos || 'all'}
+                heroAvailable={[]}
+                villainAvailable={[]}
+                showVillain={!!current.villainPos}
+                showAllButtons={false}
+                readOnly={true}
+                villainAction={villainAction}
+              />
               <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit) }} />
               <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">{current.hand}</div>
               <div class="rq-prompt">{promptText(current)}</div>
