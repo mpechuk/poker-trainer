@@ -174,9 +174,9 @@ function actionLabel(action) {
 
 function promptText(q) {
   if (!q) return '';
-  if (q.type === 'rfi')     return 'Everyone folds to you. What do you do?';
-  if (q.type === 'limp')    return `${q.villainPos} limps. What do you do?`;
-  if (q.type === 'vsRaise') return `${q.villainPos} raises. What do you do?`;
+  if (q.type === 'rfi')     return 'Everyone folds to you.';
+  if (q.type === 'limp')    return `${q.villainPos} limps.`;
+  if (q.type === 'vsRaise') return `${q.villainPos} raises.`;
   return '';
 }
 
