@@ -60,6 +60,7 @@ export function initAllModesQuizStats() {
 
 // App Settings
 export const CARD_SIZES = {
+  xsmall: { w: 40, h: 56,  label: 'Extra Small' },
   small:  { w: 52, h: 74,  label: 'Small'  },
   medium: { w: 64, h: 90,  label: 'Medium' },
   large:  { w: 80, h: 112, label: 'Large'  },
