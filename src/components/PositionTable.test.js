@@ -130,6 +130,11 @@ describe('PositionTable — visual position selector', () => {
     expect(source).toMatch(/check:\s*\{[^}]*symbol:\s*'\\u2713'/);
   });
 
+  it('limp chip uses a check mark (limp is a passive action, matches the check glyph)', () => {
+    // \u2713 = ✓ — regression: originally shipped as the letter "L", swapped to ✓.
+    expect(source).toMatch(/limp:\s*\{[^}]*symbol:\s*'\\u2713'/);
+  });
+
   it('chipPosFor offsets the chip from the seat toward the table center — keeps it next to, not on top of, the seat', () => {
     expect(source).toMatch(/function\s+chipPosFor/);
     expect(source).toMatch(/Math\.hypot\(dx,\s*dy\)/);

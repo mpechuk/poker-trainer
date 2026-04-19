@@ -26,7 +26,7 @@ const VILL_STROKE = '#e85c4a';
 const ACTION_CHIPS = {
   raise: { symbol: '\u2191', label: 'Raise', fill: '#c0392b', stroke: '#f0b8b0', textColor: '#fff5ec' },
   check: { symbol: '\u2713', label: 'Check', fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
-  limp:  { symbol: 'L',      label: 'Limp',  fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
+  limp:  { symbol: '\u2713', label: 'Limp',  fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
 };
 
 // Place the chip a fixed distance from the seat toward the table center so it
