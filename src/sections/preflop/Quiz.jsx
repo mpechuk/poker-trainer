@@ -38,8 +38,9 @@ export function getHeroesForVillain(mode, villainPos) {
   const map = mode === 'limp' ? VALID_LIMP_VILLAINS : VALID_RAISE_VILLAINS;
   return Object.entries(map).filter(([, v]) => v.includes(villainPos)).map(([h]) => h);
 }
-import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
+import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats, getSettings, CARD_SIZES } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
+import { explainQuestion } from '../../utils/explain.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -283,7 +284,8 @@ export function PreflopQuiz({ query }) {
   const [answered, setAnswered]     = useState(false);
   const [choseAction, setChoseAction] = useState(null);
   const [results, setResults]       = useState([]);
-  const [countdown, setCountdown]   = useState(5);
+  const [settings]                  = useState(() => getSettings());
+  const [countdown, setCountdown]   = useState(settings.autoAdvanceSeconds);
 
   function resetQuiz(mode, depth, pos, villainPos) {
     setDeck(buildDeck(mode, depth, pos, villainPos));
@@ -339,11 +341,14 @@ export function PreflopQuiz({ query }) {
     setChoseAction(null);
   }
 
-  // Auto-advance 5s after answering; cleanup cancels timer when next() is called manually
+  // Auto-advance after answering — only runs when the user has enabled it in settings.
+  // Cleanup cancels the timer when next() is called manually.
   useEffect(() => {
     if (!answered || phase !== 'playing') return;
-    setCountdown(5);
-    let secs = 5;
+    if (!settings.autoAdvance) return;
+    const start = settings.autoAdvanceSeconds;
+    setCountdown(start);
+    let secs = start;
     const id = setInterval(() => {
       secs -= 1;
       setCountdown(secs);
@@ -355,7 +360,7 @@ export function PreflopQuiz({ query }) {
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [answered, phase]);
+  }, [answered, phase, settings.autoAdvance, settings.autoAdvanceSeconds]);
 
   // ── Setup screen ──────────────────────────────────────────────────────────
   if (phase === 'setup') {
@@ -467,17 +472,28 @@ export function PreflopQuiz({ query }) {
               <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">{current.heroPos}</strong>
                 {current.villainPos && <span style="margin-left:.8rem;color:var(--muted)">Villain: <strong style="color:var(--text)">{current.villainPos}</strong></span>}
               </div>
-              <PositionTable
-                heroSelected={current.heroPos}
-                villainSelected={current.villainPos || 'all'}
-                heroAvailable={[]}
-                villainAvailable={[]}
-                showVillain={!!current.villainPos}
-                showAllButtons={false}
-                readOnly={true}
-                villainAction={villainAction}
-              />
-              <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit) }} />
+              <div class="rq-table-wrap">
+                <PositionTable
+                  heroSelected={current.heroPos}
+                  villainSelected={current.villainPos || 'all'}
+                  heroAvailable={[]}
+                  villainAvailable={[]}
+                  showVillain={!!current.villainPos}
+                  showAllButtons={false}
+                  readOnly={true}
+                  villainAction={villainAction}
+                />
+                {answered && (
+                  <div class={`rq-explain-overlay${isCorrect ? ' correct' : ' wrong'}`} role="status" aria-live="polite">
+                    <div class="rq-explain-verdict">
+                      {isCorrect ? 'Correct!' : 'Incorrect.'}{' '}
+                      {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.
+                    </div>
+                    <div class="rq-explain-text">{explainQuestion(current)}</div>
+                  </div>
+                )}
+              </div>
+              <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit, CARD_SIZES[settings.cardSize]) }} />
               <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">{current.hand}</div>
               <div class="rq-prompt">{promptText(current)}</div>
             </div>
@@ -499,20 +515,13 @@ export function PreflopQuiz({ query }) {
               })}
             </div>
 
-            {answered && (
-              <div class="rq-feedback">
-                {isCorrect
-                  ? <span style="color:#27ae60">Correct! {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
-                  : <span style="color:#c0392b">Incorrect. {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
-                }
-              </div>
-            )}
-
             <div class="rq-next-row">
               {answered && (
                 <>
                   <button class="rq-next" style="display:inline-block" onClick={next}>Next Question {'\u2192'}</button>
-                  <div class="rq-countdown">Auto-advancing in {countdown}s</div>
+                  {settings.autoAdvance && (
+                    <div class="rq-countdown">Auto-advancing in {countdown}s</div>
+                  )}
                 </>
               )}
             </div>

@@ -31,8 +31,8 @@ describe('Header — hamburger menu', () => {
     expect(source).toMatch(/onHash[\s\S]{0,200}setMenuOpen\(false\)/);
   });
 
-  it('includes all five top-level sections in the drawer', () => {
-    for (const label of ['Home', 'Terminology', 'Preflop', 'Quizzes', 'Stats']) {
+  it('includes all top-level sections in the drawer', () => {
+    for (const label of ['Home', 'Terminology', 'Preflop', 'Quizzes', 'Stats', 'Settings']) {
       expect(source).toContain(label);
     }
   });

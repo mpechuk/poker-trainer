@@ -52,20 +52,20 @@ describe('PreflopQuiz — setup phase logic', () => {
 });
 
 describe('PreflopQuiz — auto-advance countdown', () => {
-  it('countdown starts at 5 seconds', () => {
-    const INITIAL_COUNTDOWN = 5;
-    expect(INITIAL_COUNTDOWN).toBe(5);
+  it('countdown starts at 10 seconds', () => {
+    const INITIAL_COUNTDOWN = 10;
+    expect(INITIAL_COUNTDOWN).toBe(10);
   });
 
   it('countdown decrements to 0 before advancing', () => {
-    let secs = 5;
+    let secs = 10;
     const steps = [];
     while (secs > 0) {
       secs -= 1;
       steps.push(secs);
     }
     expect(steps[steps.length - 1]).toBe(0);
-    expect(steps.length).toBe(5);
+    expect(steps.length).toBe(10);
   });
 });
 

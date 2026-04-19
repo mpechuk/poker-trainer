@@ -441,14 +441,16 @@ export function getIllus(t) {
 }
 
 
-export function handToCards(h, suit) {
+export function handToCards(h, suit, size) {
   const toRank = r => r==='T' ? '10' : r;
   const rank1 = toRank(h[0]), rank2 = toRank(h[1]);
+  const w  = size?.w  || 64;
+  const ch = size?.h  || 90;
   const type = h.length===2 ? 'pair' : h[2]==='s' ? 'suited' : 'offsuit';
-  if (type==='pair') return cardSvg(rank1,'♠',64,90)+cardSvg(rank2,'♥',64,90);
+  if (type==='pair') return cardSvg(rank1,'♠',w,ch)+cardSvg(rank2,'♥',w,ch);
   if (type==='suited') {
     const s = suit || ['♠','♥','♦','♣'][Math.floor(Math.random()*4)];
-    return cardSvg(rank1,s,64,90)+cardSvg(rank2,s,64,90);
+    return cardSvg(rank1,s,w,ch)+cardSvg(rank2,s,w,ch);
   }
-  return cardSvg(rank1,'♠',64,90)+cardSvg(rank2,'♥',64,90);
+  return cardSvg(rank1,'♠',w,ch)+cardSvg(rank2,'♥',w,ch);
 }

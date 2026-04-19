@@ -47,7 +47,8 @@ poker-trainer/
 │   ├── utils/
 │   │   ├── illustrations.jsx           # cardSvg(), hand(), ILLUS, getIllus(), handToCards()
 │   │   ├── shuffle.js                  # Immutable Fisher-Yates shuffle
-│   │   └── storage.js                  # localStorage helpers for all 3 stat stores
+│   │   ├── storage.js                  # localStorage helpers for all 3 stat stores
+│   │   └── explain.js                  # Quiz feedback rationale (hand features + action logic)
 │   ├── hooks/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
@@ -67,8 +68,10 @@ poker-trainer/
 │       ├── preflop/
 │       │   ├── Charts.jsx              # RFI hand range grid with position tabs
 │       │   └── Quiz.jsx                # Raise/fold RFI quiz
-│       └── stats/
-│           └── Dashboard.jsx           # Full stats dashboard
+│       ├── stats/
+│       │   └── Dashboard.jsx           # Full stats dashboard
+│       └── settings/
+│           └── Settings.jsx            # User preferences (auto-advance, card size)
 ├── .github/workflows/deploy.yml        # Build + deploy to GitHub Pages
 ├── CLAUDE.md                           # This file
 └── README.md                           # User-facing docs
@@ -89,6 +92,7 @@ Hash-based routing (`#/path`) for GitHub Pages compatibility.
 | `#/preflop/charts` | Charts.jsx | RFI hand range grids |
 | `#/preflop/quiz` | Quiz.jsx | Raise/fold RFI quiz |
 | `#/stats` | Dashboard.jsx | Full stats dashboard |
+| `#/settings` | Settings.jsx | User preferences (auto-advance, card image size) |
 
 Redirects: `/` → `/welcome`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
 
@@ -142,6 +146,7 @@ Fonts: `'Playfair Display'` for headings, `'Crimson Pro'` for body text.
 | `rfi-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
 | `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, recentScores }` |
 | `study-progress` | `{ cardsSeen: [], totalFlips, byCategory: {} }` |
+| `settings` | `{ autoAdvance, autoAdvanceSeconds, cardSize }` |
 
 ---
 

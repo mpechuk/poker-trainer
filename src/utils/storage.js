@@ -58,6 +58,46 @@ export function initAllModesQuizStats() {
   return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, byMode:{ rfi:{total:0,correct:0}, limp:{total:0,correct:0}, vsRaise:{total:0,correct:0} }, recentScores:[] };
 }
 
+// App Settings
+export const CARD_SIZES = {
+  small:  { w: 52, h: 74,  label: 'Small'  },
+  medium: { w: 64, h: 90,  label: 'Medium' },
+  large:  { w: 80, h: 112, label: 'Large'  },
+  xlarge: { w: 100, h: 140, label: 'Extra Large' },
+};
+
+export const DEFAULT_SETTINGS = {
+  autoAdvance: false,       // off by default — users asked to read the explanation at their own pace
+  autoAdvanceSeconds: 10,   // only used when autoAdvance is true
+  cardSize: 'medium',
+};
+
+function normalizeSettings(raw) {
+  const s = { ...DEFAULT_SETTINGS, ...(raw || {}) };
+  s.autoAdvance = Boolean(s.autoAdvance);
+  const secs = Number(s.autoAdvanceSeconds);
+  s.autoAdvanceSeconds = Number.isFinite(secs) && secs >= 1 && secs <= 60
+    ? Math.round(secs)
+    : DEFAULT_SETTINGS.autoAdvanceSeconds;
+  if (!CARD_SIZES[s.cardSize]) s.cardSize = DEFAULT_SETTINGS.cardSize;
+  return s;
+}
+
+export function getSettings() {
+  try {
+    const d = localStorage.getItem('settings');
+    return normalizeSettings(d ? JSON.parse(d) : null);
+  } catch(e) { return normalizeSettings(null); }
+}
+
+export function saveSettings(s) {
+  try { localStorage.setItem('settings', JSON.stringify(normalizeSettings(s))); } catch(e) {}
+}
+
+export function resetSettings() {
+  try { localStorage.removeItem('settings'); } catch(e) {}
+}
+
 // Study Progress
 export function getStudyProgress() {
   try { const d = localStorage.getItem('study-progress'); return d ? JSON.parse(d) : null; }

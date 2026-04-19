@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: '#/preflop/charts', label: 'Preflop', section: 'preflop' },
   { href: '#/quizzes/preflop', label: 'Quizzes', section: 'quizzes' },
   { href: '#/stats', label: 'Stats', section: 'stats' },
+  { href: '#/settings', label: 'Settings', section: 'settings' },
 ];
 
 export function Header() {

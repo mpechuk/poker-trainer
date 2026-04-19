@@ -1,0 +1,29 @@
+.settings-panel{max-width:640px}
+.settings-sub{text-align:center;color:var(--muted);font-size:.9rem;margin:0 0 1.2rem}
+
+.settings-section{margin:1.4rem 0;padding:1rem 1rem 1.2rem;
+  border:1px solid rgba(201,168,76,.2);border-radius:12px;
+  background:rgba(0,0,0,.2)}
+
+.settings-toggle{display:flex;align-items:center;justify-content:center;gap:.6rem;
+  font-size:1rem;color:var(--text);cursor:pointer;margin:.3rem 0 .6rem}
+.settings-toggle input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
+
+.settings-timeout{display:flex;align-items:center;justify-content:center;gap:.6rem;
+  font-size:.95rem;color:var(--text);margin-top:.4rem}
+.settings-timeout.disabled{opacity:.45}
+.settings-timeout label{color:var(--muted);letter-spacing:.04em}
+.settings-timeout input[type=number]{width:70px;padding:.35rem .5rem;
+  border-radius:8px;border:1px solid var(--gold-dark);background:rgba(0,0,0,.35);
+  color:var(--gold-bright);font-family:'Crimson Pro',serif;font-size:1rem;text-align:center}
+.settings-timeout input[type=number]:disabled{cursor:not-allowed}
+.settings-timeout input[type=number]:focus{outline:none;border-color:var(--gold)}
+
+.settings-card-preview{display:flex;justify-content:center;align-items:center;gap:8px;
+  min-height:160px;margin-top:.8rem;padding:.6rem;
+  background:rgba(0,0,0,.25);border-radius:10px}
+
+.settings-actions{display:flex;align-items:center;justify-content:center;gap:1rem;
+  margin:1.2rem 0 .4rem}
+.settings-saved{color:var(--accent);font-size:.9rem;opacity:0;transition:opacity .2s}
+.settings-saved.show{opacity:1}
