@@ -141,10 +141,10 @@
   animation:rq-overlay-in .2s ease-out;z-index:2;pointer-events:none}
 .rq-explain-overlay.correct{border:1.5px solid #27ae60}
 .rq-explain-overlay.wrong{border:1.5px solid #c0392b}
-.rq-explain-verdict{font-size:1rem;line-height:1.3;margin-bottom:.4rem}
+.rq-explain-verdict{font-size:1.2rem;line-height:1.3;margin-bottom:.5rem}
 .rq-explain-overlay.correct .rq-explain-verdict{color:#a8f0c6}
 .rq-explain-overlay.wrong   .rq-explain-verdict{color:#f0b8b0}
-.rq-explain-text{font-size:.85rem;line-height:1.4;color:var(--text);font-style:italic}
+.rq-explain-text{font-size:1.2rem;line-height:1.35;color:var(--text);font-style:italic}
 @keyframes rq-overlay-in{from{opacity:0;transform:translate(-50%,-44%)}
   to{opacity:1;transform:translate(-50%,-50%)}}
 .rq-next{display:none;margin:0 auto;padding:.65rem 2rem;background:var(--gold-dark);
