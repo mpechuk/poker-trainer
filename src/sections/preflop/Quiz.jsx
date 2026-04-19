@@ -284,7 +284,7 @@ export function PreflopQuiz({ query }) {
   const [answered, setAnswered]     = useState(false);
   const [choseAction, setChoseAction] = useState(null);
   const [results, setResults]       = useState([]);
-  const [countdown, setCountdown]   = useState(5);
+  const [countdown, setCountdown]   = useState(10);
 
   function resetQuiz(mode, depth, pos, villainPos) {
     setDeck(buildDeck(mode, depth, pos, villainPos));
@@ -340,11 +340,11 @@ export function PreflopQuiz({ query }) {
     setChoseAction(null);
   }
 
-  // Auto-advance 5s after answering; cleanup cancels timer when next() is called manually
+  // Auto-advance 10s after answering; cleanup cancels timer when next() is called manually
   useEffect(() => {
     if (!answered || phase !== 'playing') return;
-    setCountdown(5);
-    let secs = 5;
+    setCountdown(10);
+    let secs = 10;
     const id = setInterval(() => {
       secs -= 1;
       setCountdown(secs);
@@ -468,16 +468,27 @@ export function PreflopQuiz({ query }) {
               <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">{current.heroPos}</strong>
                 {current.villainPos && <span style="margin-left:.8rem;color:var(--muted)">Villain: <strong style="color:var(--text)">{current.villainPos}</strong></span>}
               </div>
-              <PositionTable
-                heroSelected={current.heroPos}
-                villainSelected={current.villainPos || 'all'}
-                heroAvailable={[]}
-                villainAvailable={[]}
-                showVillain={!!current.villainPos}
-                showAllButtons={false}
-                readOnly={true}
-                villainAction={villainAction}
-              />
+              <div class="rq-table-wrap">
+                <PositionTable
+                  heroSelected={current.heroPos}
+                  villainSelected={current.villainPos || 'all'}
+                  heroAvailable={[]}
+                  villainAvailable={[]}
+                  showVillain={!!current.villainPos}
+                  showAllButtons={false}
+                  readOnly={true}
+                  villainAction={villainAction}
+                />
+                {answered && (
+                  <div class={`rq-explain-overlay${isCorrect ? ' correct' : ' wrong'}`} role="status" aria-live="polite">
+                    <div class="rq-explain-verdict">
+                      {isCorrect ? 'Correct!' : 'Incorrect.'}{' '}
+                      {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.
+                    </div>
+                    <div class="rq-explain-text">{explainQuestion(current)}</div>
+                  </div>
+                )}
+              </div>
               <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit) }} />
               <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">{current.hand}</div>
               <div class="rq-prompt">{promptText(current)}</div>
@@ -499,16 +510,6 @@ export function PreflopQuiz({ query }) {
                 );
               })}
             </div>
-
-            {answered && (
-              <div class="rq-feedback">
-                {isCorrect
-                  ? <span style="color:#27ae60">Correct! {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
-                  : <span style="color:#c0392b">Incorrect. {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
-                }
-                <div class="rq-explain">{explainQuestion(current)}</div>
-              </div>
-            )}
 
             <div class="rq-next-row">
               {answered && (
