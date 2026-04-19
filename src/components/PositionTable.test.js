@@ -90,6 +90,63 @@ describe('PositionTable — visual position selector', () => {
 
   it('the All-buttons row can be hidden via the showAllButtons prop (for chart use where "All" is not meaningful)', () => {
     expect(source).toMatch(/showAllButtons\s*=\s*true/);
-    expect(source).toMatch(/showAllButtons\s*&&\s*\(/);
+    // Row is gated on `showAllButtons` (currently combined with `!readOnly`).
+    expect(source).toMatch(/showAllButtons\s*&&[^)]*\(/);
+  });
+
+  // ── New behavior: read-only mode for displaying a fixed hero/villain pair ──
+  it('exposes a readOnly prop that defaults to false', () => {
+    expect(source).toMatch(/readOnly\s*=\s*false/);
+  });
+
+  it('readOnly mode short-circuits seat clicks — no role switching, no callbacks fire', () => {
+    expect(source).toMatch(/if\s*\(\s*readOnly\s*\)\s*return/);
+  });
+
+  it('readOnly mode hides the role tabs (hero/villain switch) — only one snapshot is being shown', () => {
+    expect(source).toMatch(/showVillain\s*&&\s*!readOnly/);
+  });
+
+  it('readOnly mode hides the "All" buttons — fixed selection, no clearing', () => {
+    expect(source).toMatch(/showAllButtons\s*&&\s*!readOnly/);
+  });
+
+  it('readOnly mode keeps non-selected seats visible (not dimmed) — they are context, not options', () => {
+    expect(source).toMatch(/!enabled\s*&&\s*!isHero\s*&&\s*!isVillain\s*&&\s*!readOnly/);
+  });
+
+  // ── New behavior: villain action chip (raise / check / limp) ───────────────
+  it('declares an action-chip table covering raise, check and limp — for use in quiz playing screen', () => {
+    expect(source).toMatch(/ACTION_CHIPS\s*=\s*\{[\s\S]*raise:[\s\S]*check:[\s\S]*limp:/);
+  });
+
+  it('raise chip uses an up-arrow symbol so it visually reads as aggression', () => {
+    // \u2191 = ↑
+    expect(source).toMatch(/raise:\s*\{[^}]*symbol:\s*'\\u2191'/);
+  });
+
+  it('check chip uses a check mark', () => {
+    // \u2713 = ✓
+    expect(source).toMatch(/check:\s*\{[^}]*symbol:\s*'\\u2713'/);
+  });
+
+  it('limp chip uses a check mark (limp is a passive action, matches the check glyph)', () => {
+    // \u2713 = ✓ — regression: originally shipped as the letter "L", swapped to ✓.
+    expect(source).toMatch(/limp:\s*\{[^}]*symbol:\s*'\\u2713'/);
+  });
+
+  it('chipPosFor offsets the chip from the seat toward the table center — keeps it next to, not on top of, the seat', () => {
+    expect(source).toMatch(/function\s+chipPosFor/);
+    expect(source).toMatch(/Math\.hypot\(dx,\s*dy\)/);
+  });
+
+  it('villainAction prop drives chip rendering — chip only appears when set', () => {
+    expect(source).toMatch(/villainAction\s*=\s*null/);
+    expect(source).toMatch(/ACTION_CHIPS\[villainAction\]/);
+    expect(source).toMatch(/pt-action-chip/);
+  });
+
+  it('chip is anchored to the villain seat (not the hero)', () => {
+    expect(source).toMatch(/SEATS\.find\(s\s*=>\s*s\.id\s*===\s*villainSelected\)/);
   });
 });

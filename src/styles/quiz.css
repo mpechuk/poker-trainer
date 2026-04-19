@@ -84,6 +84,7 @@
 .pt-seat-enabled:focus-visible circle{stroke:#f0d060;stroke-width:2.5}
 .pt-seat:not(.pt-seat-enabled){cursor:not-allowed}
 .pt-dealer-chip{pointer-events:none}
+.pt-action-chip{pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
 .pt-all-row{text-align:center;margin-top:.5rem;display:flex;justify-content:center;
   gap:8px;flex-wrap:wrap}
 

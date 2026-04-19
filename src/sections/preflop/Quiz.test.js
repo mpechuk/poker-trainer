@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
 import { getPositionsForMode, getVillainsForSelection, getHeroesForVillain } from './Quiz.jsx';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const quizSource = readFileSync(resolve(__dirname, 'Quiz.jsx'), 'utf8');
 
 // Replicate the pure logic from Quiz.jsx for testing
 const SUITS = ['♠','♥','♦','♣'];
@@ -178,5 +184,40 @@ describe('PreflopQuiz — villain position selector', () => {
   it('getHeroesForVillain vsRaise mirrors limp structure', () => {
     expect(getHeroesForVillain('vsRaise', 'SB')).toEqual(['BB']);
     expect(getHeroesForVillain('vsRaise', 'UTG').length).toBe(5);
+  });
+});
+
+describe('PreflopQuiz — default mode', () => {
+  it('initial mode defaults to "all" when no query mode is provided', () => {
+    // Mirrors the resolution in Quiz.jsx so the default never silently regresses to a single-mode quiz.
+    expect(quizSource).toMatch(/MODES\.some\(m\s*=>\s*m\.id\s*===\s*query\.mode\)\s*\?\s*query\.mode\s*:\s*'all'/);
+  });
+
+  it('initial deck is built with the resolved initialMode (so default-all hits all hand generators)', () => {
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'\)/);
+  });
+});
+
+describe('PreflopQuiz — playing screen position table', () => {
+  it('renders the PositionTable inside the playing card — visual context for the question', () => {
+    expect(quizSource).toMatch(/import\s*\{\s*PositionTable\s*\}/);
+    // Used inside the rq-card block (not just on the setup screen).
+    expect(quizSource).toMatch(/rq-card[\s\S]*?<PositionTable[\s\S]*?readOnly=\{true\}/);
+  });
+
+  it('passes readOnly=true on the playing screen — quiz table is for display, not selection', () => {
+    expect(quizSource).toMatch(/readOnly=\{true\}/);
+  });
+
+  it('maps quiz mode to the matching villain action symbol — vsRaise → raise, limp → limp', () => {
+    expect(quizSource).toMatch(/villainAction\s*=\s*current\?\.type\s*===\s*'vsRaise'\s*\?\s*'raise'\s*:\s*current\?\.type\s*===\s*'limp'\s*\?\s*'limp'\s*:\s*null/);
+  });
+
+  it('passes the per-question villain action into the PositionTable', () => {
+    expect(quizSource).toMatch(/<PositionTable[\s\S]*?villainAction=\{villainAction\}/);
+  });
+
+  it('only shows villain seat when the question has one — RFI questions still render the table without a villain', () => {
+    expect(quizSource).toMatch(/showVillain=\{!!current\.villainPos\}/);
   });
 });

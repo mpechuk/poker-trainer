@@ -16,7 +16,7 @@
 
 ### Preflop
 - **Charts** — Interactive 13x13 preflop RFI (Raise First In) hand range grids for each table position (UTG, HJ, CO, BTN, SB).
-- **RFI Quiz** — Practice raise/fold decisions against GTO-optimal preflop ranges with persistent progress tracking.
+- **RFI Quiz** — Practice raise/fold decisions against GTO-optimal preflop ranges with persistent progress tracking. Each question shows the 6-max table with hero highlighted gold and (in vs Limp / vs Raise modes) the villain highlighted red, with a chip next to the villain seat indicating their action (↑ for raise, ✓ for limp).
 
 ### Stats
 - **Dashboard** — Full statistics view showing study progress, terminology quiz accuracy, and RFI quiz performance by position. Surfaces a "Recommended Next Quiz" card that points you at your weakest area (or an untaken quiz for a baseline) with a one-click button to start it.

@@ -174,9 +174,9 @@ function actionLabel(action) {
 
 function promptText(q) {
   if (!q) return '';
-  if (q.type === 'rfi')     return 'Everyone folds to you. What do you do?';
-  if (q.type === 'limp')    return `${q.villainPos} limps. What do you do?`;
-  if (q.type === 'vsRaise') return `${q.villainPos} raises. What do you do?`;
+  if (q.type === 'rfi')     return 'Everyone folds to you.';
+  if (q.type === 'limp')    return `${q.villainPos} limps.`;
+  if (q.type === 'vsRaise') return `${q.villainPos} raises.`;
   return '';
 }
 
@@ -271,7 +271,7 @@ function saveStats(results, mode, score, stackDepth) {
 
 // ---------- main component ----------
 export function PreflopQuiz({ query }) {
-  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'rfi';
+  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'all';
   const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
   const [quizMode, setQuizMode]     = useState(initialMode);
   const [stackDepth, setStackDepth] = useState('100BB');
@@ -444,6 +444,7 @@ export function PreflopQuiz({ query }) {
   const isCorrect = answered && current ? (choseAction === current.correctAction) : null;
   const buttons = current ? getButtons(current.type) : [];
   const modeLabel = MODES.find(m => m.id === quizMode)?.label ?? quizMode;
+  const villainAction = current?.type === 'vsRaise' ? 'raise' : current?.type === 'limp' ? 'limp' : null;
 
   return (
     <div class="rq-playing-wrapper">
@@ -466,6 +467,16 @@ export function PreflopQuiz({ query }) {
               <div class="rq-pos">Your Position: <strong style="font-size:1.1rem">{current.heroPos}</strong>
                 {current.villainPos && <span style="margin-left:.8rem;color:var(--muted)">Villain: <strong style="color:var(--text)">{current.villainPos}</strong></span>}
               </div>
+              <PositionTable
+                heroSelected={current.heroPos}
+                villainSelected={current.villainPos || 'all'}
+                heroAvailable={[]}
+                villainAvailable={[]}
+                showVillain={!!current.villainPos}
+                showAllButtons={false}
+                readOnly={true}
+                villainAction={villainAction}
+              />
               <div class="rq-hand-display" dangerouslySetInnerHTML={{ __html: handToCards(current.hand, current.suit) }} />
               <div style="font-size:1.1rem;color:var(--gold-bright);font-weight:600;margin-top:.3rem">{current.hand}</div>
               <div class="rq-prompt">{promptText(current)}</div>
