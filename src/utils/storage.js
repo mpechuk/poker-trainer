@@ -67,10 +67,14 @@ export const CARD_SIZES = {
   xlarge: { w: 100, h: 140, label: 'Extra Large' },
 };
 
+export const QUIZ_LENGTH_MIN = 5;
+export const QUIZ_LENGTH_MAX = 100;
+
 export const DEFAULT_SETTINGS = {
   autoAdvance: false,       // off by default — users asked to read the explanation at their own pace
   autoAdvanceSeconds: 10,   // only used when autoAdvance is true
   cardSize: 'medium',
+  quizLength: 10,           // number of questions per quiz run
 };
 
 function normalizeSettings(raw) {
@@ -81,6 +85,10 @@ function normalizeSettings(raw) {
     ? Math.round(secs)
     : DEFAULT_SETTINGS.autoAdvanceSeconds;
   if (!CARD_SIZES[s.cardSize]) s.cardSize = DEFAULT_SETTINGS.cardSize;
+  const ql = Number(s.quizLength);
+  s.quizLength = Number.isFinite(ql) && ql >= QUIZ_LENGTH_MIN && ql <= QUIZ_LENGTH_MAX
+    ? Math.round(ql)
+    : DEFAULT_SETTINGS.quizLength;
   return s;
 }
 

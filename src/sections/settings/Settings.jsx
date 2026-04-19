@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES } from '../../utils/storage.js';
+import { getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES, QUIZ_LENGTH_MIN, QUIZ_LENGTH_MAX } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
 import '../../styles/settings.css';
 
@@ -53,6 +53,38 @@ export function Settings() {
             onInput={(e) => {
               const n = Number(e.currentTarget.value);
               if (Number.isFinite(n) && n >= 1 && n <= 60) update({ autoAdvanceSeconds: n });
+            }}
+          />
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <div class="rq-setup-label">Quiz length</div>
+        <p class="settings-sub" style="margin:.2rem 0 .6rem">Number of questions per quiz run.</p>
+        <div class="rq-selector-group">
+          {[5, 10, 20, 30, 50].map(n => (
+            <button
+              key={n}
+              type="button"
+              class={`rq-selector-btn${settings.quizLength === n ? ' active' : ''}`}
+              onClick={() => update({ quizLength: n })}
+            >{n}</button>
+          ))}
+        </div>
+        <div class="settings-timeout">
+          <label for="settings-quiz-length-input">Custom</label>
+          <input
+            id="settings-quiz-length-input"
+            type="number"
+            min={QUIZ_LENGTH_MIN}
+            max={QUIZ_LENGTH_MAX}
+            step="1"
+            value={settings.quizLength}
+            onInput={(e) => {
+              const n = Number(e.currentTarget.value);
+              if (Number.isFinite(n) && n >= QUIZ_LENGTH_MIN && n <= QUIZ_LENGTH_MAX) {
+                update({ quizLength: Math.round(n) });
+              }
             }}
           />
         </div>

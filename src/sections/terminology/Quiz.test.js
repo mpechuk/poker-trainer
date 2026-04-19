@@ -63,4 +63,21 @@ describe('buildDeck', () => {
     const deck = buildDeck(new Set());
     expect(deck).toHaveLength(0);
   });
+
+  it('respects the optional length parameter — quizLength setting controls question count', () => {
+    const deck = buildDeck(ALL_CATS, 5);
+    expect(deck).toHaveLength(5);
+  });
+
+  it('returns fewer than requested when the filtered pool is smaller', () => {
+    const cats = new Set(['Hand Rankings']);
+    const full = buildDeck(cats);
+    const limited = buildDeck(cats, full.length + 50);
+    expect(limited.length).toBe(full.length);
+  });
+
+  it('defaults to the full filtered deck when no length is passed', () => {
+    const full = buildDeck(ALL_CATS);
+    expect(full.length).toBe(TERMS.filter(t => ALL_CATS.has(t.cat)).length);
+  });
 });

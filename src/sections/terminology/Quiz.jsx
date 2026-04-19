@@ -6,7 +6,7 @@ import { useFilters } from '../../hooks/useFilters.js';
 import { TERMS } from '../../data/terms.js';
 import { shuffle } from '../../utils/shuffle.js';
 import { getIllus } from '../../utils/illustrations.jsx';
-import { getTermQuizStats, saveTermQuizStats, initTermQuizStats } from '../../utils/storage.js';
+import { getTermQuizStats, saveTermQuizStats, initTermQuizStats, getSettings } from '../../utils/storage.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -14,8 +14,9 @@ const TABS = [
   { path: '/quizzes/terminology', label: 'Terminology' },
 ];
 
-export function buildDeck(cats) {
-  return shuffle(TERMS.filter(t => cats.has(t.cat)));
+export function buildDeck(cats, length = Infinity) {
+  const deck = shuffle(TERMS.filter(t => cats.has(t.cat)));
+  return Number.isFinite(length) ? deck.slice(0, Math.max(0, length)) : deck;
 }
 
 export function buildOptions(deck, idx) {
@@ -28,7 +29,8 @@ export function buildOptions(deck, idx) {
 
 export function Quiz({ path }) {
   const { activeCats, toggleCat } = useFilters();
-  const [quizDeck, setQuizDeck] = useState(() => buildDeck(activeCats));
+  const [settings, setSettings] = useState(() => getSettings());
+  const [quizDeck, setQuizDeck] = useState(() => buildDeck(activeCats, settings.quizLength));
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -39,7 +41,11 @@ export function Quiz({ path }) {
   const [options, setOptions] = useState(() => buildOptions(quizDeck, 0));
 
   function restart() {
-    const newDeck = buildDeck(activeCats);
+    // Re-read settings so a quizLength change on the Settings page takes
+    // effect on the next run without requiring a reload.
+    const fresh = getSettings();
+    setSettings(fresh);
+    const newDeck = buildDeck(activeCats, fresh.quizLength);
     setQuizDeck(newDeck);
     setQIdx(0);
     setScore(0);
