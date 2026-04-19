@@ -24,7 +24,7 @@ const VILL_STROKE = '#e85c4a';
 // Visual chip shown next to a villain seat to indicate their preflop action.
 // Keys here are the action ids accepted by the `villainAction` prop.
 const ACTION_CHIPS = {
-  raise: { symbol: '\u2191', label: 'Raise', fill: '#c0392b', stroke: '#f0b8b0', textColor: '#fff5ec' },
+  raise: { symbol: '\u2191', label: 'Raise', fill: '#27ae60', stroke: '#a8f0c6', textColor: '#ebfff1' },
   check: { symbol: '\u2713', label: 'Check', fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
   limp:  { symbol: '\u2713', label: 'Limp',  fill: '#2980b9', stroke: '#a8d8f0', textColor: '#eaf6ff' },
 };
