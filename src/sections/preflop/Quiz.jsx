@@ -271,7 +271,7 @@ function saveStats(results, mode, score, stackDepth) {
 
 // ---------- main component ----------
 export function PreflopQuiz({ query }) {
-  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'rfi';
+  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'all';
   const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
   const [quizMode, setQuizMode]     = useState(initialMode);
   const [stackDepth, setStackDepth] = useState('100BB');

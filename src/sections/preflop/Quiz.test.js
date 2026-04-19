@@ -187,6 +187,17 @@ describe('PreflopQuiz — villain position selector', () => {
   });
 });
 
+describe('PreflopQuiz — default mode', () => {
+  it('initial mode defaults to "all" when no query mode is provided', () => {
+    // Mirrors the resolution in Quiz.jsx so the default never silently regresses to a single-mode quiz.
+    expect(quizSource).toMatch(/MODES\.some\(m\s*=>\s*m\.id\s*===\s*query\.mode\)\s*\?\s*query\.mode\s*:\s*'all'/);
+  });
+
+  it('initial deck is built with the resolved initialMode (so default-all hits all hand generators)', () => {
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'\)/);
+  });
+});
+
 describe('PreflopQuiz — playing screen position table', () => {
   it('renders the PositionTable inside the playing card — visual context for the question', () => {
     expect(quizSource).toMatch(/import\s*\{\s*PositionTable\s*\}/);
