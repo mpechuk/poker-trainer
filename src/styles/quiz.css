@@ -134,6 +134,8 @@
 .rq-btn.wrong{background:rgba(192,57,43,.3);border-color:#c0392b;color:#f0b8b0}
 .rq-btn:disabled{cursor:default;opacity:.7}
 .rq-feedback{text-align:center;font-size:1rem;margin-bottom:.8rem;min-height:1.5rem}
+.rq-explain{margin:.4rem auto 0;max-width:560px;font-size:.85rem;line-height:1.4;
+  color:var(--muted);font-style:italic}
 .rq-next{display:none;margin:0 auto;padding:.65rem 2rem;background:var(--gold-dark);
   color:var(--gold-bright);border:none;border-radius:30px;font-family:'Crimson Pro',serif;
   font-size:1rem;cursor:pointer;transition:background .2s;letter-spacing:.04em}

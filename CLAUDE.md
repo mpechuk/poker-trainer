@@ -47,7 +47,8 @@ poker-trainer/
 │   ├── utils/
 │   │   ├── illustrations.jsx           # cardSvg(), hand(), ILLUS, getIllus(), handToCards()
 │   │   ├── shuffle.js                  # Immutable Fisher-Yates shuffle
-│   │   └── storage.js                  # localStorage helpers for all 3 stat stores
+│   │   ├── storage.js                  # localStorage helpers for all 3 stat stores
+│   │   └── explain.js                  # Quiz feedback rationale (hand features + action logic)
 │   ├── hooks/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle

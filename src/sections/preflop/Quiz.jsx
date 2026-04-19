@@ -40,6 +40,7 @@ export function getHeroesForVillain(mode, villainPos) {
 }
 import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
+import { explainQuestion } from '../../utils/explain.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -505,6 +506,7 @@ export function PreflopQuiz({ query }) {
                   ? <span style="color:#27ae60">Correct! {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
                   : <span style="color:#c0392b">Incorrect. {current.hand} from {current.heroPos} is a <strong>{actionLabel(current.correctAction)}</strong>.</span>
                 }
+                <div class="rq-explain">{explainQuestion(current)}</div>
               </div>
             )}
 
