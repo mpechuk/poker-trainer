@@ -198,6 +198,28 @@ describe('PreflopQuiz — default mode', () => {
   });
 });
 
+describe('PreflopQuiz — complete screen', () => {
+  it('renders a Stats link pointing to #/stats on the complete screen', () => {
+    // Lets users jump straight to their overall stats after finishing a quiz.
+    expect(quizSource).toMatch(/href="#\/stats"[^>]*>Stats<\/a>/);
+  });
+
+  it('renders the Recommendation component on the complete screen', () => {
+    // Surfaces the "Recommended Next Quiz" block right after a quiz ends.
+    expect(quizSource).toMatch(/import\s*\{\s*Recommendation\s*\}\s*from\s*['"][^'"]*Recommendation\.jsx['"]/);
+    expect(quizSource).toMatch(/<Recommendation\s*\/>/);
+  });
+
+  it('resets to setup screen when query.mode changes — fixes stuck Practice Now navigation', () => {
+    // Regression: previously, clicking "Practice Now" from the complete screen
+    // only updated the URL hash; the component stayed mounted showing the old
+    // complete screen because useState initializers don't re-run on prop change.
+    // A useEffect watching query?.mode must reset phase + mode + deck so the
+    // user lands on the setup screen for the requested mode.
+    expect(quizSource).toMatch(/useEffect\(\(\)\s*=>\s*\{[\s\S]*?query\?\.mode[\s\S]*?setPhase\(['"]setup['"]\)[\s\S]*?\},\s*\[query\?\.mode\]\)/);
+  });
+});
+
 describe('PreflopQuiz — playing screen position table', () => {
   it('renders the PositionTable inside the playing card — visual context for the question', () => {
     expect(quizSource).toMatch(/import\s*\{\s*PositionTable\s*\}/);

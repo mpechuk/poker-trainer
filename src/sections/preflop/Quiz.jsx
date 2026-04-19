@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { PositionTable } from '../../components/PositionTable.jsx';
+import { Recommendation } from '../../components/Recommendation.jsx';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_RANGES, LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, VS_RAISE_RANGES, RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS } from '../../data/preflop-ranges.js';
 
@@ -325,6 +326,21 @@ export function PreflopQuiz({ query }) {
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 
+  // When the URL's ?mode= changes (e.g. via the Stats page's "Practice Now"
+  // link landing on the same /quizzes/preflop route), reset to the setup
+  // screen in the requested mode. Without this, the component stays mounted
+  // and the previous complete screen persists.
+  useEffect(() => {
+    const urlMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : null;
+    if (!urlMode) return;
+    if (urlMode === quizMode && phase === 'setup') return;
+    setQuizMode(urlMode);
+    setSelectedPos('all');
+    setSelectedVillainPos('all');
+    setPhase('setup');
+    resetQuiz(urlMode, stackDepth, 'all', 'all');
+  }, [query?.mode]);
+
   const answer = useCallback((action) => {
     if (answered) return;
     setAnswered(true);
@@ -436,7 +452,9 @@ export function PreflopQuiz({ query }) {
             <button class="rq-restart" onClick={startQuiz}>Play Again</button>
             <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
+            <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
           </div>
+          <Recommendation />
           <QuizStats mode={quizMode} />
         </div>
       </div>

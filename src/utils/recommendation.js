@@ -1,8 +1,9 @@
 // Pure logic for "next quiz to take" recommendation on the Stats dashboard.
 // Extracted from the UI so it can be unit-tested without DOM / localStorage.
 
+// Terminology quiz is intentionally excluded — recommendations focus on preflop ranges
+// since terminology knowledge is binary (learned or not) rather than a skill to grind.
 export const QUIZ_CATALOG = [
-  { key: 'terminology', label: 'Terminology Quiz',      href: '#/quizzes/terminology' },
   { key: 'rfi',         label: 'Preflop RFI Quiz',      href: '#/quizzes/preflop?mode=rfi' },
   { key: 'limp',        label: 'Preflop vs Limp Quiz',  href: '#/quizzes/preflop?mode=limp' },
   { key: 'vsRaise',     label: 'Preflop vs Raise Quiz', href: '#/quizzes/preflop?mode=vsRaise' },

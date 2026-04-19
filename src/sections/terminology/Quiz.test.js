@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import { TERMS } from '../../data/terms.js';
 import { buildDeck, buildOptions } from './Quiz.jsx';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const quizSource = readFileSync(resolve(__dirname, 'Quiz.jsx'), 'utf8');
 
 const ALL_CATS = new Set(TERMS.map(t => t.cat));
 
@@ -27,6 +33,19 @@ describe('buildOptions', () => {
     const deck = buildDeck(ALL_CATS);
     expect(buildOptions(deck, deck.length)).toEqual([]);
     expect(buildOptions([], 0)).toEqual([]);
+  });
+});
+
+describe('Quiz — complete screen', () => {
+  it('renders a Stats link pointing to #/stats on the complete screen', () => {
+    // Lets users jump straight to their overall stats after finishing a quiz.
+    expect(quizSource).toMatch(/href="#\/stats"[^>]*>Stats<\/a>/);
+  });
+
+  it('renders the Recommendation component on the complete screen', () => {
+    // Surfaces the "Recommended Next Quiz" block right after a quiz ends.
+    expect(quizSource).toMatch(/import\s*\{\s*Recommendation\s*\}\s*from\s*['"][^'"]*Recommendation\.jsx['"]/);
+    expect(quizSource).toMatch(/<Recommendation\s*\/>/);
   });
 });
 

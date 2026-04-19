@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { FilterChips } from '../../components/FilterChips.jsx';
+import { Recommendation } from '../../components/Recommendation.jsx';
 import { useFilters } from '../../hooks/useFilters.js';
 import { TERMS } from '../../data/terms.js';
 import { shuffle } from '../../utils/shuffle.js';
@@ -107,7 +108,9 @@ export function Quiz({ path }) {
             <p style="font-size:1.5rem;color:var(--gold-bright);margin:.5rem 0">{score} / {total} &mdash; {pct}%</p>
             <p>{msg}</p>
             <button class="restart-btn" onClick={restart}>Play Again</button>
+            <a class="restart-btn" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;margin-left:.5rem">Stats</a>
           </div>
+          <Recommendation />
         </div>
       </div>
     );

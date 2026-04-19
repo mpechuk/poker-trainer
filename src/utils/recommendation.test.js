@@ -8,7 +8,6 @@ function stats(totalQuestions, totalCorrect) {
 describe('getRecommendation', () => {
   it('recommends an untaken quiz before ranking by accuracy', () => {
     const rec = getRecommendation({
-      terminology: stats(10, 5),
       rfi:         stats(10, 9),
       limp:        null, // untaken
       vsRaise:     stats(10, 4),
@@ -20,7 +19,6 @@ describe('getRecommendation', () => {
 
   it('recommends the lowest-accuracy quiz when all have data', () => {
     const rec = getRecommendation({
-      terminology: stats(20, 18), // 90%
       rfi:         stats(20, 14), // 70%
       limp:        stats(20,  8), // 40%  ← weakest
       vsRaise:     stats(20, 12), // 60%
@@ -32,24 +30,22 @@ describe('getRecommendation', () => {
 
   it('treats zero totalQuestions as untaken (not 0% accuracy)', () => {
     const rec = getRecommendation({
-      terminology: { totalQuestions: 0, totalCorrect: 0 },
-      rfi:         stats(10, 9),
+      rfi:         { totalQuestions: 0, totalCorrect: 0 },
       limp:        stats(10, 8),
       vsRaise:     stats(10, 7),
     });
-    expect(rec.key).toBe('terminology');
+    expect(rec.key).toBe('rfi');
     expect(rec.accuracy).toBeNull();
   });
 
   it('returns first catalog entry on a ties-at-lowest-accuracy case', () => {
     const rec = getRecommendation({
-      terminology: stats(10, 5),
       rfi:         stats(10, 5),
       limp:        stats(10, 5),
       vsRaise:     stats(10, 5),
     });
-    // All 50%; tie-break picks the first in catalog order (terminology).
-    expect(rec.key).toBe('terminology');
+    // All 50%; tie-break picks the first in catalog order (rfi).
+    expect(rec.key).toBe('rfi');
   });
 
   it('handles undefined statsMap entries the same as null', () => {
@@ -66,6 +62,21 @@ describe('getRecommendation', () => {
       const hash = q.href.replace(/^#/, '');
       const path = hash.split('?')[0];
       expect(validPaths.has(path), `${q.key} href ${q.href} points to unknown route ${path}`).toBe(true);
+    }
+  });
+
+  it('never recommends the terminology quiz — preflop-only recommendations', () => {
+    // Even when terminology stats are present in the map, it must not be recommended
+    // because it's not in QUIZ_CATALOG.
+    const rec = getRecommendation({
+      terminology: stats(10, 1), // 10% — would be weakest if considered
+      rfi:         stats(10, 9),
+      limp:        stats(10, 8),
+      vsRaise:     stats(10, 7),
+    });
+    expect(rec.key).not.toBe('terminology');
+    for (const q of QUIZ_CATALOG) {
+      expect(q.key).not.toBe('terminology');
     }
   });
 });
