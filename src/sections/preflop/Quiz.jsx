@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
 import { PositionTable } from '../../components/PositionTable.jsx';
+import { Recommendation } from '../../components/Recommendation.jsx';
 import { RANKS, RFI_RANGES, RFI_QUIZ_LENGTH, RFI_QUIZ_POSITIONS, STACK_DEPTHS } from '../../data/rfi-ranges.js';
 import { LIMP_RANGES, LIMP_HERO_POSITIONS, VALID_LIMP_VILLAINS, VS_RAISE_RANGES, RAISE_HERO_POSITIONS, VALID_RAISE_VILLAINS } from '../../data/preflop-ranges.js';
 
@@ -438,6 +439,7 @@ export function PreflopQuiz({ query }) {
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
             <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
           </div>
+          <Recommendation />
           <QuizStats mode={quizMode} />
         </div>
       </div>

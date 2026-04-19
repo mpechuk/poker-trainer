@@ -41,6 +41,12 @@ describe('Quiz — complete screen', () => {
     // Lets users jump straight to their overall stats after finishing a quiz.
     expect(quizSource).toMatch(/href="#\/stats"[^>]*>Stats<\/a>/);
   });
+
+  it('renders the Recommendation component on the complete screen', () => {
+    // Surfaces the "Recommended Next Quiz" block right after a quiz ends.
+    expect(quizSource).toMatch(/import\s*\{\s*Recommendation\s*\}\s*from\s*['"][^'"]*Recommendation\.jsx['"]/);
+    expect(quizSource).toMatch(/<Recommendation\s*\/>/);
+  });
 });
 
 describe('buildDeck', () => {
