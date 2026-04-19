@@ -123,6 +123,18 @@ describe('Settings', () => {
       expect(CARD_SIZES[key].h).toBeGreaterThan(0);
     }
   });
+
+  it('exposes an xsmall card size smaller than small', () => {
+    expect(CARD_SIZES.xsmall).toBeDefined();
+    expect(CARD_SIZES.xsmall.label).toBe('Extra Small');
+    expect(CARD_SIZES.xsmall.w).toBeLessThan(CARD_SIZES.small.w);
+    expect(CARD_SIZES.xsmall.h).toBeLessThan(CARD_SIZES.small.h);
+  });
+
+  it('persists xsmall as a valid cardSize selection', () => {
+    saveSettings({ cardSize: 'xsmall' });
+    expect(getSettings().cardSize).toBe('xsmall');
+  });
 });
 
 describe('initAllModesQuizStats', () => {
