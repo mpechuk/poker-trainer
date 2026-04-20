@@ -257,6 +257,37 @@ describe('PreflopQuiz — configurable quiz length', () => {
   });
 });
 
+describe('PreflopQuiz — share link integration', () => {
+  it('imports share utilities used to encode/decode quiz config into a URL', () => {
+    expect(quizSource).toMatch(/from\s+['"][^'"]*\/utils\/share\.js['"]/);
+    expect(quizSource).toMatch(/encodePreflopQuiz/);
+    expect(quizSource).toMatch(/decodePreflopQuiz/);
+  });
+
+  it('renders a ShareButton so users can copy a link to the current quiz', () => {
+    expect(quizSource).toMatch(/<ShareButton\s/);
+  });
+
+  it('splits the complete-screen share UI into Share Link + Share Score buttons', () => {
+    // "Share Link" copies just the URL; "Share Score" copies a score-brag
+    // message that already embeds the URL via buildScoreMessage.
+    expect(quizSource).toMatch(/label="Share Link"/);
+    expect(quizSource).toMatch(/label="Share Score"/);
+    expect(quizSource).toMatch(/buildScoreMessage\(score,\s*deck\.length,\s*completeShareUrl\)/);
+  });
+
+  it('auto-starts in playing phase when a shared ?pq= deck is decoded', () => {
+    // Share links should launch the quiz directly; if the recipient had to
+    // click through the setup screen, they could rebuild a different deck.
+    expect(quizSource).toMatch(/shared\s*\?\s*'playing'\s*:\s*'setup'/);
+  });
+
+  it('hydrates the deck from a shared ?pq= query and respects its stack depth', () => {
+    expect(quizSource).toMatch(/decodePreflopQuiz\(query\)/);
+    expect(quizSource).toMatch(/shared\.stackDepth/);
+  });
+});
+
 describe('PreflopQuiz — playing screen position table', () => {
   it('renders the PositionTable inside the playing card — visual context for the question', () => {
     expect(quizSource).toMatch(/import\s*\{\s*PositionTable\s*\}/);

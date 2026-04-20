@@ -42,6 +42,8 @@ export function getHeroesForVillain(mode, villainPos) {
 import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats, getSettings, CARD_SIZES } from '../../utils/storage.js';
 import { handToCards } from '../../utils/illustrations.jsx';
 import { explainQuestion } from '../../utils/explain.js';
+import { ShareButton } from '../../components/ShareButton.jsx';
+import { encodePreflopQuiz, decodePreflopQuiz, buildShareUrl, buildScoreMessage } from '../../utils/share.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -275,16 +277,38 @@ function saveStats(results, mode, score, stackDepth, quizLength) {
   }
 }
 
+function hydrateSharedDeck(deck) {
+  // Preserve suits encoded in the share link (so suited hands render
+  // identically across replays). Legacy links without a suit get a
+  // freshly randomized one on each play.
+  return deck.map(q => ({ ...q, suit: q.suit || randomSuit() }));
+}
+
+function deriveModeFromDeck(deck) {
+  if (!Array.isArray(deck) || deck.length === 0) return 'all';
+  const types = new Set(deck.map(q => q.type));
+  if (types.size === 1) return [...types][0];
+  return 'all';
+}
+
 // ---------- main component ----------
 export function PreflopQuiz({ query }) {
-  const initialMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'all';
-  const [phase, setPhase]           = useState('setup'); // 'setup' | 'playing'
+  const shared = decodePreflopQuiz(query);
+  const initialMode = shared
+    ? deriveModeFromDeck(shared.deck)
+    : (query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : 'all');
+  const initialStack = shared ? shared.stackDepth : '100BB';
+  const initialPhase = shared ? 'playing' : 'setup';
+  const [phase, setPhase]           = useState(initialPhase);
   const [quizMode, setQuizMode]     = useState(initialMode);
-  const [stackDepth, setStackDepth] = useState('100BB');
+  const [stackDepth, setStackDepth] = useState(initialStack);
   const [selectedPos, setSelectedPos] = useState('all');
   const [selectedVillainPos, setSelectedVillainPos] = useState('all');
   const [settings, setSettings]     = useState(() => getSettings());
-  const [deck, setDeck]             = useState(() => buildDeck(initialMode, '100BB', 'all', 'all', settings.quizLength));
+  const [sharedDeck, setSharedDeck] = useState(() => (shared ? hydrateSharedDeck(shared.deck) : null));
+  const [deck, setDeck]             = useState(() => (
+    shared ? hydrateSharedDeck(shared.deck) : buildDeck(initialMode, '100BB', 'all', 'all', settings.quizLength)
+  ));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
   const [answered, setAnswered]     = useState(false);
@@ -299,6 +323,21 @@ export function PreflopQuiz({ query }) {
     setSettings(fresh);
     setDeck(buildDeck(mode, depth, pos, villainPos, fresh.quizLength));
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
+  }
+
+  function replaySharedDeck() {
+    if (!sharedDeck) return;
+    setDeck(hydrateSharedDeck(sharedDeck));
+    setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
+  }
+
+  function exitShared() {
+    setSharedDeck(null);
+    setPhase('setup');
+    setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
+    if (window.location.hash.includes('?pq=')) {
+      window.location.hash = '#/quizzes/preflop';
+    }
   }
 
   function changeMode(m) {
@@ -339,6 +378,7 @@ export function PreflopQuiz({ query }) {
   // screen in the requested mode. Without this, the component stays mounted
   // and the previous complete screen persists.
   useEffect(() => {
+    if (query?.pq) return; // shared-link handler owns state transitions
     const urlMode = query?.mode && MODES.some(m => m.id === query.mode) ? query.mode : null;
     if (!urlMode) return;
     if (urlMode === quizMode && phase === 'setup') return;
@@ -348,6 +388,32 @@ export function PreflopQuiz({ query }) {
     setPhase('setup');
     resetQuiz(urlMode, stackDepth, 'all', 'all');
   }, [query?.mode]);
+
+  // Shared-link handler: when ?pq= appears (or changes), load the shared deck
+  // and auto-start the quiz so the recipient sees the exact same questions.
+  useEffect(() => {
+    const next = decodePreflopQuiz(query);
+    if (!next) return;
+    const sameDeck = sharedDeck
+      && sharedDeck.length === next.deck.length
+      && sharedDeck.every((q, i) => (
+        q.type === next.deck[i].type
+        && q.hand === next.deck[i].hand
+        && q.heroPos === next.deck[i].heroPos
+        && q.villainPos === next.deck[i].villainPos
+      ))
+      && stackDepth === next.stackDepth;
+    if (sameDeck) return;
+    const hydrated = hydrateSharedDeck(next.deck);
+    setSharedDeck(hydrated);
+    setDeck(hydrated);
+    setStackDepth(next.stackDepth);
+    setQuizMode(deriveModeFromDeck(next.deck));
+    setSelectedPos('all');
+    setSelectedVillainPos('all');
+    setPhase('playing');
+    setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
+  }, [query?.pq]);
 
   const answer = useCallback((action) => {
     if (answered) return;
@@ -449,6 +515,9 @@ export function PreflopQuiz({ query }) {
 
     saveStats(results, quizMode, score, stackDepth, deck.length);
 
+    const completeShareQuery = encodePreflopQuiz(stackDepth, deck);
+    const completeShareUrl = completeShareQuery ? buildShareUrl('/quizzes/preflop', completeShareQuery) : null;
+
     return (
       <div>
         <SubNav tabs={TABS} currentPath="/quizzes/preflop" />
@@ -457,10 +526,22 @@ export function PreflopQuiz({ query }) {
             <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Quiz Complete</h2>
             <div class="score-big">{score} / {deck.length} &mdash; {pct}%</div>
             <p>{msg}</p>
-            <button class="rq-restart" onClick={startQuiz}>Play Again</button>
-            <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
+            <button class="rq-restart" onClick={sharedDeck ? replaySharedDeck : startQuiz}>Play Again</button>
+            {sharedDeck ? (
+              <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitShared}>New Random Quiz</button>
+            ) : (
+              <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
+            )}
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
             <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
+            <div class="share-row">
+              <ShareButton url={completeShareUrl} label="Share Link" copiedLabel="Link Copied!" />
+              <ShareButton
+                content={completeShareUrl ? buildScoreMessage(score, deck.length, completeShareUrl) : null}
+                label="Share Score"
+                copiedLabel="Message Copied!"
+              />
+            </div>
           </div>
           <Recommendation />
           <QuizStats mode={quizMode} />
@@ -476,13 +557,15 @@ export function PreflopQuiz({ query }) {
   const buttons = current ? getButtons(current.type) : [];
   const modeLabel = MODES.find(m => m.id === quizMode)?.label ?? quizMode;
   const villainAction = current?.type === 'vsRaise' ? 'raise' : current?.type === 'limp' ? 'limp' : null;
+  const playingShareQuery = encodePreflopQuiz(stackDepth, deck);
+  const playingShareUrl = playingShareQuery ? buildShareUrl('/quizzes/preflop', playingShareQuery) : null;
 
   return (
     <div class="rq-playing-wrapper">
       <div class="rq-panel">
         <div class="rq-playing-header">
-          <div class="rq-mode-badge">{modeLabel} &middot; {stackDepth}</div>
-          <button class="rq-exit-btn" onClick={exitQuiz}>Exit</button>
+          <div class="rq-mode-badge">{modeLabel} &middot; {stackDepth}{sharedDeck ? ' \u00b7 Shared' : ''}</div>
+          <button class="rq-exit-btn" onClick={sharedDeck ? exitShared : exitQuiz}>Exit</button>
         </div>
 
         <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / deck.length * 100) + '%' }}></div></div>
@@ -550,6 +633,9 @@ export function PreflopQuiz({ query }) {
                   )}
                 </>
               )}
+            </div>
+            <div class="share-row">
+              <ShareButton url={playingShareUrl} label="Share Link" copiedLabel="Link Copied!" />
             </div>
           </>
         )}

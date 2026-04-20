@@ -49,6 +49,32 @@ describe('Quiz — complete screen', () => {
   });
 });
 
+describe('Quiz — share link integration', () => {
+  it('imports share utilities used to encode/decode quiz config into a URL', () => {
+    expect(quizSource).toMatch(/from\s+['"][^'"]*\/utils\/share\.js['"]/);
+    expect(quizSource).toMatch(/encodeTermQuiz/);
+    expect(quizSource).toMatch(/decodeTermQuiz/);
+  });
+
+  it('renders a ShareButton so users can copy a link to the current quiz', () => {
+    expect(quizSource).toMatch(/<ShareButton\s/);
+  });
+
+  it('splits the complete-screen share UI into Share Link + Share Score buttons', () => {
+    // "Share Link" copies just the URL; "Share Score" copies a score-brag
+    // message that already embeds the URL via buildScoreMessage.
+    expect(quizSource).toMatch(/label="Share Link"/);
+    expect(quizSource).toMatch(/label="Share Score"/);
+    expect(quizSource).toMatch(/buildScoreMessage\(score,\s*total,\s*shareUrl\)/);
+  });
+
+  it('hydrates the deck from a shared ?tq= query on initial render', () => {
+    // Without this branch a shared link would still show a random quiz.
+    expect(quizSource).toMatch(/decodeTermQuiz\(query\)/);
+    expect(quizSource).toMatch(/shared\?\.deck/);
+  });
+});
+
 describe('buildDeck', () => {
   it('filters terms to only matching categories', () => {
     const cats = new Set(['Hand Rankings']);
