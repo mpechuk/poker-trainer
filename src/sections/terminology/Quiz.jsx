@@ -298,9 +298,14 @@ export function Quiz({ path, query }) {
                   if (o.term === correctTerm) cls += ' correct';
                   else if (o.term === selectedAnswer) cls += ' wrong';
                 }
+                // Key is scoped to qIdx so a term appearing as a distractor in
+                // consecutive questions doesn't reuse the previous question's
+                // DOM node. Reuse was preserving :focus-visible on a randomly-
+                // positioned button in the next question's shuffled options,
+                // which looked like a "yellow highlight" on a random answer.
                 return (
                   <button
-                    key={o.term}
+                    key={qIdx + ':' + o.term}
                     class={cls}
                     disabled={answered}
                     onClick={() => answerQuiz(o.term)}
