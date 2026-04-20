@@ -105,7 +105,7 @@ Quiz routes accept query strings that encode a reproducible quiz:
 | Route | Query | Meaning |
 |---|---|---|
 | `#/quizzes/terminology` | `?tq=<i,i,i,...>` | Comma-separated indexes into `TERMS`; defines the ordered question deck. |
-| `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise). Correct actions are re-derived from the GTO ranges. |
+| `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>.<suitCode>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise) and suitCode ∈ `{s,h,d,c}`. Correct actions are re-derived from the GTO ranges; suits preserve the exact card rendering. The trailing suit field is optional — legacy 4-field links still decode. |
 
 A shared preflop quiz auto-starts in the playing phase; a shared terminology quiz replaces the randomly shuffled deck with the shared ordered list. "Play Again" replays the same deck; "New Random Quiz" exits shared mode. See `src/utils/share.js` and `src/components/ShareButton.jsx`.
 

@@ -278,7 +278,10 @@ function saveStats(results, mode, score, stackDepth, quizLength) {
 }
 
 function hydrateSharedDeck(deck) {
-  return deck.map(q => ({ ...q, suit: randomSuit() }));
+  // Preserve suits encoded in the share link (so suited hands render
+  // identically across replays). Legacy links without a suit get a
+  // freshly randomized one on each play.
+  return deck.map(q => ({ ...q, suit: q.suit || randomSuit() }));
 }
 
 function deriveModeFromDeck(deck) {

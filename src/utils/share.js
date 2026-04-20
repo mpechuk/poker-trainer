@@ -8,13 +8,16 @@
 //     indexes defines the exact question order.
 //
 //   Preflop:     #/quizzes/preflop?pq=<stackDepth>~<q1>~<q2>...
-//     Each qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>
+//     Each qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>.<suitCode>
 //     typeCode: r = rfi, l = limp, v = vsRaise
 //     villainOrDash: either a position string or "-" (RFI has no villain)
+//     suitCode: s / h / d / c (spades / hearts / diamonds / clubs).
+//       Older 4-field links without a suit field still decode — the recipient
+//       just gets a freshly-randomized suit for those questions.
 //
 // The decoded deck is sufficient to reproduce the identical quiz: correct
-// actions are looked up from the deterministic GTO ranges, and suits are
-// cosmetic (re-randomized on each play).
+// actions are looked up from the deterministic GTO ranges, and preserving
+// the suit keeps suited-hand renderings identical across shares.
 
 import { TERMS } from '../data/terms.js';
 import { RFI_RANGES, STACK_DEPTHS } from '../data/rfi-ranges.js';
@@ -22,6 +25,9 @@ import { LIMP_RANGES, VS_RAISE_RANGES } from '../data/preflop-ranges.js';
 
 const TYPE_ENCODE = { rfi: 'r', limp: 'l', vsRaise: 'v' };
 const TYPE_DECODE = { r: 'rfi', l: 'limp', v: 'vsRaise' };
+
+const SUIT_ENCODE = { '\u2660': 's', '\u2665': 'h', '\u2666': 'd', '\u2663': 'c' };
+const SUIT_DECODE = { s: '\u2660', h: '\u2665', d: '\u2666', c: '\u2663' };
 
 const TERM_INDEX = new Map(TERMS.map((t, i) => [t.term, i]));
 
@@ -76,7 +82,9 @@ export function encodePreflopQuiz(stackDepth, deck) {
   for (const q of deck) {
     const code = TYPE_ENCODE[q.type];
     if (!code || !q.hand || !q.heroPos) return null;
-    parts.push(`${code}.${q.hand}.${q.heroPos}.${q.villainPos || '-'}`);
+    const suitCode = SUIT_ENCODE[q.suit] || '';
+    const suffix = suitCode ? `.${suitCode}` : '';
+    parts.push(`${code}.${q.hand}.${q.heroPos}.${q.villainPos || '-'}${suffix}`);
   }
   return `pq=${stackDepth}~${parts.join('~')}`;
 }
@@ -91,14 +99,21 @@ export function decodePreflopQuiz(query) {
   const deck = [];
   for (const s of qs) {
     const fields = s.split('.');
-    if (fields.length !== 4) return null;
-    const [code, hand, heroPos, villainRaw] = fields;
+    // 4-field (legacy) or 5-field (with suit) encodings.
+    if (fields.length !== 4 && fields.length !== 5) return null;
+    const [code, hand, heroPos, villainRaw, suitRaw] = fields;
     const type = TYPE_DECODE[code];
     if (!type) return null;
     const villainPos = villainRaw === '-' ? null : villainRaw;
     const correctAction = lookupCorrectAction(type, stackDepth, hand, heroPos, villainPos);
     if (!correctAction) return null;
-    deck.push({ type, hand, heroPos, villainPos, stackDepth, correctAction });
+    const question = { type, hand, heroPos, villainPos, stackDepth, correctAction };
+    if (suitRaw) {
+      const suit = SUIT_DECODE[suitRaw];
+      if (!suit) return null;
+      question.suit = suit;
+    }
+    deck.push(question);
   }
   if (deck.length === 0) return null;
   return { stackDepth, deck };

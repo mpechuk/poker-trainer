@@ -46,8 +46,8 @@ describe('encodePreflopQuiz / decodePreflopQuiz', () => {
   it('round-trips an RFI deck and fills in correctAction from ranges', () => {
     const sampleHand = [...RFI_RANGES['100BB'].UTG][0];
     const deck = [
-      { type: 'rfi', hand: sampleHand, heroPos: 'UTG', villainPos: null, stackDepth: '100BB', correctAction: 'raise' },
-      { type: 'rfi', hand: '72o',       heroPos: 'UTG', villainPos: null, stackDepth: '100BB', correctAction: 'fold'  },
+      { type: 'rfi', hand: sampleHand, heroPos: 'UTG', villainPos: null, stackDepth: '100BB', suit: '\u2660', correctAction: 'raise' },
+      { type: 'rfi', hand: '72o',       heroPos: 'UTG', villainPos: null, stackDepth: '100BB', suit: '\u2665', correctAction: 'fold'  },
     ];
     const encoded = encodePreflopQuiz('100BB', deck);
     expect(encoded).toMatch(/^pq=100BB~r\./);
@@ -60,6 +60,31 @@ describe('encodePreflopQuiz / decodePreflopQuiz', () => {
     expect(decoded[0].villainPos).toBeNull();
     expect(decoded[0].correctAction).toBe('raise');
     expect(decoded[1].correctAction).toBe('fold');
+  });
+
+  it('preserves per-question suits through the round-trip', () => {
+    const deck = [
+      { type: 'rfi', hand: 'AKs', heroPos: 'UTG', villainPos: null, stackDepth: '100BB', suit: '\u2660' },
+      { type: 'rfi', hand: 'QJs', heroPos: 'HJ',  villainPos: null, stackDepth: '100BB', suit: '\u2665' },
+      { type: 'rfi', hand: 'T9s', heroPos: 'CO',  villainPos: null, stackDepth: '100BB', suit: '\u2666' },
+      { type: 'rfi', hand: '98s', heroPos: 'BTN', villainPos: null, stackDepth: '100BB', suit: '\u2663' },
+    ];
+    const encoded = encodePreflopQuiz('100BB', deck);
+    const { deck: decoded } = decodePreflopQuiz({ pq: encoded.slice(3) });
+    expect(decoded.map(q => q.suit)).toEqual(['\u2660', '\u2665', '\u2666', '\u2663']);
+  });
+
+  it('decodes legacy 4-field links (no suit) without failing', () => {
+    // Links shared before suit encoding existed must still open — the
+    // recipient just gets freshly-randomized suits at render time.
+    const { deck } = decodePreflopQuiz({ pq: '100BB~r.AA.UTG.-~r.72o.HJ.-' });
+    expect(deck).toHaveLength(2);
+    expect(deck[0].suit).toBeUndefined();
+    expect(deck[1].suit).toBeUndefined();
+  });
+
+  it('returns null for an unknown suit code', () => {
+    expect(decodePreflopQuiz({ pq: '100BB~r.AA.UTG.-.x' })).toBeNull();
   });
 
   it('round-trips a mixed limp + vsRaise deck', () => {
