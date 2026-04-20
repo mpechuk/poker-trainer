@@ -75,6 +75,32 @@ describe('Quiz — share link integration', () => {
   });
 });
 
+describe('Quiz — configurable quiz length', () => {
+  it('imports getSettings from storage — required to read the quizLength preference', () => {
+    expect(quizSource).toMatch(/import\s*\{[^}]*getSettings[^}]*\}\s*from\s*['"][^'"]*\/utils\/storage\.js['"]/);
+  });
+
+  it('component initial deck is built with settings.quizLength — respects Settings page choice on mount', () => {
+    // Regression: if buildDeck is called without the length arg here, the terminology
+    // quiz silently ignores the Settings page "Quiz length" choice on first visit.
+    expect(quizSource).toMatch(/buildDeck\(activeCats,\s*settings\.quizLength\)/);
+  });
+
+  it('restart() re-reads settings and threads fresh.quizLength into buildDeck — Play Again reflects latest setting', () => {
+    // Regression: if restart() captured the stale settings state instead of
+    // calling getSettings(), changing quizLength in Settings wouldn't take
+    // effect on "Play Again" without a full remount.
+    expect(quizSource).toMatch(/function\s+restart[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
+  });
+
+  it('startFreshQuiz() re-reads settings and threads fresh.quizLength into buildDeck — escaping a shared link honors the Settings choice', () => {
+    // Regression: "New Random Quiz" from a shared deck must respect the
+    // user's current quizLength preference, not silently fall back to the
+    // default or the shared deck's length.
+    expect(quizSource).toMatch(/function\s+startFreshQuiz[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
+  });
+});
+
 describe('buildDeck', () => {
   it('filters terms to only matching categories', () => {
     const cats = new Set(['Hand Rankings']);
