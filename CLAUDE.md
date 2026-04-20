@@ -48,7 +48,8 @@ poker-trainer/
 │   │   ├── illustrations.jsx           # cardSvg(), hand(), ILLUS, getIllus(), handToCards()
 │   │   ├── shuffle.js                  # Immutable Fisher-Yates shuffle
 │   │   ├── storage.js                  # localStorage helpers for all 3 stat stores
-│   │   └── explain.js                  # Quiz feedback rationale (hand features + action logic)
+│   │   ├── explain.js                  # Quiz feedback rationale (hand features + action logic)
+│   │   └── share.js                    # Encode/decode quiz config into share-link query strings
 │   ├── hooks/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
@@ -57,6 +58,7 @@ poker-trainer/
 │   │   ├── SubNav.jsx                  # Sub-navigation tabs within a section
 │   │   ├── FilterChips.jsx             # Category filter chip bar
 │   │   ├── ProgressBar.jsx             # Study progress bar
+│   │   ├── ShareButton.jsx             # Copy-to-clipboard button for share links
 │   │   └── Modal.jsx                   # Term detail modal overlay
 │   └── sections/
 │       ├── welcome/
@@ -95,6 +97,17 @@ Hash-based routing (`#/path`) for GitHub Pages compatibility.
 | `#/settings` | Settings.jsx | User preferences (auto-advance, card image size) |
 
 Redirects: `/` → `/welcome`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
+
+### Shareable quiz links
+
+Quiz routes accept query strings that encode a reproducible quiz:
+
+| Route | Query | Meaning |
+|---|---|---|
+| `#/quizzes/terminology` | `?tq=<i,i,i,...>` | Comma-separated indexes into `TERMS`; defines the ordered question deck. |
+| `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise). Correct actions are re-derived from the GTO ranges. |
+
+A shared preflop quiz auto-starts in the playing phase; a shared terminology quiz replaces the randomly shuffled deck with the shared ordered list. "Play Again" replays the same deck; "New Random Quiz" exits shared mode. See `src/utils/share.js` and `src/components/ShareButton.jsx`.
 
 ---
 

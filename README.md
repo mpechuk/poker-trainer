@@ -21,6 +21,9 @@
 ### Stats
 - **Dashboard** — Full statistics view showing study progress, terminology quiz accuracy, and RFI quiz performance by position. Surfaces a "Recommended Next Quiz" card that points you at your weakest area (or an untaken quiz for a baseline) with a one-click button to start it.
 
+### Shareable Quiz Links
+Every quiz (terminology + preflop) has a **Share** button that copies a link encoding the exact quiz configuration — its length, stack depth, and the full ordered list of questions. Opening the link launches that identical quiz, so two players can attempt the same set of questions and compare scores.
+
 ## Technology
 
 | Concern | Implementation |
