@@ -24,7 +24,10 @@ export function buildDeck(cats, length = Infinity) {
 export function buildOptions(deck, idx) {
   if (idx >= deck.length) return [];
   const t = deck[idx];
-  const wrong = TERMS.filter(x => x.term !== t.term);
+  // Wrong answers come from the same topic pool as the deck — selecting
+  // "Hand Rankings" only shouldn't surface a "Positions" term as a distractor.
+  const deckCats = new Set(deck.map(x => x.cat));
+  const wrong = TERMS.filter(x => x.term !== t.term && deckCats.has(x.cat));
   const picked = shuffle(wrong).slice(0, 3);
   return shuffle([...picked, t]);
 }
@@ -44,6 +47,7 @@ export function Quiz({ path, query }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [options, setOptions] = useState(() => (shared?.deck ? buildOptions(shared.deck, 0) : []));
   const [countdown, setCountdown] = useState(settings.autoAdvanceSeconds);
+  const [perQuestionResults, setPerQuestionResults] = useState([]);
 
   // If the URL's ?tq= query changes (e.g. opening a shared link while already
   // on the quiz), rebuild the deck from the shared terms and jump straight
@@ -65,6 +69,7 @@ export function Quiz({ path, query }) {
     setAnswered(false);
     setSelectedAnswer(null);
     setOptions(buildOptions(next.deck, 0));
+    setPerQuestionResults([]);
   }, [query?.tq]);
 
   function startQuiz() {
@@ -82,6 +87,7 @@ export function Quiz({ path, query }) {
     setAnswered(false);
     setSelectedAnswer(null);
     setOptions(buildOptions(newDeck, 0));
+    setPerQuestionResults([]);
     setPhase('playing');
   }
 
@@ -99,6 +105,7 @@ export function Quiz({ path, query }) {
     setAnswered(false);
     setSelectedAnswer(null);
     setOptions(buildOptions(newDeck, 0));
+    setPerQuestionResults([]);
   }
 
   function exitQuiz() {
@@ -109,6 +116,7 @@ export function Quiz({ path, query }) {
     setTotal(0);
     setAnswered(false);
     setSelectedAnswer(null);
+    setPerQuestionResults([]);
   }
 
   function startFreshQuiz() {
@@ -122,6 +130,7 @@ export function Quiz({ path, query }) {
     setTotal(0);
     setAnswered(false);
     setSelectedAnswer(null);
+    setPerQuestionResults([]);
     setPhase('setup');
     if (window.location.hash.includes('?tq=')) {
       window.location.hash = '#/quizzes/terminology';
@@ -135,7 +144,8 @@ export function Quiz({ path, query }) {
     if (answered) return;
     setAnswered(true);
     setSelectedAnswer(chosen);
-    const correct = quizDeck[qIdx].term;
+    const current = quizDeck[qIdx];
+    const correct = current.term;
     const isCorrect = chosen === correct;
     if (isCorrect) {
       setScore(s => s + 1);
@@ -144,6 +154,7 @@ export function Quiz({ path, query }) {
       setStreak(0);
     }
     setTotal(t => t + 1);
+    setPerQuestionResults(r => [...r, { cat: current.cat, correct: isCorrect }]);
   }, [answered, quizDeck, qIdx]);
 
   function nextQuiz(e) {
@@ -211,6 +222,13 @@ export function Quiz({ path, query }) {
     stats.totalQuestions += total;
     stats.totalCorrect += score;
     if (streak > stats.bestStreak) stats.bestStreak = streak;
+    if (!stats.byCategory) stats.byCategory = {};
+    for (const r of perQuestionResults) {
+      const bucket = stats.byCategory[r.cat] || { total: 0, correct: 0 };
+      bucket.total += 1;
+      if (r.correct) bucket.correct += 1;
+      stats.byCategory[r.cat] = bucket;
+    }
     stats.recentScores.push({ date: new Date().toLocaleDateString(), score, total });
     if (stats.recentScores.length > 20) stats.recentScores = stats.recentScores.slice(-20);
     saveTermQuizStats(stats);

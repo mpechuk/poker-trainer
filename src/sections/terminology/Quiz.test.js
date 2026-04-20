@@ -34,6 +34,22 @@ describe('buildOptions', () => {
     expect(buildOptions(deck, deck.length)).toEqual([]);
     expect(buildOptions([], 0)).toEqual([]);
   });
+
+  it('distractors share categories with the deck — no off-topic options', () => {
+    // Regression: with a single selected category, wrong answers pulled from
+    // the global TERMS pool surfaced unrelated terms (e.g. "UTG" as a
+    // distractor in a Hand Rankings quiz), making the quiz feel off-topic.
+    const cats = new Set(['Hand Rankings']);
+    const deck = buildDeck(cats);
+    for (let run = 0; run < 20; run++) {
+      for (let i = 0; i < deck.length; i++) {
+        const opts = buildOptions(deck, i);
+        for (const o of opts) {
+          expect(o.cat, `option ${o.term} had cat ${o.cat}`).toBe('Hand Rankings');
+        }
+      }
+    }
+  });
 });
 
 describe('Quiz — complete screen', () => {
@@ -158,6 +174,22 @@ describe('Quiz — auto-advance', () => {
     // Users need to see that a timer is running so they can choose to click
     // Next manually or wait.
     expect(quizSource).toMatch(/Auto-advancing in \{countdown\}s/);
+  });
+});
+
+describe('Quiz — per-category stats tracking', () => {
+  it('answerQuiz records the current term\'s category alongside correctness', () => {
+    // Per-category accuracy can't be derived after the fact from just
+    // totalCorrect/totalQuestions — we need to log each question's cat as it
+    // gets answered so the complete screen can roll it up by category.
+    expect(quizSource).toMatch(/setPerQuestionResults\(r\s*=>\s*\[\.\.\.r,\s*\{\s*cat:\s*current\.cat,\s*correct:\s*isCorrect\s*\}\s*\]\)/);
+  });
+
+  it('complete screen writes each question into stats.byCategory', () => {
+    // Rolls perQuestionResults up into { total, correct } buckets keyed by
+    // category so the Dashboard can render an "Accuracy by Category" bar chart.
+    expect(quizSource).toMatch(/stats\.byCategory/);
+    expect(quizSource).toMatch(/for\s*\(\s*const\s+r\s+of\s+perQuestionResults/);
   });
 });
 

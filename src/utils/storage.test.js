@@ -3,6 +3,7 @@ import {
   getLimpQuizStats, saveLimpQuizStats, initLimpQuizStats,
   getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats,
   getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats,
+  getTermQuizStats, saveTermQuizStats, initTermQuizStats,
   getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES,
   QUIZ_LENGTH_MIN, QUIZ_LENGTH_MAX,
 } from './storage.js';
@@ -168,6 +169,23 @@ describe('Settings', () => {
   it('quiz length range is at least 5..100', () => {
     expect(QUIZ_LENGTH_MIN).toBeLessThanOrEqual(5);
     expect(QUIZ_LENGTH_MAX).toBeGreaterThanOrEqual(100);
+  });
+});
+
+describe('initTermQuizStats', () => {
+  it('exposes an empty byCategory map for per-category accuracy tracking', () => {
+    const s = initTermQuizStats();
+    expect(s.byCategory).toEqual({});
+  });
+
+  it('save/get round-trips byCategory buckets', () => {
+    const s = initTermQuizStats();
+    s.byCategory['Hand Rankings'] = { total: 5, correct: 4 };
+    s.byCategory['Positions']    = { total: 3, correct: 1 };
+    saveTermQuizStats(s);
+    const loaded = getTermQuizStats();
+    expect(loaded.byCategory['Hand Rankings']).toEqual({ total: 5, correct: 4 });
+    expect(loaded.byCategory['Positions']).toEqual({ total: 3, correct: 1 });
   });
 });
 
