@@ -60,6 +60,14 @@ describe('Quiz — share link integration', () => {
     expect(quizSource).toMatch(/<ShareButton\s/);
   });
 
+  it('splits the complete-screen share UI into Share Link + Share Score buttons', () => {
+    // "Share Link" copies just the URL; "Share Score" copies a score-brag
+    // message that already embeds the URL via buildScoreMessage.
+    expect(quizSource).toMatch(/label="Share Link"/);
+    expect(quizSource).toMatch(/label="Share Score"/);
+    expect(quizSource).toMatch(/buildScoreMessage\(score,\s*total,\s*shareUrl\)/);
+  });
+
   it('hydrates the deck from a shared ?tq= query on initial render', () => {
     // Without this branch a shared link would still show a random quiz.
     expect(quizSource).toMatch(/decodeTermQuiz\(query\)/);

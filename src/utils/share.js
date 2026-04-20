@@ -143,3 +143,11 @@ export async function copyToClipboard(text) {
     return ok;
   } catch (_) { return false; }
 }
+
+// "I've got 60% correct (3/5). Can you beat my score? <url>"
+export function buildScoreMessage(score, total, url) {
+  const safeTotal = Math.max(0, total | 0);
+  const safeScore = Math.max(0, score | 0);
+  const pct = safeTotal > 0 ? Math.round(safeScore / safeTotal * 100) : 0;
+  return `I've got ${pct}% correct (${safeScore}/${safeTotal}). Can you beat my score? ${url}`;
+}

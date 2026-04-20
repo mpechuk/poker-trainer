@@ -43,7 +43,7 @@ import { getRfiQuizStats, saveRfiQuizStats, initRfiQuizStats, getLimpQuizStats, 
 import { handToCards } from '../../utils/illustrations.jsx';
 import { explainQuestion } from '../../utils/explain.js';
 import { ShareButton } from '../../components/ShareButton.jsx';
-import { encodePreflopQuiz, decodePreflopQuiz, buildShareUrl } from '../../utils/share.js';
+import { encodePreflopQuiz, decodePreflopQuiz, buildShareUrl, buildScoreMessage } from '../../utils/share.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -535,7 +535,12 @@ export function PreflopQuiz({ query }) {
             <a class="rq-restart" href="#/preflop/charts" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Review Charts</a>
             <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
             <div class="share-row">
-              <ShareButton url={completeShareUrl} label="Share This Quiz" />
+              <ShareButton url={completeShareUrl} label="Share Link" copiedLabel="Link Copied!" />
+              <ShareButton
+                content={completeShareUrl ? buildScoreMessage(score, deck.length, completeShareUrl) : null}
+                label="Share Score"
+                copiedLabel="Message Copied!"
+              />
             </div>
           </div>
           <Recommendation />
@@ -630,7 +635,7 @@ export function PreflopQuiz({ query }) {
               )}
             </div>
             <div class="share-row">
-              <ShareButton url={playingShareUrl} />
+              <ShareButton url={playingShareUrl} label="Share Link" copiedLabel="Link Copied!" />
             </div>
           </>
         )}

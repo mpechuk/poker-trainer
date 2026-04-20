@@ -268,6 +268,14 @@ describe('PreflopQuiz — share link integration', () => {
     expect(quizSource).toMatch(/<ShareButton\s/);
   });
 
+  it('splits the complete-screen share UI into Share Link + Share Score buttons', () => {
+    // "Share Link" copies just the URL; "Share Score" copies a score-brag
+    // message that already embeds the URL via buildScoreMessage.
+    expect(quizSource).toMatch(/label="Share Link"/);
+    expect(quizSource).toMatch(/label="Share Score"/);
+    expect(quizSource).toMatch(/buildScoreMessage\(score,\s*deck\.length,\s*completeShareUrl\)/);
+  });
+
   it('auto-starts in playing phase when a shared ?pq= deck is decoded', () => {
     // Share links should launch the quiz directly; if the recipient had to
     // click through the setup screen, they could rebuild a different deck.

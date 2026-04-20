@@ -5,7 +5,7 @@ import { LIMP_RANGES, VS_RAISE_RANGES } from '../data/preflop-ranges.js';
 import {
   encodeTermQuiz, decodeTermQuiz,
   encodePreflopQuiz, decodePreflopQuiz,
-  buildShareUrl,
+  buildShareUrl, buildScoreMessage,
 } from './share.js';
 
 describe('encodeTermQuiz / decodeTermQuiz', () => {
@@ -135,6 +135,19 @@ describe('encodePreflopQuiz / decodePreflopQuiz', () => {
     expect(decoded.map(q => `${q.type}.${q.hand}.${q.heroPos}`)).toEqual([
       'rfi.AA.UTG', 'rfi.72o.HJ', 'rfi.KK.CO',
     ]);
+  });
+});
+
+describe('buildScoreMessage', () => {
+  it('produces the brag-message wording with percent, raw score, and link', () => {
+    const url = 'https://example.com/#/quizzes/terminology?tq=1,2,3';
+    const msg = buildScoreMessage(3, 5, url);
+    expect(msg).toBe(`I've got 60% correct (3/5). Can you beat my score? ${url}`);
+  });
+
+  it('rounds percent and handles a total of zero without NaN', () => {
+    expect(buildScoreMessage(0, 0, 'https://x/')).toContain('0% correct (0/0)');
+    expect(buildScoreMessage(1, 3, 'https://x/')).toContain('33% correct (1/3)');
   });
 });
 

@@ -8,7 +8,7 @@ import { TERMS } from '../../data/terms.js';
 import { shuffle } from '../../utils/shuffle.js';
 import { getIllus } from '../../utils/illustrations.jsx';
 import { getTermQuizStats, saveTermQuizStats, initTermQuizStats, getSettings } from '../../utils/storage.js';
-import { encodeTermQuiz, decodeTermQuiz, buildShareUrl } from '../../utils/share.js';
+import { encodeTermQuiz, decodeTermQuiz, buildShareUrl, buildScoreMessage } from '../../utils/share.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -169,7 +169,12 @@ export function Quiz({ path, query }) {
             )}
             <a class="restart-btn" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;margin-left:.5rem">Stats</a>
             <div class="share-row">
-              <ShareButton url={shareUrl} label="Share This Quiz" />
+              <ShareButton url={shareUrl} label="Share Link" copiedLabel="Link Copied!" />
+              <ShareButton
+                content={shareUrl ? buildScoreMessage(score, total, shareUrl) : null}
+                label="Share Score"
+                copiedLabel="Message Copied!"
+              />
             </div>
           </div>
           <Recommendation />
@@ -233,7 +238,7 @@ export function Quiz({ path, query }) {
               )}
             </div>
             <div class="share-row">
-              <ShareButton url={shareUrl} />
+              <ShareButton url={shareUrl} label="Share Link" copiedLabel="Link Copied!" />
             </div>
           </>
         )}
