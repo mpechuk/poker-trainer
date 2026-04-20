@@ -19,7 +19,7 @@ export function saveTermQuizStats(s) {
   try { localStorage.setItem('term-quiz-stats', JSON.stringify(s)); } catch(e) {}
 }
 export function initTermQuizStats() {
-  return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, bestStreak:0, recentScores:[] };
+  return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, bestStreak:0, byCategory:{}, recentScores:[] };
 }
 
 // Limp Quiz Stats

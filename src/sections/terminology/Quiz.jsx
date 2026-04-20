@@ -24,7 +24,10 @@ export function buildDeck(cats, length = Infinity) {
 export function buildOptions(deck, idx) {
   if (idx >= deck.length) return [];
   const t = deck[idx];
-  const wrong = TERMS.filter(x => x.term !== t.term);
+  // Wrong answers come from the same topic pool as the deck — selecting
+  // "Hand Rankings" only shouldn't surface a "Positions" term as a distractor.
+  const deckCats = new Set(deck.map(x => x.cat));
+  const wrong = TERMS.filter(x => x.term !== t.term && deckCats.has(x.cat));
   const picked = shuffle(wrong).slice(0, 3);
   return shuffle([...picked, t]);
 }
@@ -33,21 +36,22 @@ export function Quiz({ path, query }) {
   const shared = decodeTermQuiz(query);
   const { activeCats, toggleCat } = useFilters();
   const [settings, setSettings] = useState(() => getSettings());
+  const [phase, setPhase] = useState(shared ? 'playing' : 'setup');
   const [sharedDeck, setSharedDeck] = useState(() => shared?.deck || null);
-  const [quizDeck, setQuizDeck] = useState(() => (
-    shared?.deck ? shared.deck : buildDeck(activeCats, settings.quizLength)
-  ));
+  const [quizDeck, setQuizDeck] = useState(() => shared?.deck || []);
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  // quizDeck is already set above; use the same deck for initial options so q0 answer is always present
-  const [options, setOptions] = useState(() => buildOptions(quizDeck, 0));
+  const [options, setOptions] = useState(() => (shared?.deck ? buildOptions(shared.deck, 0) : []));
+  const [countdown, setCountdown] = useState(settings.autoAdvanceSeconds);
+  const [perQuestionResults, setPerQuestionResults] = useState([]);
 
   // If the URL's ?tq= query changes (e.g. opening a shared link while already
-  // on the quiz), rebuild the deck from the shared terms.
+  // on the quiz), rebuild the deck from the shared terms and jump straight
+  // into playing — mirrors the preflop shared-link behavior.
   useEffect(() => {
     const next = decodeTermQuiz(query);
     if (!next) return;
@@ -57,6 +61,7 @@ export function Quiz({ path, query }) {
     if (sameDeck) return;
     setSharedDeck(next.deck);
     setQuizDeck(next.deck);
+    setPhase('playing');
     setQIdx(0);
     setScore(0);
     setStreak(0);
@@ -64,27 +69,13 @@ export function Quiz({ path, query }) {
     setAnswered(false);
     setSelectedAnswer(null);
     setOptions(buildOptions(next.deck, 0));
+    setPerQuestionResults([]);
   }, [query?.tq]);
 
-  function restart() {
-    // Re-read settings so a quizLength change on the Settings page takes
-    // effect on the next run without requiring a reload. Shared quizzes
-    // replay the same deck so the share link stays reproducible.
-    const fresh = getSettings();
-    setSettings(fresh);
-    const newDeck = sharedDeck ? sharedDeck : buildDeck(activeCats, fresh.quizLength);
-    setQuizDeck(newDeck);
-    setQIdx(0);
-    setScore(0);
-    setStreak(0);
-    setTotal(0);
-    setAnswered(false);
-    setSelectedAnswer(null);
-    setOptions(buildOptions(newDeck, 0));
-  }
-
-  function startFreshQuiz() {
-    setSharedDeck(null);
+  function startQuiz() {
+    // Entered from the setup screen's Start button. Reads fresh settings so
+    // quizLength/autoAdvance changes made on the Settings page take effect
+    // without requiring a reload.
     const fresh = getSettings();
     setSettings(fresh);
     const newDeck = buildDeck(activeCats, fresh.quizLength);
@@ -96,17 +87,54 @@ export function Quiz({ path, query }) {
     setAnswered(false);
     setSelectedAnswer(null);
     setOptions(buildOptions(newDeck, 0));
-    // Strip the share query from the URL so the user ends up on a clean quiz route.
+    setPerQuestionResults([]);
+    setPhase('playing');
+  }
+
+  function restart() {
+    // "Play Again" from the complete screen — stays in playing phase.
+    // Shared quizzes replay the same deck so the share link stays reproducible.
+    const fresh = getSettings();
+    setSettings(fresh);
+    const newDeck = sharedDeck ? sharedDeck : buildDeck(activeCats, fresh.quizLength);
+    setQuizDeck(newDeck);
+    setQIdx(0);
+    setScore(0);
+    setStreak(0);
+    setTotal(0);
+    setAnswered(false);
+    setSelectedAnswer(null);
+    setOptions(buildOptions(newDeck, 0));
+    setPerQuestionResults([]);
+  }
+
+  function exitQuiz() {
+    setPhase('setup');
+    setQIdx(0);
+    setScore(0);
+    setStreak(0);
+    setTotal(0);
+    setAnswered(false);
+    setSelectedAnswer(null);
+    setPerQuestionResults([]);
+  }
+
+  function startFreshQuiz() {
+    // Dropping out of a shared deck returns the user to the setup screen so
+    // they can pick topics before the random quiz starts.
+    setSharedDeck(null);
+    setQuizDeck([]);
+    setQIdx(0);
+    setScore(0);
+    setStreak(0);
+    setTotal(0);
+    setAnswered(false);
+    setSelectedAnswer(null);
+    setPerQuestionResults([]);
+    setPhase('setup');
     if (window.location.hash.includes('?tq=')) {
       window.location.hash = '#/quizzes/terminology';
     }
-  }
-
-  function handleFilterToggle(cat) {
-    if (sharedDeck) return; // filters are meaningless for a fixed shared deck
-    toggleCat(cat);
-    // Restart quiz with new filters on next render
-    setTimeout(restart, 0);
   }
 
   const shareQuery = encodeTermQuiz(quizDeck);
@@ -116,7 +144,8 @@ export function Quiz({ path, query }) {
     if (answered) return;
     setAnswered(true);
     setSelectedAnswer(chosen);
-    const correct = quizDeck[qIdx].term;
+    const current = quizDeck[qIdx];
+    const correct = current.term;
     const isCorrect = chosen === correct;
     if (isCorrect) {
       setScore(s => s + 1);
@@ -125,10 +154,11 @@ export function Quiz({ path, query }) {
       setStreak(0);
     }
     setTotal(t => t + 1);
+    setPerQuestionResults(r => [...r, { cat: current.cat, correct: isCorrect }]);
   }, [answered, quizDeck, qIdx]);
 
   function nextQuiz(e) {
-    e.currentTarget.blur();
+    if (e?.currentTarget?.blur) e.currentTarget.blur();
     const nextIdx = qIdx + 1;
     setQIdx(nextIdx);
     setAnswered(false);
@@ -136,7 +166,49 @@ export function Quiz({ path, query }) {
     setOptions(buildOptions(quizDeck, nextIdx));
   }
 
-  // Quiz complete
+  // Auto-advance after answering — only runs when the user has enabled it in
+  // settings. Cleanup cancels the timer when the user clicks Next manually or
+  // exits the quiz.
+  useEffect(() => {
+    if (!answered || phase !== 'playing') return;
+    if (!settings.autoAdvance) return;
+    const start = settings.autoAdvanceSeconds;
+    setCountdown(start);
+    let secs = start;
+    const id = setInterval(() => {
+      secs -= 1;
+      setCountdown(secs);
+      if (secs <= 0) {
+        clearInterval(id);
+        const nextIdx = qIdx + 1;
+        setQIdx(nextIdx);
+        setAnswered(false);
+        setSelectedAnswer(null);
+        setOptions(buildOptions(quizDeck, nextIdx));
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [answered, phase, settings.autoAdvance, settings.autoAdvanceSeconds, qIdx, quizDeck]);
+
+  // ── Setup screen ──────────────────────────────────────────────────────────
+  if (phase === 'setup') {
+    return (
+      <div>
+        <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
+        <div class="rq-panel">
+          <h2 class="rq-title">Terminology Quiz</h2>
+          <p class="rq-sub">Pick the topics you want to practice, then start the quiz.</p>
+          <div class="rq-setup-label">Topics</div>
+          <FilterChips activeCats={activeCats} onToggle={toggleCat} />
+          <div class="rq-start-row">
+            <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Complete screen ───────────────────────────────────────────────────────
   if (qIdx >= quizDeck.length && quizDeck.length > 0) {
     const pct = Math.round(score / total * 100);
     const msg = pct >= 90 ? 'Phenomenal \u2014 table captain!' :
@@ -150,6 +222,13 @@ export function Quiz({ path, query }) {
     stats.totalQuestions += total;
     stats.totalCorrect += score;
     if (streak > stats.bestStreak) stats.bestStreak = streak;
+    if (!stats.byCategory) stats.byCategory = {};
+    for (const r of perQuestionResults) {
+      const bucket = stats.byCategory[r.cat] || { total: 0, correct: 0 };
+      bucket.total += 1;
+      if (r.correct) bucket.correct += 1;
+      stats.byCategory[r.cat] = bucket;
+    }
     stats.recentScores.push({ date: new Date().toLocaleDateString(), score, total });
     if (stats.recentScores.length > 20) stats.recentScores = stats.recentScores.slice(-20);
     saveTermQuizStats(stats);
@@ -157,17 +236,18 @@ export function Quiz({ path, query }) {
     return (
       <div>
         <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
-        {!sharedDeck && <FilterChips activeCats={activeCats} onToggle={handleFilterToggle} />}
-        <div class="quiz-panel">
-          <div class="quiz-complete">
+        <div class="rq-panel">
+          <div class="rq-complete">
             <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Round Complete</h2>
-            <p style="font-size:1.5rem;color:var(--gold-bright);margin:.5rem 0">{score} / {total} &mdash; {pct}%</p>
+            <div class="score-big">{score} / {total} &mdash; {pct}%</div>
             <p>{msg}</p>
-            <button class="restart-btn" onClick={restart}>Play Again</button>
-            {sharedDeck && (
-              <button class="restart-btn" style="background:transparent;border:1px solid var(--gold-dark);margin-left:.5rem" onClick={startFreshQuiz}>New Random Quiz</button>
+            <button class="rq-restart" onClick={restart}>Play Again</button>
+            {sharedDeck ? (
+              <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={startFreshQuiz}>New Random Quiz</button>
+            ) : (
+              <button class="rq-restart" style="background:transparent;border:1px solid var(--gold-dark)" onClick={exitQuiz}>Back to Setup</button>
             )}
-            <a class="restart-btn" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;margin-left:.5rem">Stats</a>
+            <a class="rq-restart" href="#/stats" style="background:transparent;border:1px solid var(--gold-dark);text-decoration:none;display:inline-block;text-align:center">Stats</a>
             <div class="share-row">
               <ShareButton url={shareUrl} label="Share Link" copiedLabel="Link Copied!" />
               <ShareButton
@@ -183,27 +263,27 @@ export function Quiz({ path, query }) {
     );
   }
 
+  // ── Playing screen ────────────────────────────────────────────────────────
   const current = quizDeck[qIdx];
   const correctTerm = current?.term;
   const pctDisplay = total > 0 ? Math.round(score / total * 100) + '%' : '\u2014';
 
   return (
-    <div>
-      <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
-      {!sharedDeck && <FilterChips activeCats={activeCats} onToggle={handleFilterToggle} />}
-      <div class="quiz-panel">
-        {sharedDeck && (
-          <div class="shared-quiz-banner">
-            <span>Shared quiz {'\u2014'} {quizDeck.length} questions</span>
-            <button type="button" class="shared-quiz-exit" onClick={startFreshQuiz}>Start Random Quiz</button>
-          </div>
-        )}
-        <div class="quiz-status">
-          <div class="q-stat"><div class="val">{score}</div><div class="lbl">Correct</div></div>
-          <div class="q-stat"><div class="val">{streak}</div><div class="lbl">Streak</div></div>
-          <div class="q-stat"><div class="val">{total}</div><div class="lbl">Answered</div></div>
-          <div class="q-stat"><div class="val">{pctDisplay}</div><div class="lbl">Accuracy</div></div>
+    <div class="rq-playing-wrapper">
+      <div class="rq-panel">
+        <div class="rq-playing-header">
+          <div class="rq-mode-badge">Terminology{sharedDeck ? ' \u00b7 Shared' : ''}</div>
+          <button class="rq-exit-btn" onClick={sharedDeck ? startFreshQuiz : exitQuiz}>Exit</button>
         </div>
+
+        <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / quizDeck.length * 100) + '%' }}></div></div>
+        <div class="rq-status">
+          <div class="rq-stat"><div class="val">{score}</div><div class="lbl">Correct</div></div>
+          <div class="rq-stat"><div class="val">{qIdx + 1} / {quizDeck.length}</div><div class="lbl">Question</div></div>
+          <div class="rq-stat"><div class="val">{streak}</div><div class="lbl">Streak</div></div>
+          <div class="rq-stat"><div class="val">{pctDisplay}</div><div class="lbl">Accuracy</div></div>
+        </div>
+
         {current && (
           <>
             <div class="quiz-q">
@@ -230,11 +310,16 @@ export function Quiz({ path, query }) {
                 );
               })}
             </div>
-            <div style="text-align:center">
+            <div class="rq-next-row">
               {answered && (
-                <button class="quiz-next" style="display:inline-block" onClick={nextQuiz}>
-                  Next Question {'\u2192'}
-                </button>
+                <>
+                  <button class="rq-next" style="display:inline-block" onClick={nextQuiz}>
+                    Next Question {'\u2192'}
+                  </button>
+                  {settings.autoAdvance && (
+                    <div class="rq-countdown">Auto-advancing in {countdown}s</div>
+                  )}
+                </>
               )}
             </div>
             <div class="share-row">

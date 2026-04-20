@@ -64,100 +64,6 @@ export function Dashboard({ path }) {
 
       <Recommendation />
 
-      {/* Study Progress */}
-      <div class="stats-section">
-        <div class="stats-section-header">
-          <h3>Study Progress</h3>
-          <button class="stats-reset" onClick={resetStudy}>Reset</button>
-        </div>
-        <div class="stats-grid">
-          <div class="stats-card">
-            <div class="stats-val">{cardsSeen}</div>
-            <div class="stats-lbl">Cards Seen</div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-val">{totalTerms}</div>
-            <div class="stats-lbl">Total Terms</div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-val">{studyPct}%</div>
-            <div class="stats-lbl">Completion</div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-val">{study.totalFlips}</div>
-            <div class="stats-lbl">Card Flips</div>
-          </div>
-        </div>
-        {Object.keys(study.byCategory).length > 0 && (
-          <div class="stats-bars">
-            <div class="stats-bars-title">Views by Category</div>
-            {CATS.map(cat => {
-              const count = study.byCategory[cat] || 0;
-              if (count === 0) return null;
-              const maxCount = Math.max(...Object.values(study.byCategory));
-              const barPct = maxCount > 0 ? Math.round(count / maxCount * 100) : 0;
-              return (
-                <div class="stats-cat-row" key={cat}>
-                  <div class="stats-cat-label">{cat}</div>
-                  <div class="stats-cat-bar">
-                    <div class="stats-cat-bar-fill" style={{ width: barPct + '%' }}></div>
-                    <div class="stats-cat-bar-text">{count}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Terminology Quiz */}
-      <div class="stats-section">
-        <div class="stats-section-header">
-          <h3>Terminology Quiz</h3>
-          <button class="stats-reset" onClick={resetTermQuiz}>Reset</button>
-        </div>
-        {termQuiz.totalQuizzes === 0 ? (
-          <p class="stats-empty">No quizzes taken yet. <a href="#/terminology/quiz">Take a quiz</a></p>
-        ) : (
-          <>
-            <div class="stats-grid">
-              <div class="stats-card">
-                <div class="stats-val">{termQuiz.totalQuizzes}</div>
-                <div class="stats-lbl">Quizzes</div>
-              </div>
-              <div class="stats-card">
-                <div class="stats-val">{termAccuracy}%</div>
-                <div class="stats-lbl">Accuracy</div>
-              </div>
-              <div class="stats-card">
-                <div class="stats-val">{termQuiz.totalCorrect}/{termQuiz.totalQuestions}</div>
-                <div class="stats-lbl">Correct</div>
-              </div>
-              <div class="stats-card">
-                <div class="stats-val">{termQuiz.bestStreak}</div>
-                <div class="stats-lbl">Best Streak</div>
-              </div>
-            </div>
-            {termQuiz.recentScores.length > 0 && (
-              <div class="stats-history">
-                <div class="stats-history-title">Recent Scores</div>
-                {termQuiz.recentScores.slice(-5).reverse().map((r, i) => {
-                  const p = Math.round(r.score / r.total * 100);
-                  return (
-                    <div class="stats-history-row" key={i}>
-                      <span>{r.date}</span>
-                      <span style={{ color: p >= 70 ? '#27ae60' : p >= 50 ? '#c9a84c' : '#c0392b' }}>
-                        {r.score}/{r.total} ({p}%)
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
       {/* RFI Quiz */}
       <div class="stats-section">
         <div class="stats-section-header">
@@ -308,6 +214,120 @@ export function Dashboard({ path }) {
                 return (<div class="stats-cat-row" key={key}><div class="stats-cat-label">{lbl}</div><div class="stats-cat-bar"><div class="stats-cat-bar-fill" style={{width:pct+'%',background:clr}}></div><div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div></div></div>);
               })}
             </div>
+          </>
+        )}
+      </div>
+
+      {/* Study Progress */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Study Progress</h3>
+          <button class="stats-reset" onClick={resetStudy}>Reset</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div class="stats-val">{cardsSeen}</div>
+            <div class="stats-lbl">Cards Seen</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-val">{totalTerms}</div>
+            <div class="stats-lbl">Total Terms</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-val">{studyPct}%</div>
+            <div class="stats-lbl">Completion</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-val">{study.totalFlips}</div>
+            <div class="stats-lbl">Card Flips</div>
+          </div>
+        </div>
+        {Object.keys(study.byCategory).length > 0 && (
+          <div class="stats-bars">
+            <div class="stats-bars-title">Views by Category</div>
+            {CATS.map(cat => {
+              const count = study.byCategory[cat] || 0;
+              if (count === 0) return null;
+              const maxCount = Math.max(...Object.values(study.byCategory));
+              const barPct = maxCount > 0 ? Math.round(count / maxCount * 100) : 0;
+              return (
+                <div class="stats-cat-row" key={cat}>
+                  <div class="stats-cat-label">{cat}</div>
+                  <div class="stats-cat-bar">
+                    <div class="stats-cat-bar-fill" style={{ width: barPct + '%' }}></div>
+                    <div class="stats-cat-bar-text">{count}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Terminology Quiz */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Terminology Quiz</h3>
+          <button class="stats-reset" onClick={resetTermQuiz}>Reset</button>
+        </div>
+        {termQuiz.totalQuizzes === 0 ? (
+          <p class="stats-empty">No quizzes taken yet. <a href="#/terminology/quiz">Take a quiz</a></p>
+        ) : (
+          <>
+            <div class="stats-grid">
+              <div class="stats-card">
+                <div class="stats-val">{termQuiz.totalQuizzes}</div>
+                <div class="stats-lbl">Quizzes</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{termAccuracy}%</div>
+                <div class="stats-lbl">Accuracy</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{termQuiz.totalCorrect}/{termQuiz.totalQuestions}</div>
+                <div class="stats-lbl">Correct</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{termQuiz.bestStreak}</div>
+                <div class="stats-lbl">Best Streak</div>
+              </div>
+            </div>
+            {termQuiz.byCategory && Object.keys(termQuiz.byCategory).length > 0 && (
+              <div class="stats-bars">
+                <div class="stats-bars-title">Accuracy by Category</div>
+                {CATS.map(cat => {
+                  const ps = termQuiz.byCategory[cat];
+                  if (!ps || ps.total === 0) return null;
+                  const pct = Math.round(ps.correct / ps.total * 100);
+                  const clr = pct >= 80 ? '#27ae60' : pct >= 60 ? '#c9a84c' : '#c0392b';
+                  return (
+                    <div class="stats-cat-row" key={cat}>
+                      <div class="stats-cat-label">{cat}</div>
+                      <div class="stats-cat-bar">
+                        <div class="stats-cat-bar-fill" style={{ width: pct + '%', background: clr }}></div>
+                        <div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {termQuiz.recentScores.length > 0 && (
+              <div class="stats-history">
+                <div class="stats-history-title">Recent Scores</div>
+                {termQuiz.recentScores.slice(-5).reverse().map((r, i) => {
+                  const p = Math.round(r.score / r.total * 100);
+                  return (
+                    <div class="stats-history-row" key={i}>
+                      <span>{r.date}</span>
+                      <span style={{ color: p >= 70 ? '#27ae60' : p >= 50 ? '#c9a84c' : '#c0392b' }}>
+                        {r.score}/{r.total} ({p}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>
