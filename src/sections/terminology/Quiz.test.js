@@ -47,6 +47,11 @@ describe('Quiz — complete screen', () => {
     expect(quizSource).toMatch(/import\s*\{\s*Recommendation\s*\}\s*from\s*['"][^'"]*Recommendation\.jsx['"]/);
     expect(quizSource).toMatch(/<Recommendation\s*\/>/);
   });
+
+  it('offers a Back to Setup button when the quiz is not from a shared link', () => {
+    // Mirrors preflop: "Back to Setup" returns the user to the topic picker.
+    expect(quizSource).toMatch(/onClick=\{exitQuiz\}[^>]*>Back to Setup/);
+  });
 });
 
 describe('Quiz — share link integration', () => {
@@ -73,6 +78,87 @@ describe('Quiz — share link integration', () => {
     expect(quizSource).toMatch(/decodeTermQuiz\(query\)/);
     expect(quizSource).toMatch(/shared\?\.deck/);
   });
+
+  it('shared links auto-start in the playing phase — skip the setup screen', () => {
+    // The recipient of a share should see the quiz immediately, not a
+    // setup screen that could let them alter the shared deck's topics.
+    expect(quizSource).toMatch(/useState\(shared\s*\?\s*['"]playing['"]\s*:\s*['"]setup['"]\)/);
+  });
+});
+
+describe('Quiz — setup phase', () => {
+  it('defines a setup phase separate from playing — mirrors the preflop quiz flow', () => {
+    // Regression: without a setup phase, the quiz would start immediately on
+    // mount and give the user no chance to pick topics before answering.
+    expect(quizSource).toMatch(/phase\s*===\s*['"]setup['"]/);
+    expect(quizSource).toMatch(/setPhase\(['"]playing['"]\)/);
+  });
+
+  it('renders a Start Quiz button on the setup screen — triggers startQuiz', () => {
+    expect(quizSource).toMatch(/<button\s+class="rq-start-btn"\s+onClick=\{startQuiz\}>\s*Start Quiz\s*<\/button>/);
+  });
+
+  it('renders the FilterChips topic selector on the setup screen', () => {
+    // Users pick which term categories to quiz on before starting.
+    expect(quizSource).toMatch(/import\s*\{\s*FilterChips\s*\}\s*from\s*['"][^'"]*\/FilterChips\.jsx['"]/);
+    expect(quizSource).toMatch(/<FilterChips\s+activeCats=\{activeCats\}\s+onToggle=\{toggleCat\}\s*\/>/);
+  });
+
+  it('startQuiz() re-reads settings and threads fresh.quizLength into buildDeck', () => {
+    // Entering the playing phase must pick up the latest Settings page values
+    // (quizLength, autoAdvance) — otherwise changes wouldn't take effect
+    // without a reload.
+    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)[\s\S]*?setPhase\(['"]playing['"]\)/);
+  });
+
+  it('exitQuiz() returns to the setup phase — lets the user re-pick topics mid-quiz', () => {
+    expect(quizSource).toMatch(/function\s+exitQuiz[\s\S]*?setPhase\(['"]setup['"]\)/);
+  });
+});
+
+describe('Quiz — playing screen', () => {
+  it('renders a progress bar filled proportionally to qIdx / quizDeck.length', () => {
+    // Visual feedback that matches the preflop quiz's rq-progress pattern.
+    expect(quizSource).toMatch(/class="rq-progress"/);
+    expect(quizSource).toMatch(/qIdx\s*\/\s*quizDeck\.length\s*\*\s*100/);
+  });
+
+  it('renders a Question N / Total stat so users know where they are in the run', () => {
+    // Regression: previously the playing screen hid the total count, so
+    // users couldn't tell how many questions were left.
+    expect(quizSource).toMatch(/\{qIdx\s*\+\s*1\}\s*\/\s*\{quizDeck\.length\}/);
+    expect(quizSource).toMatch(/<div class="lbl">Question<\/div>/);
+  });
+
+  it('renders an Exit button on the playing screen — mirrors preflop', () => {
+    expect(quizSource).toMatch(/class="rq-exit-btn"/);
+  });
+});
+
+describe('Quiz — auto-advance', () => {
+  it('imports useEffect — required to drive the auto-advance countdown interval', () => {
+    expect(quizSource).toMatch(/import\s*\{[^}]*useEffect[^}]*\}\s*from\s*['"]preact\/hooks['"]/);
+  });
+
+  it('holds a countdown state seeded from settings.autoAdvanceSeconds', () => {
+    expect(quizSource).toMatch(/useState\(settings\.autoAdvanceSeconds\)/);
+  });
+
+  it('bails out of the countdown effect when autoAdvance is disabled in settings', () => {
+    // Users who want to read the question at their own pace must not be
+    // kicked forward by a background timer.
+    expect(quizSource).toMatch(/if\s*\(!settings\.autoAdvance\)\s*return/);
+  });
+
+  it('countdown effect depends on settings.autoAdvance and autoAdvanceSeconds — reflects live Settings changes', () => {
+    expect(quizSource).toMatch(/\[answered,\s*phase,\s*settings\.autoAdvance,\s*settings\.autoAdvanceSeconds[\s\S]*?\]/);
+  });
+
+  it('shows an "Auto-advancing in Ns" indicator while the timer is active', () => {
+    // Users need to see that a timer is running so they can choose to click
+    // Next manually or wait.
+    expect(quizSource).toMatch(/Auto-advancing in \{countdown\}s/);
+  });
 });
 
 describe('Quiz — configurable quiz length', () => {
@@ -80,10 +166,11 @@ describe('Quiz — configurable quiz length', () => {
     expect(quizSource).toMatch(/import\s*\{[^}]*getSettings[^}]*\}\s*from\s*['"][^'"]*\/utils\/storage\.js['"]/);
   });
 
-  it('component initial deck is built with settings.quizLength — respects Settings page choice on mount', () => {
-    // Regression: if buildDeck is called without the length arg here, the terminology
-    // quiz silently ignores the Settings page "Quiz length" choice on first visit.
-    expect(quizSource).toMatch(/buildDeck\(activeCats,\s*settings\.quizLength\)/);
+  it('startQuiz() reads settings.quizLength — the Start button respects the Settings page choice', () => {
+    // Regression: if startQuiz builds the deck without passing the length arg,
+    // the terminology quiz silently ignores the Settings page "Quiz length"
+    // choice and always uses the filtered pool's full size.
+    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
   });
 
   it('restart() re-reads settings and threads fresh.quizLength into buildDeck — Play Again reflects latest setting', () => {
@@ -91,13 +178,6 @@ describe('Quiz — configurable quiz length', () => {
     // calling getSettings(), changing quizLength in Settings wouldn't take
     // effect on "Play Again" without a full remount.
     expect(quizSource).toMatch(/function\s+restart[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
-  });
-
-  it('startFreshQuiz() re-reads settings and threads fresh.quizLength into buildDeck — escaping a shared link honors the Settings choice', () => {
-    // Regression: "New Random Quiz" from a shared deck must respect the
-    // user's current quizLength preference, not silently fall back to the
-    // default or the shared deck's length.
-    expect(quizSource).toMatch(/function\s+startFreshQuiz[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
   });
 });
 

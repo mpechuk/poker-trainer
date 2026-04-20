@@ -65,7 +65,7 @@ poker-trainer/
 │       │   └── Welcome.jsx             # Landing page with hand rankings overview
 │       ├── terminology/
 │       │   ├── Study.jsx               # Flashcard study mode
-│       │   ├── Quiz.jsx                # Multiple-choice terminology quiz
+│       │   ├── Quiz.jsx                # Multiple-choice terminology quiz (setup → playing → complete, auto-advance)
 │       │   └── Reference.jsx           # Searchable glossary
 │       ├── preflop/
 │       │   ├── Charts.jsx              # RFI hand range grid with position tabs
@@ -107,7 +107,15 @@ Quiz routes accept query strings that encode a reproducible quiz:
 | `#/quizzes/terminology` | `?tq=<i,i,i,...>` | Comma-separated indexes into `TERMS`; defines the ordered question deck. |
 | `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>.<suitCode>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise) and suitCode ∈ `{s,h,d,c}`. Correct actions are re-derived from the GTO ranges; suits preserve the exact card rendering. The trailing suit field is optional — legacy 4-field links still decode. |
 
-A shared preflop quiz auto-starts in the playing phase; a shared terminology quiz replaces the randomly shuffled deck with the shared ordered list. "Play Again" replays the same deck; "New Random Quiz" exits shared mode. See `src/utils/share.js` and `src/components/ShareButton.jsx`.
+Both quiz types auto-start in the playing phase when loaded from a shared link, bypassing the setup screen so the recipient can't alter the shared deck. "Play Again" replays the same deck; "New Random Quiz" drops out of shared mode and returns the user to the setup screen (topic picker for terminology, mode/stack/positions for preflop). See `src/utils/share.js` and `src/components/ShareButton.jsx`.
+
+### Quiz flow (setup → playing → complete)
+
+Both `sections/terminology/Quiz.jsx` and `sections/preflop/Quiz.jsx` use the same three-phase flow:
+
+1. **Setup**: The user picks which terms/modes to practice and clicks *Start Quiz*. The terminology setup uses `FilterChips` for topic selection; the preflop setup uses mode/stack/position selectors.
+2. **Playing**: A progress bar, a `Question N / Total` stat, and the active question. If `settings.autoAdvance` is true, an interval counts down `settings.autoAdvanceSeconds` after each answer and jumps to the next question; the user can always click *Next Question* to skip the timer, or *Exit* to return to setup.
+3. **Complete**: Score summary with *Play Again* (same phase), *Back to Setup* (or *New Random Quiz* if shared), *Stats*, and share buttons.
 
 ---
 

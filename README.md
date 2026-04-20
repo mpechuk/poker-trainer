@@ -11,7 +11,7 @@
 
 ### Terminology
 - **Study** — 3D flashcard system with elegant flip animations. Each card shows a poker term on one side and its definition with a custom SVG illustration on the other.
-- **Quiz** — Multiple-choice questions (4 options) with real-time score, streak tracking, and persistent stats.
+- **Quiz** — Setup screen for picking topics, then multiple-choice questions (4 options) with real-time score, streak tracking, current question counter, and persistent stats. Honors the Settings page's quiz length and auto-advance preferences.
 - **Reference** — Searchable glossary of ~78 poker terms organized across 9 categories, with detailed modal views.
 
 ### Preflop
