@@ -139,6 +139,17 @@ describe('Quiz — playing screen', () => {
     expect(quizSource).toMatch(/qIdx\s*\/\s*quizDeck\.length\s*\*\s*100/);
   });
 
+  it('keys each answer button by qIdx + term so DOM nodes don\'t persist across questions — no random yellow highlight regression', () => {
+    // Regression for issue #46: when a term appeared as a distractor in two
+    // consecutive questions, Preact reused the previous question's DOM node
+    // (matched by key={o.term}). Focus and :focus-visible carried over, so a
+    // randomly-positioned answer in the next question showed the gold outline
+    // even though the user hadn't interacted with it yet. Scoping the key to
+    // qIdx forces a fresh DOM node per question.
+    expect(quizSource).toMatch(/key=\{qIdx\s*\+\s*['"]:['"][\s\S]{0,20}o\.term\}/);
+    expect(quizSource).not.toMatch(/key=\{o\.term\}/);
+  });
+
   it('renders a Question N / Total stat so users know where they are in the run', () => {
     // Regression: previously the playing screen hid the total count, so
     // users couldn't tell how many questions were left.

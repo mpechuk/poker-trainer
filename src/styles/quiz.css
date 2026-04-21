@@ -20,7 +20,13 @@
   font-size:.95rem;cursor:pointer;transition:all .2s;text-align:left;line-height:1.35}
 .ans-btn:focus{outline:none}
 .ans-btn:focus-visible{outline:2px solid var(--gold-dark);outline-offset:2px}
-.ans-btn:hover:not(:disabled){background:rgba(201,168,76,.12);border-color:var(--gold)}
+/* Only apply hover on devices with a true hover-capable pointer. On iOS (and
+   other touch devices) :hover sticks to the last-tapped element until another
+   tap — that was painting a random answer gold on the *next* question because
+   the previous Next-button / answer tap left hover state behind. See #46. */
+@media (hover: hover) {
+  .ans-btn:hover:not(:disabled){background:rgba(201,168,76,.12);border-color:var(--gold)}
+}
 .ans-btn.correct{background:rgba(46,204,113,.18);border-color:#27ae60;color:#a8f0c6}
 .ans-btn.wrong{background:rgba(192,57,43,.18);border-color:#c0392b;color:#f0b8b0}
 .ans-btn:disabled{cursor:default}
