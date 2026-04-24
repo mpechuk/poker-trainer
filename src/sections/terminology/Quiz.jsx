@@ -13,8 +13,8 @@ import '../../styles/quiz.css';
 
 const TABS = [
   { path: '/quizzes/preflop', label: 'Preflop' },
-  { path: '/quizzes/terminology', label: 'Terminology' },
   { path: '/quizzes/flop', label: 'Flop' },
+  { path: '/quizzes/terminology', label: 'Terminology' },
 ];
 
 export function buildDeck(cats, length = Infinity) {

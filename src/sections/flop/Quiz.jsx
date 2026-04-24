@@ -21,8 +21,8 @@ import '../../styles/quiz.css';
 
 const TABS = [
   { path: '/quizzes/preflop', label: 'Preflop' },
-  { path: '/quizzes/terminology', label: 'Terminology' },
   { path: '/quizzes/flop', label: 'Flop' },
+  { path: '/quizzes/terminology', label: 'Terminology' },
 ];
 
 // The six Board Texture terms power both the quiz answers and the per-option
@@ -322,7 +322,6 @@ export function FlopQuiz({ query }) {
                     onClick={() => answer(o.term)}
                   >
                     <span class="ans-term">{o.term}</span>
-                    <span class="ans-def">{o.def}</span>
                   </button>
                 );
               })}
