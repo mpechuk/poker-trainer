@@ -12,7 +12,7 @@
 ### Terminology
 - **Study** — 3D flashcard system with elegant flip animations. Each card shows a poker term on one side and its definition with a custom SVG illustration on the other.
 - **Quiz** — Setup screen for picking topics, then multiple-choice questions (4 options) with real-time score, streak tracking, current question counter, and persistent stats. Honors the Settings page's quiz length and auto-advance preferences.
-- **Reference** — Searchable glossary of ~78 poker terms organized across 9 categories, with detailed modal views.
+- **Reference** — Searchable glossary of ~84 poker terms organized across 9 categories (including a Board Texture category covering flop types: dry/static, wet/dynamic, paired, two-tone, monotone, and connected), with detailed modal views.
 
 ### Preflop
 - **Charts** — Interactive 13x13 preflop RFI (Raise First In) hand range grids for each table position (UTG, HJ, CO, BTN, SB).
