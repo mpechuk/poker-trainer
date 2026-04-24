@@ -1,14 +1,22 @@
 import { useState, useCallback, useEffect } from 'preact/hooks';
 import { SubNav } from '../../components/SubNav.jsx';
-import { FilterChips } from '../../components/FilterChips.jsx';
-import { Recommendation } from '../../components/Recommendation.jsx';
 import { ShareButton } from '../../components/ShareButton.jsx';
-import { useFilters } from '../../hooks/useFilters.js';
 import { TERMS } from '../../data/terms.js';
 import { shuffle } from '../../utils/shuffle.js';
-import { getIllus } from '../../utils/illustrations.jsx';
-import { getTermQuizStats, saveTermQuizStats, initTermQuizStats, getSettings } from '../../utils/storage.js';
-import { encodeTermQuiz, decodeTermQuiz, buildShareUrl, buildScoreMessage } from '../../utils/share.js';
+import { cardSvg } from '../../utils/illustrations.jsx';
+import { BOARD_TEXTURES, buildFlopDeck } from '../../utils/flop.js';
+import {
+  getFlopQuizStats,
+  saveFlopQuizStats,
+  initFlopQuizStats,
+  getSettings,
+} from '../../utils/storage.js';
+import {
+  encodeFlopQuiz,
+  decodeFlopQuiz,
+  buildShareUrl,
+  buildScoreMessage,
+} from '../../utils/share.js';
 import '../../styles/quiz.css';
 
 const TABS = [
@@ -17,96 +25,101 @@ const TABS = [
   { path: '/quizzes/flop', label: 'Flop' },
 ];
 
-export function buildDeck(cats, length = Infinity) {
-  const deck = shuffle(TERMS.filter(t => cats.has(t.cat)));
-  return Number.isFinite(length) ? deck.slice(0, Math.max(0, length)) : deck;
+// The six Board Texture terms power both the quiz answers and the per-option
+// definitions shown to the user (pulled by name from terms.js).
+const TEXTURE_TERMS = BOARD_TEXTURES
+  .map(name => TERMS.find(t => t.term === name))
+  .filter(Boolean);
+
+const TEXTURE_BY_NAME = Object.fromEntries(TEXTURE_TERMS.map(t => [t.term, t]));
+
+function renderFlop(cards) {
+  const parts = cards.map(c => cardSvg(c.rank, c.suit, 60, 84)).join('');
+  return `<div class="hand">${parts}</div>`;
 }
 
-export function buildOptions(deck, idx) {
-  if (idx >= deck.length) return [];
-  const t = deck[idx];
-  // Wrong answers come from the same topic pool as the deck — selecting
-  // "Hand Rankings" only shouldn't surface a "Positions" term as a distractor.
-  const deckCats = new Set(deck.map(x => x.cat));
-  const wrong = TERMS.filter(x => x.term !== t.term && deckCats.has(x.cat));
-  const picked = shuffle(wrong).slice(0, 3);
-  return shuffle([...picked, t]);
+function buildOptions(correctTexture) {
+  const wrong = TEXTURE_TERMS.filter(t => t.term !== correctTexture);
+  const picks = shuffle(wrong).slice(0, 3);
+  const correct = TEXTURE_BY_NAME[correctTexture];
+  return shuffle([...picks, correct]);
 }
 
-export function Quiz({ path, query }) {
-  const shared = decodeTermQuiz(query);
-  const { activeCats, toggleCat } = useFilters();
+export function FlopQuiz({ query }) {
+  const shared = decodeFlopQuiz(query);
   const [settings, setSettings] = useState(() => getSettings());
   const [phase, setPhase] = useState(shared ? 'playing' : 'setup');
   const [sharedDeck, setSharedDeck] = useState(() => shared?.deck || null);
-  const [quizDeck, setQuizDeck] = useState(() => shared?.deck || []);
+  const [deck, setDeck] = useState(() => shared?.deck || []);
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [total, setTotal] = useState(0);
   const [answered, setAnswered] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [options, setOptions] = useState(() => (shared?.deck ? buildOptions(shared.deck, 0) : []));
+  const [selected, setSelected] = useState(null);
+  const [options, setOptions] = useState(() => (
+    shared?.deck?.length ? buildOptions(shared.deck[0].texture) : []
+  ));
   const [countdown, setCountdown] = useState(settings.autoAdvanceSeconds);
-  const [perQuestionResults, setPerQuestionResults] = useState([]);
+  const [results, setResults] = useState([]);
 
-  // If the URL's ?tq= query changes (e.g. opening a shared link while already
-  // on the quiz), rebuild the deck from the shared terms and jump straight
-  // into playing — mirrors the preflop shared-link behavior.
+  // Shared-link handler: when ?fq= appears or changes, rebuild from the
+  // encoded cards and auto-start the quiz.
   useEffect(() => {
-    const next = decodeTermQuiz(query);
+    const next = decodeFlopQuiz(query);
     if (!next) return;
     const sameDeck = sharedDeck
       && sharedDeck.length === next.deck.length
-      && sharedDeck.every((t, i) => t.term === next.deck[i].term);
+      && sharedDeck.every((q, i) => (
+        q.cards.length === next.deck[i].cards.length
+        && q.cards.every((c, j) => (
+          c.rank === next.deck[i].cards[j].rank
+          && c.suit === next.deck[i].cards[j].suit
+        ))
+      ));
     if (sameDeck) return;
     setSharedDeck(next.deck);
-    setQuizDeck(next.deck);
+    setDeck(next.deck);
     setPhase('playing');
     setQIdx(0);
     setScore(0);
     setStreak(0);
     setTotal(0);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setOptions(buildOptions(next.deck, 0));
-    setPerQuestionResults([]);
-  }, [query?.tq]);
+    setSelected(null);
+    setOptions(buildOptions(next.deck[0].texture));
+    setResults([]);
+  }, [query?.fq]);
 
   function startQuiz() {
-    // Entered from the setup screen's Start button. Reads fresh settings so
-    // quizLength/autoAdvance changes made on the Settings page take effect
-    // without requiring a reload.
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = buildDeck(activeCats, fresh.quizLength);
-    setQuizDeck(newDeck);
+    const newDeck = buildFlopDeck(fresh.quizLength);
+    setDeck(newDeck);
     setQIdx(0);
     setScore(0);
     setStreak(0);
     setTotal(0);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setOptions(buildOptions(newDeck, 0));
-    setPerQuestionResults([]);
+    setSelected(null);
+    setOptions(buildOptions(newDeck[0].texture));
+    setResults([]);
     setPhase('playing');
   }
 
   function restart() {
-    // "Play Again" from the complete screen — stays in playing phase.
-    // Shared quizzes replay the same deck so the share link stays reproducible.
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = sharedDeck ? sharedDeck : buildDeck(activeCats, fresh.quizLength);
-    setQuizDeck(newDeck);
+    const newDeck = sharedDeck ? sharedDeck : buildFlopDeck(fresh.quizLength);
+    setDeck(newDeck);
     setQIdx(0);
     setScore(0);
     setStreak(0);
     setTotal(0);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setOptions(buildOptions(newDeck, 0));
-    setPerQuestionResults([]);
+    setSelected(null);
+    setOptions(buildOptions(newDeck[0].texture));
+    setResults([]);
   }
 
   function exitQuiz() {
@@ -116,38 +129,36 @@ export function Quiz({ path, query }) {
     setStreak(0);
     setTotal(0);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setPerQuestionResults([]);
+    setSelected(null);
+    setResults([]);
   }
 
   function startFreshQuiz() {
-    // Dropping out of a shared deck returns the user to the setup screen so
-    // they can pick topics before the random quiz starts.
     setSharedDeck(null);
-    setQuizDeck([]);
+    setDeck([]);
     setQIdx(0);
     setScore(0);
     setStreak(0);
     setTotal(0);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setPerQuestionResults([]);
+    setSelected(null);
+    setResults([]);
     setPhase('setup');
-    if (window.location.hash.includes('?tq=')) {
-      window.location.hash = '#/quizzes/terminology';
+    if (window.location.hash.includes('?fq=')) {
+      window.location.hash = '#/quizzes/flop';
     }
   }
 
-  const shareQuery = encodeTermQuiz(quizDeck);
-  const shareUrl = shareQuery ? buildShareUrl('/quizzes/terminology', shareQuery) : null;
+  const shareQuery = encodeFlopQuiz(deck);
+  const shareUrl = shareQuery ? buildShareUrl('/quizzes/flop', shareQuery) : null;
 
-  const answerQuiz = useCallback((chosen) => {
+  const answer = useCallback((chosenTerm) => {
     if (answered) return;
     setAnswered(true);
-    setSelectedAnswer(chosen);
-    const current = quizDeck[qIdx];
-    const correct = current.term;
-    const isCorrect = chosen === correct;
+    setSelected(chosenTerm);
+    const current = deck[qIdx];
+    const correct = current.texture;
+    const isCorrect = chosenTerm === correct;
     if (isCorrect) {
       setScore(s => s + 1);
       setStreak(s => s + 1);
@@ -155,21 +166,20 @@ export function Quiz({ path, query }) {
       setStreak(0);
     }
     setTotal(t => t + 1);
-    setPerQuestionResults(r => [...r, { cat: current.cat, correct: isCorrect }]);
-  }, [answered, quizDeck, qIdx]);
+    setResults(r => [...r, { texture: correct, correct: isCorrect }]);
+  }, [answered, deck, qIdx]);
 
-  function nextQuiz(e) {
+  function nextQuestion(e) {
     if (e?.currentTarget?.blur) e.currentTarget.blur();
     const nextIdx = qIdx + 1;
     setQIdx(nextIdx);
     setAnswered(false);
-    setSelectedAnswer(null);
-    setOptions(buildOptions(quizDeck, nextIdx));
+    setSelected(null);
+    if (nextIdx < deck.length) {
+      setOptions(buildOptions(deck[nextIdx].texture));
+    }
   }
 
-  // Auto-advance after answering — only runs when the user has enabled it in
-  // settings. Cleanup cancels the timer when the user clicks Next manually or
-  // exits the quiz.
   useEffect(() => {
     if (!answered || phase !== 'playing') return;
     if (!settings.autoAdvance) return;
@@ -184,23 +194,31 @@ export function Quiz({ path, query }) {
         const nextIdx = qIdx + 1;
         setQIdx(nextIdx);
         setAnswered(false);
-        setSelectedAnswer(null);
-        setOptions(buildOptions(quizDeck, nextIdx));
+        setSelected(null);
+        if (nextIdx < deck.length) {
+          setOptions(buildOptions(deck[nextIdx].texture));
+        }
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [answered, phase, settings.autoAdvance, settings.autoAdvanceSeconds, qIdx, quizDeck]);
+  }, [answered, phase, settings.autoAdvance, settings.autoAdvanceSeconds, qIdx, deck]);
 
   // ── Setup screen ──────────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
       <div>
-        <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
+        <SubNav tabs={TABS} currentPath="/quizzes/flop" />
         <div class="rq-panel">
-          <h2 class="rq-title">Terminology Quiz</h2>
-          <p class="rq-sub">Pick the topics you want to practice, then start the quiz.</p>
-          <div class="rq-setup-label">Topics</div>
-          <FilterChips activeCats={activeCats} onToggle={toggleCat} />
+          <h2 class="rq-title">Flop Texture Quiz</h2>
+          <p class="rq-sub">
+            You'll see three flop cards. Pick the board texture that best describes them.
+          </p>
+          <div class="rq-setup-label">Textures you'll see</div>
+          <ul class="rq-texture-list">
+            {TEXTURE_TERMS.map(t => (
+              <li key={t.term}><strong>{t.term}</strong> &mdash; {t.def}</li>
+            ))}
+          </ul>
           <div class="rq-start-row">
             <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
           </div>
@@ -210,36 +228,35 @@ export function Quiz({ path, query }) {
   }
 
   // ── Complete screen ───────────────────────────────────────────────────────
-  if (qIdx >= quizDeck.length && quizDeck.length > 0) {
+  if (qIdx >= deck.length && deck.length > 0) {
     const pct = Math.round(score / total * 100);
-    const msg = pct >= 90 ? 'Phenomenal \u2014 table captain!' :
-                pct >= 70 ? 'Well played \u2014 solid fundamentals.' :
-                pct >= 50 ? 'Good start \u2014 keep grinding.' :
+    const msg = pct >= 90 ? 'Phenomenal — you read boards like a pro!' :
+                pct >= 70 ? 'Well played — solid texture reads.' :
+                pct >= 50 ? 'Good start — revisit the Board Texture cards.' :
                 'Hit the study cards and come back!';
 
-    // Save stats
-    const stats = getTermQuizStats() || initTermQuizStats();
+    const stats = getFlopQuizStats() || initFlopQuizStats();
     stats.totalQuizzes++;
     stats.totalQuestions += total;
     stats.totalCorrect += score;
     if (streak > stats.bestStreak) stats.bestStreak = streak;
-    if (!stats.byCategory) stats.byCategory = {};
-    for (const r of perQuestionResults) {
-      const bucket = stats.byCategory[r.cat] || { total: 0, correct: 0 };
+    if (!stats.byTexture) stats.byTexture = {};
+    for (const r of results) {
+      const bucket = stats.byTexture[r.texture] || { total: 0, correct: 0 };
       bucket.total += 1;
       if (r.correct) bucket.correct += 1;
-      stats.byCategory[r.cat] = bucket;
+      stats.byTexture[r.texture] = bucket;
     }
     stats.recentScores.push({ date: new Date().toLocaleDateString(), score, total });
     if (stats.recentScores.length > 20) stats.recentScores = stats.recentScores.slice(-20);
-    saveTermQuizStats(stats);
+    saveFlopQuizStats(stats);
 
     return (
       <div>
-        <SubNav tabs={TABS} currentPath="/quizzes/terminology" />
+        <SubNav tabs={TABS} currentPath="/quizzes/flop" />
         <div class="rq-panel">
           <div class="rq-complete">
-            <h2>{pct >= 70 ? '\uD83C\uDFC6' : '\uD83C\uDCCF'} Round Complete</h2>
+            <h2>{pct >= 70 ? '🏆' : '🃏'} Round Complete</h2>
             <div class="score-big">{score} / {total} &mdash; {pct}%</div>
             <p>{msg}</p>
             <button class="rq-restart" onClick={restart}>Play Again</button>
@@ -258,29 +275,27 @@ export function Quiz({ path, query }) {
               />
             </div>
           </div>
-          <Recommendation />
         </div>
       </div>
     );
   }
 
   // ── Playing screen ────────────────────────────────────────────────────────
-  const current = quizDeck[qIdx];
-  const correctTerm = current?.term;
-  const pctDisplay = total > 0 ? Math.round(score / total * 100) + '%' : '\u2014';
+  const current = deck[qIdx];
+  const pctDisplay = total > 0 ? Math.round(score / total * 100) + '%' : '—';
 
   return (
     <div class="rq-playing-wrapper">
       <div class="rq-panel">
         <div class="rq-playing-header">
-          <div class="rq-mode-badge">Terminology{sharedDeck ? ' \u00b7 Shared' : ''}</div>
+          <div class="rq-mode-badge">Flop Texture{sharedDeck ? ' · Shared' : ''}</div>
           <button class="rq-exit-btn" onClick={sharedDeck ? startFreshQuiz : exitQuiz}>Exit</button>
         </div>
 
-        <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / quizDeck.length * 100) + '%' }}></div></div>
+        <div class="rq-progress"><div class="rq-progress-fill" style={{ width: (qIdx / deck.length * 100) + '%' }}></div></div>
         <div class="rq-status">
           <div class="rq-stat"><div class="val">{score}</div><div class="lbl">Correct</div></div>
-          <div class="rq-stat"><div class="val">{qIdx + 1} / {quizDeck.length}</div><div class="lbl">Question</div></div>
+          <div class="rq-stat"><div class="val">{qIdx + 1} / {deck.length}</div><div class="lbl">Question</div></div>
           <div class="rq-stat"><div class="val">{streak}</div><div class="lbl">Streak</div></div>
           <div class="rq-stat"><div class="val">{pctDisplay}</div><div class="lbl">Accuracy</div></div>
         </div>
@@ -288,29 +303,25 @@ export function Quiz({ path, query }) {
         {current && (
           <>
             <div class="quiz-q">
-              <div class="q-cat">{current.cat}</div>
-              <div class="q-term">{current.term}</div>
-              <div class="q-illus" dangerouslySetInnerHTML={{ __html: getIllus(current) }} />
+              <div class="q-cat">Board Texture</div>
+              <div class="q-term">Which texture best describes this flop?</div>
+              <div class="q-illus" dangerouslySetInnerHTML={{ __html: renderFlop(current.cards) }} />
             </div>
             <div class="answers">
               {options.map(o => {
                 let cls = 'ans-btn';
                 if (answered) {
-                  if (o.term === correctTerm) cls += ' correct';
-                  else if (o.term === selectedAnswer) cls += ' wrong';
+                  if (o.term === current.texture) cls += ' correct';
+                  else if (o.term === selected) cls += ' wrong';
                 }
-                // Key is scoped to qIdx so a term appearing as a distractor in
-                // consecutive questions doesn't reuse the previous question's
-                // DOM node. Reuse was preserving :focus-visible on a randomly-
-                // positioned button in the next question's shuffled options,
-                // which looked like a "yellow highlight" on a random answer.
                 return (
                   <button
                     key={qIdx + ':' + o.term}
                     class={cls}
                     disabled={answered}
-                    onClick={() => answerQuiz(o.term)}
+                    onClick={() => answer(o.term)}
                   >
+                    <span class="ans-term">{o.term}</span>
                     <span class="ans-def">{o.def}</span>
                   </button>
                 );
@@ -319,8 +330,8 @@ export function Quiz({ path, query }) {
             <div class="rq-next-row">
               {answered && (
                 <>
-                  <button class="rq-next" style="display:inline-block" onClick={nextQuiz}>
-                    Next Question {'\u2192'}
+                  <button class="rq-next" style="display:inline-block" onClick={nextQuestion}>
+                    Next Question {'→'}
                   </button>
                   {settings.autoAdvance && (
                     <div class="rq-countdown">Auto-advancing in {countdown}s</div>

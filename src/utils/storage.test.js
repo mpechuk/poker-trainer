@@ -4,6 +4,7 @@ import {
   getVsRaiseQuizStats, saveVsRaiseQuizStats, initVsRaiseQuizStats,
   getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats,
   getTermQuizStats, saveTermQuizStats, initTermQuizStats,
+  getFlopQuizStats, saveFlopQuizStats, initFlopQuizStats,
   getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES,
   QUIZ_LENGTH_MIN, QUIZ_LENGTH_MAX,
 } from './storage.js';
@@ -43,6 +44,36 @@ describe('initLimpQuizStats', () => {
     const loaded = getLimpQuizStats();
     expect(loaded.totalQuizzes).toBe(3);
     expect(loaded.totalCorrect).toBe(25);
+  });
+});
+
+describe('initFlopQuizStats', () => {
+  it('returns the expected shape for the Board Texture quiz', () => {
+    const s = initFlopQuizStats();
+    expect(s.totalQuizzes).toBe(0);
+    expect(s.totalQuestions).toBe(0);
+    expect(s.totalCorrect).toBe(0);
+    expect(s.bestStreak).toBe(0);
+    expect(s.byTexture).toEqual({});
+    expect(Array.isArray(s.recentScores)).toBe(true);
+  });
+
+  it('getFlopQuizStats returns null when nothing stored', () => {
+    expect(getFlopQuizStats()).toBeNull();
+  });
+
+  it('save/get round-trips — per-texture buckets survive serialization', () => {
+    const s = initFlopQuizStats();
+    s.totalQuizzes = 2;
+    s.totalQuestions = 12;
+    s.totalCorrect = 9;
+    s.bestStreak = 5;
+    s.byTexture['Paired Flop'] = { total: 3, correct: 2 };
+    saveFlopQuizStats(s);
+    const loaded = getFlopQuizStats();
+    expect(loaded.totalQuizzes).toBe(2);
+    expect(loaded.bestStreak).toBe(5);
+    expect(loaded.byTexture['Paired Flop']).toEqual({ total: 3, correct: 2 });
   });
 });
 

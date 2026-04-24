@@ -70,6 +70,8 @@ poker-trainer/
 │       ├── preflop/
 │       │   ├── Charts.jsx              # RFI hand range grid with position tabs
 │       │   └── Quiz.jsx                # Raise/fold RFI quiz
+│       ├── flop/
+│       │   └── Quiz.jsx                # Board-texture classification quiz (3 cards → texture)
 │       ├── stats/
 │       │   └── Dashboard.jsx           # Full stats dashboard
 │       └── settings/
@@ -93,10 +95,13 @@ Hash-based routing (`#/path`) for GitHub Pages compatibility.
 | `#/terminology/reference` | Reference.jsx | Searchable glossary |
 | `#/preflop/charts` | Charts.jsx | RFI hand range grids |
 | `#/preflop/quiz` | Quiz.jsx | Raise/fold RFI quiz |
+| `#/quizzes/terminology` | Terminology Quiz.jsx | Multiple-choice terminology quiz |
+| `#/quizzes/preflop` | Preflop Quiz.jsx | Raise/fold/3-bet preflop quiz (RFI / vs-Limp / vs-Raise / All) |
+| `#/quizzes/flop` | Flop Quiz.jsx | Board-texture classification quiz (3 flop cards → one of 6 textures) |
 | `#/stats` | Dashboard.jsx | Full stats dashboard |
 | `#/settings` | Settings.jsx | User preferences (auto-advance, card image size) |
 
-Redirects: `/` → `/welcome`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`
+Redirects: `/` → `/welcome`, `/terminology` → `/terminology/study`, `/preflop` → `/preflop/charts`, `/quizzes` → `/quizzes/preflop`
 
 ### Shareable quiz links
 
@@ -106,6 +111,7 @@ Quiz routes accept query strings that encode a reproducible quiz:
 |---|---|---|
 | `#/quizzes/terminology` | `?tq=<i,i,i,...>` | Comma-separated indexes into `TERMS`; defines the ordered question deck. |
 | `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>.<suitCode>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise) and suitCode ∈ `{s,h,d,c}`. Correct actions are re-derived from the GTO ranges; suits preserve the exact card rendering. The trailing suit field is optional — legacy 4-field links still decode. |
+| `#/quizzes/flop` | `?fq=<q1>,<q2>,...` | Each `qN = <r1><s1><r2><s2><r3><s3>` — three cards with `rN ∈ {2..9,T,J,Q,K,A}` (T for 10) and `sN ∈ {s,h,d,c}`. The correct texture is re-derived by `classifyFlop` at load time, so only the cards need to travel in the URL. |
 
 Both quiz types auto-start in the playing phase when loaded from a shared link, bypassing the setup screen so the recipient can't alter the shared deck. "Play Again" replays the same deck; "New Random Quiz" drops out of shared mode and returns the user to the setup screen (topic picker for terminology, mode/stack/positions for preflop). See `src/utils/share.js` and `src/components/ShareButton.jsx`.
 
@@ -165,7 +171,8 @@ Fonts: `'Playfair Display'` for headings, `'Crimson Pro'` for body text.
 | Key | Content |
 |---|---|
 | `rfi-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
-| `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, recentScores }` |
+| `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, byCategory, recentScores }` |
+| `flop-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, byTexture, recentScores }` |
 | `study-progress` | `{ cardsSeen: [], totalFlips, byCategory: {} }` |
 | `settings` | `{ autoAdvance, autoAdvanceSeconds, cardSize, quizLength }` |
 

@@ -18,6 +18,11 @@
 - **Charts** — Interactive 13x13 preflop RFI (Raise First In) hand range grids for each table position (UTG, HJ, CO, BTN, SB).
 - **RFI Quiz** — Practice raise/fold decisions against GTO-optimal preflop ranges with persistent progress tracking. Each question shows the 6-max table with hero highlighted gold and (in vs Limp / vs Raise modes) the villain highlighted red, with a chip next to the villain seat indicating their action (↑ for raise, ✓ for limp).
 
+### Quizzes
+- **Preflop Quiz** — The RFI / vs-Limp / vs-Raise preflop quizzes (above).
+- **Terminology Quiz** — Multiple-choice questions on poker terms across all 9 categories.
+- **Flop Texture Quiz** — Classify a randomly dealt three-card flop as one of the six Board Texture categories (Paired, Monotone, Wet / Dynamic, Two-tone, Connected, Dry / Static). Four multiple-choice options are drawn from the same pool so the user has to read the flop's ranks, suits, and connectedness to pick the right one.
+
 ### Stats
 - **Dashboard** — Full statistics view showing study progress, terminology quiz accuracy, and RFI quiz performance by position. Surfaces a "Recommended Next Quiz" card that points you at your weakest area (or an untaken quiz for a baseline) with a one-click button to start it.
 
@@ -83,6 +88,7 @@ All routes use hash-based URLs for GitHub Pages compatibility:
 | `#/terminology/reference` | Searchable glossary |
 | `#/preflop/charts` | RFI hand range grids |
 | `#/preflop/quiz` | Raise/fold RFI quiz |
+| `#/quizzes/flop` | Flop Texture (Board Texture) quiz |
 | `#/stats` | Stats dashboard |
 
 ## Deployment
