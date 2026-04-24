@@ -5,6 +5,7 @@ import { LIMP_RANGES, VS_RAISE_RANGES } from '../data/preflop-ranges.js';
 import {
   encodeTermQuiz, decodeTermQuiz,
   encodePreflopQuiz, decodePreflopQuiz,
+  encodeFlopQuiz, decodeFlopQuiz,
   buildShareUrl, buildScoreMessage,
 } from './share.js';
 
@@ -135,6 +136,39 @@ describe('encodePreflopQuiz / decodePreflopQuiz', () => {
     expect(decoded.map(q => `${q.type}.${q.hand}.${q.heroPos}`)).toEqual([
       'rfi.AA.UTG', 'rfi.72o.HJ', 'rfi.KK.CO',
     ]);
+  });
+});
+
+describe('encodeFlopQuiz / decodeFlopQuiz', () => {
+  const deck = [
+    { cards: [{rank:'A',suit:'♠'},{rank:'9',suit:'♠'},{rank:'5',suit:'♦'}], texture: 'Two-tone Flop' },
+    { cards: [{rank:'K',suit:'♣'},{rank:'8',suit:'♠'},{rank:'3',suit:'♦'}], texture: 'Dry / Static Flop' },
+    { cards: [{rank:'10',suit:'♥'},{rank:'9',suit:'♥'},{rank:'8',suit:'♥'}], texture: 'Monotone Flop' },
+  ];
+
+  it('round-trips a deck and re-derives the correct texture', () => {
+    const encoded = encodeFlopQuiz(deck);
+    expect(encoded).toMatch(/^fq=/);
+    const { deck: decoded } = decodeFlopQuiz({ fq: encoded.slice(3) });
+    expect(decoded).toHaveLength(3);
+    expect(decoded[0].cards).toEqual(deck[0].cards);
+    expect(decoded[0].texture).toBe('Two-tone Flop');
+    expect(decoded[1].texture).toBe('Dry / Static Flop');
+    expect(decoded[2].texture).toBe('Monotone Flop');
+  });
+
+  it('encodes 10 as T so every card stays two characters', () => {
+    const encoded = encodeFlopQuiz([deck[2]]);
+    expect(encoded).toBe('fq=Th9h8h');
+  });
+
+  it('returns null for malformed / missing input', () => {
+    expect(encodeFlopQuiz([])).toBeNull();
+    expect(encodeFlopQuiz(null)).toBeNull();
+    expect(decodeFlopQuiz({})).toBeNull();
+    expect(decodeFlopQuiz({ fq: '' })).toBeNull();
+    expect(decodeFlopQuiz({ fq: 'invalid' })).toBeNull();
+    expect(decodeFlopQuiz({ fq: 'Xs8s3d' })).toBeNull();
   });
 });
 

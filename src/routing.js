@@ -8,6 +8,7 @@ export const ROUTES_LIST = [
   '/preflop/vs-raise',
   '/quizzes/terminology',
   '/quizzes/preflop',
+  '/quizzes/flop',
   '/stats',
   '/settings',
 ];

@@ -32,6 +32,16 @@
 .ans-btn:disabled{cursor:default}
 .ans-def{font-size:.82rem;color:#a09070}
 .ans-btn.correct .ans-def,.ans-btn.wrong .ans-def{color:inherit}
+.ans-term{display:block;font-weight:600;color:var(--gold-bright);margin-bottom:.2rem}
+.ans-btn.correct .ans-term,.ans-btn.wrong .ans-term{color:inherit}
+
+/* Flop Quiz — setup texture list */
+.rq-texture-list{list-style:none;padding:0;margin:0 0 1rem;display:grid;gap:.55rem;
+  text-align:left;max-width:600px;margin-left:auto;margin-right:auto}
+.rq-texture-list li{font-size:.88rem;color:var(--text);padding:.55rem .75rem;
+  background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.2);border-radius:8px;
+  line-height:1.35}
+.rq-texture-list strong{color:var(--gold-bright);font-weight:600}
 .quiz-next{display:none;margin:0 auto;padding:.65rem 2rem;
   background:var(--gold-dark);color:var(--gold-bright);border:none;border-radius:30px;
   font-family:'Crimson Pro',serif;font-size:1rem;cursor:pointer;

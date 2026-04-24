@@ -61,6 +61,11 @@ describe('routing', () => {
     expect(ROUTES_LIST).toContain('/quizzes/preflop');
   });
 
+  it('/quizzes/flop exists in routes list — flop texture quiz is reachable', () => {
+    expect(ROUTES_LIST).toContain('/quizzes/flop');
+    expect(resolveRoute('/quizzes/flop')).toBe('/quizzes/flop');
+  });
+
   it('resolves /quizzes shorthand to preflop quiz — preflop is default quiz mode', () => {
     expect(resolveRoute('/quizzes')).toBe('/quizzes/preflop');
   });

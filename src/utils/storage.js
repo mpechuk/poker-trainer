@@ -46,6 +46,18 @@ export function initVsRaiseQuizStats() {
   return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, byHeroPosition:{}, byVillainPosition:{}, recentScores:[] };
 }
 
+// Flop (Board Texture) Quiz Stats
+export function getFlopQuizStats() {
+  try { const d = localStorage.getItem('flop-quiz-stats'); return d ? JSON.parse(d) : null; }
+  catch(e) { return null; }
+}
+export function saveFlopQuizStats(s) {
+  try { localStorage.setItem('flop-quiz-stats', JSON.stringify(s)); } catch(e) {}
+}
+export function initFlopQuizStats() {
+  return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, bestStreak:0, byTexture:{}, recentScores:[] };
+}
+
 // All-Modes Quiz Stats
 export function getAllModesQuizStats() {
   try { const d = localStorage.getItem('all-modes-quiz-stats'); return d ? JSON.parse(d) : null; }

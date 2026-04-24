@@ -22,6 +22,7 @@
 import { TERMS } from '../data/terms.js';
 import { RFI_RANGES, STACK_DEPTHS } from '../data/rfi-ranges.js';
 import { LIMP_RANGES, VS_RAISE_RANGES } from '../data/preflop-ranges.js';
+import { classifyFlop, FLOP_RANKS, FLOP_SUITS } from './flop.js';
 
 const TYPE_ENCODE = { rfi: 'r', limp: 'l', vsRaise: 'v' };
 const TYPE_DECODE = { r: 'rfi', l: 'limp', v: 'vsRaise' };
@@ -117,6 +118,57 @@ export function decodePreflopQuiz(query) {
   }
   if (deck.length === 0) return null;
   return { stackDepth, deck };
+}
+
+// Flop quiz: encodes three cards per question. The correct texture is
+// re-derived via classifyFlop, so only the cards need to travel in the URL.
+//
+//   #/quizzes/flop?fq=<q1>,<q2>,...
+//     qN = <r1><s1><r2><s2><r3><s3>
+//     rN ∈ {2..9,T,J,Q,K,A}  (T for 10 keeps every card two chars)
+//     sN ∈ {s,h,d,c}
+const RANK_ENCODE = { '10': 'T' };
+const RANK_DECODE = { T: '10' };
+
+function encodeRank(r) { return RANK_ENCODE[r] || r; }
+function decodeRank(r) { return RANK_DECODE[r] || r; }
+
+export function encodeFlopQuiz(deck) {
+  if (!Array.isArray(deck) || deck.length === 0) return null;
+  const parts = [];
+  for (const q of deck) {
+    if (!q?.cards || q.cards.length !== 3) return null;
+    let s = '';
+    for (const c of q.cards) {
+      if (!FLOP_RANKS.includes(c.rank) || !FLOP_SUITS.includes(c.suit)) return null;
+      s += encodeRank(c.rank) + SUIT_ENCODE[c.suit];
+    }
+    parts.push(s);
+  }
+  return `fq=${parts.join(',')}`;
+}
+
+export function decodeFlopQuiz(query) {
+  const raw = query?.fq;
+  if (!raw) return null;
+  const deck = [];
+  for (const s of raw.split(',')) {
+    if (s.length !== 6) return null;
+    const cards = [];
+    for (let i = 0; i < 3; i++) {
+      const rawRank = s[i * 2];
+      const rawSuit = s[i * 2 + 1];
+      const rank = decodeRank(rawRank);
+      const suit = SUIT_DECODE[rawSuit];
+      if (!FLOP_RANKS.includes(rank) || !suit) return null;
+      cards.push({ rank, suit });
+    }
+    const texture = classifyFlop(cards);
+    if (!texture) return null;
+    deck.push({ cards, texture });
+  }
+  if (deck.length === 0) return null;
+  return { deck };
 }
 
 // Build an absolute share URL for the given hash path + encoded query.
