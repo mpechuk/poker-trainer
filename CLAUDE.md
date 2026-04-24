@@ -126,7 +126,7 @@ Both `sections/terminology/Quiz.jsx` and `sections/preflop/Quiz.jsx` use the sam
 { term: "Royal Flush", cat: "Hand Rankings", def: "...", illus: "royal-flush" }
 ```
 
-**9 categories:** Hand Rankings, Positions, Betting Actions, Board & Cards, Strategy, Math & Odds, Player Types, Miscellaneous (~78 total terms)
+**9 categories:** Hand Rankings, Positions, Betting Actions, Board & Cards, Board Texture, Strategy, Math & Odds, Player Types, Miscellaneous (~84 total terms)
 
 **`RFI_RANGES` object** — GTO preflop open-raise ranges per position (6-max):
 ```javascript

@@ -163,6 +163,26 @@ export const TERMS = [
    def:"When a board card duplicates one of your cards, weakening your hand. Example: holding 7-6 on a 8-7-6 board (two pair), then the board pairs 8s \u2014 your two pair is now on the board.",
    illus:"board"},
 
+  // Board Texture (Flop Categories)
+  {term:"Dry / Static Flop",cat:"Board Texture",
+   def:"A flop with cards that aren't close together in rank and aren't the same suit, leaving very few draws available (e.g., K♣ 8♠ 3♦). Favors made hands and the pre-flop aggressor's range — big c-bets work well.",
+   illus:"flop-dry"},
+  {term:"Wet / Dynamic Flop",cat:"Board Texture",
+   def:"A flop with close ranks and at least two of the same suit, producing many possible straight and flush draws (e.g., 9♠ 8♠ J♣). Equities run close together — bet sizing matters and caution with one-pair hands is warranted.",
+   illus:"flop-wet"},
+  {term:"Paired Flop",cat:"Board Texture",
+   def:"A flop on which two of the three cards share the same rank (e.g., A♣ A♦ 9♠). Reduces the number of combos available for two pair and straights, and often favors the pre-flop raiser because trips are rare for the caller.",
+   illus:"flop-paired"},
+  {term:"Two-tone Flop",cat:"Board Texture",
+   def:"A flop with two cards of one suit and a third card of a different suit (e.g., A♠ 9♠ 5♦). Introduces a flush draw but no completed flush — the most common board texture in Hold'em.",
+   illus:"flop-twotone"},
+  {term:"Monotone Flop",cat:"Board Texture",
+   def:"A flop on which all three cards share the same suit (e.g., Q♥ 8♥ 5♥). A flush is already possible; players without a card of that suit have very limited equity, and strategy skews toward checking and small bets.",
+   illus:"flop-monotone"},
+  {term:"Connected Flop",cat:"Board Texture",
+   def:"A flop with cards that are close together in rank (consecutive or one-gap), regardless of suit, so straights and straight draws are plentiful (e.g., 4♣ 6♦ 7♠). Overlaps with 'wet' when also two-tone or monotone.",
+   illus:"flop-connected"},
+
   // Strategy
   {term:"Continuation Bet (C-Bet)",cat:"Strategy",
    def:"A bet on the flop (or later street) by the pre-flop aggressor, 'continuing' the story of pre-flop strength even when the board missed them.",

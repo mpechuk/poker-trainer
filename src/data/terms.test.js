@@ -62,3 +62,34 @@ describe('card combination terms', () => {
     });
   }
 });
+
+describe('board texture (flop category) terms', () => {
+  const flopTextureTerms = [
+    'Dry / Static Flop',
+    'Wet / Dynamic Flop',
+    'Paired Flop',
+    'Two-tone Flop',
+    'Monotone Flop',
+    'Connected Flop',
+  ];
+
+  for (const name of flopTextureTerms) {
+    it(`"${name}" exists in Board Texture category`, () => {
+      const found = TERMS.find(t => t.term === name);
+      expect(found, `term "${name}" not found`).toBeTruthy();
+      expect(found.cat).toBe('Board Texture');
+    });
+  }
+
+  it('Board Texture category is present in CATS', () => {
+    expect(CATS).toContain('Board Texture');
+  });
+
+  it('each flop-texture term has a dedicated flop-* illustration', () => {
+    for (const name of flopTextureTerms) {
+      const found = TERMS.find(t => t.term === name);
+      expect(found.illus.startsWith('flop-'), `"${name}" illus "${found.illus}" should start with "flop-"`).toBe(true);
+      expect(typeof ILLUS[found.illus]).toBe('function');
+    }
+  });
+});

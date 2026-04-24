@@ -101,6 +101,36 @@ export const ILLUS = {
     <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">FLOP</div>
     <div class="hand">${cardSvg('9','♠',54,76)}${cardSvg('K','♥',54,76)}${cardSvg('3','♦',54,76)}</div>
   </div>`,
+  'flop-dry': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">DRY / STATIC</div>
+    <div class="hand">${cardSvg('K','♣',54,76)}${cardSvg('8','♠',54,76)}${cardSvg('3','♦',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">disconnected ranks, three suits — few draws</div>
+  </div>`,
+  'flop-wet': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">WET / DYNAMIC</div>
+    <div class="hand">${cardSvg('9','♠',54,76)}${cardSvg('8','♠',54,76)}${cardSvg('J','♣',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">close ranks + two of a suit — many draws</div>
+  </div>`,
+  'flop-paired': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">PAIRED</div>
+    <div class="hand">${cardSvg('A','♣',54,76)}${cardSvg('A','♦',54,76)}${cardSvg('9','♠',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">two board cards share a rank</div>
+  </div>`,
+  'flop-twotone': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">TWO-TONE</div>
+    <div class="hand">${cardSvg('A','♠',54,76)}${cardSvg('9','♠',54,76)}${cardSvg('5','♦',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">two cards of one suit — flush draw live</div>
+  </div>`,
+  'flop-monotone': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">MONOTONE</div>
+    <div class="hand">${cardSvg('Q','♥',54,76)}${cardSvg('8','♥',54,76)}${cardSvg('5','♥',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">all three cards same suit — flush possible</div>
+  </div>`,
+  'flop-connected': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+    <div style="font-size:.7rem;color:#c9a84c;letter-spacing:.1em">CONNECTED</div>
+    <div class="hand">${cardSvg('4','♣',54,76)}${cardSvg('6','♦',54,76)}${cardSvg('7','♠',54,76)}</div>
+    <div style="font-size:.65rem;color:#8a7a5a">close ranks — straights and straight draws</div>
+  </div>`,
   'turn': ()=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
     <div style="font-size:.7rem;color:#8a7a5a;letter-spacing:.1em">TURN</div>
     <div class="hand">${['9♠','K♥','3♦','7♣'].map(c=>cardSvg(c.slice(0,-1),c.slice(-1),50,70)).join('')}</div>
