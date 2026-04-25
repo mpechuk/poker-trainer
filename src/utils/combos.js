@@ -2,13 +2,17 @@
 //
 // A "question" is: 2 hole cards + 3 flop cards (all distinct).
 // We report, for every hand category:
-//   made:       the current best category from hole+flop
-//   turnOuts:   cards that, drawn on the turn, make the best 5-card hand exactly
-//               that category (the poker definition of "outs")
-//   reachable:  categories achievable as the final showdown category given any
-//               (turn, river) runout — includes runner-runner draws
-//   riverProb:  exact probability that the final best 5-card category equals C,
-//               over all C(47,2)=1081 runouts
+//   made:             the current best category from hole+flop
+//   turnOuts:         cards that, drawn on the turn, make the best 5-card hand
+//                     exactly that category (the poker definition of "outs")
+//   reachableByTurn:  categories achievable as the best 5-card hand after one
+//                     more card (turn) — i.e. categories with ≥1 turn out, plus
+//                     anything already made (subset-closed)
+//   reachableByRiver: categories achievable as the final showdown category over
+//                     any (turn, river) runout — includes runner-runner draws
+//   reachable:        alias of reachableByRiver (kept for backward compatibility)
+//   riverProb:        exact probability that the final best 5-card category equals
+//                     C, over all C(47,2)=1081 runouts
 
 import { FLOP_RANKS, FLOP_SUITS } from './flop.js';
 
@@ -168,17 +172,38 @@ export function analyzeQuestion(holes, flop) {
   for (const c of CATEGORIES) riverProb[c] = riverCounts[c] / total;
 
   // Reachable is subset-closed: if Two Pair is reachable, Pair is reachable too.
-  // Made categories are always reachable.
-  const reachable = new Set();
+  // Made categories are always reachable. We track two horizons:
+  //   reachableByTurn  — best 5-card hand after one more card
+  //   reachableByRiver — best 5-card hand after both turn & river (includes
+  //                      backdoor / runner-runner draws)
+  // reachableByTurn is always a subset of reachableByRiver.
+  const reachableByTurn = new Set();
   for (const c of CATEGORIES) {
-    if (riverCounts[c] > 0) {
-      reachable.add(c);
-      for (const s of SUBSETS[c]) reachable.add(s);
+    if (turnOuts[c].count > 0) {
+      reachableByTurn.add(c);
+      for (const s of SUBSETS[c]) reachableByTurn.add(s);
     }
   }
-  for (const c of madeSet) reachable.add(c);
+  for (const c of madeSet) reachableByTurn.add(c);
 
-  return { made, madeSet, reachable, turnOuts, riverProb };
+  const reachableByRiver = new Set();
+  for (const c of CATEGORIES) {
+    if (riverCounts[c] > 0) {
+      reachableByRiver.add(c);
+      for (const s of SUBSETS[c]) reachableByRiver.add(s);
+    }
+  }
+  for (const c of madeSet) reachableByRiver.add(c);
+
+  return {
+    made,
+    madeSet,
+    reachableByTurn,
+    reachableByRiver,
+    reachable: reachableByRiver,
+    turnOuts,
+    riverProb,
+  };
 }
 
 function randInt(n) { return Math.floor(Math.random() * n); }
