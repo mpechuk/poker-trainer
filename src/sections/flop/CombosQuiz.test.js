@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import { gradeHand } from './CombosQuiz.jsx';
 import { analyzeQuestion, QUIZ_CATEGORIES } from '../../utils/combos.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const combosSource = readFileSync(resolve(__dirname, 'CombosQuiz.jsx'), 'utf8');
 
 const c = (rank, suit) => ({ rank, suit });
 
@@ -77,5 +83,22 @@ describe('gradeHand', () => {
     // Any reachable-not-made category is now wrong in phase 2.
     const flushPc = g.perCat['Flush'];
     expect(flushPc.phase2Right).toBe(false);
+  });
+});
+
+describe('Feedback rendering', () => {
+  it('hides turn outs and rule-of-4 for categories already made on the flop', () => {
+    // Regression: showing "Turn outs (N): [cards]" or "rule of 4" for a hand
+    // already made on the flop is misleading — there is nothing to draw to.
+    // Both gates must include `!pc.made` so made categories skip the outs UI.
+    const turnOutsGate = combosSource.match(
+      /\{!pc\.made && actualOuts\.count > 0 && \(\s*<div class="combos-fb-outs">/
+    );
+    expect(turnOutsGate, 'Turn outs block should be gated on !pc.made').not.toBeNull();
+
+    const ruleOfFourGate = combosSource.match(
+      /\{!pc\.made && \(actualOuts\.count > 0[\s\S]*?rule of 4/
+    );
+    expect(ruleOfFourGate, 'rule-of-4 / runner-runner suffix should be gated on !pc.made').not.toBeNull();
   });
 });
