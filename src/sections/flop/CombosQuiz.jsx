@@ -535,13 +535,13 @@ function Feedback({ result, onNext, isLast }) {
                   <span class="combos-fb-k">River probability:</span>
                   <span class="combos-fb-v">
                     <strong>{fmtPct(prob)}</strong>
-                    {actualOuts.count > 0
+                    {!pc.made && (actualOuts.count > 0
                       ? <> &middot; rule of 4: ≈{ruleOfFour(actualOuts.count)}</>
-                      : <> &middot; runner-runner (no turn outs)</>}
+                      : <> &middot; runner-runner (no turn outs)</>)}
                   </span>
                 </div>
               )}
-              {actualOuts.count > 0 && (
+              {!pc.made && actualOuts.count > 0 && (
                 <div class="combos-fb-outs">
                   <div class="combos-fb-k">Turn outs ({actualOuts.count}):</div>
                   <div class="hand combos-fb-outs-cards"
