@@ -6,6 +6,8 @@ import {
   buildCombosDeck,
   CATEGORIES,
   QUIZ_CATEGORIES,
+  SUBSETS,
+  categoriesIncluded,
 } from './combos.js';
 
 const c = (rank, suit) => ({ rank, suit });
@@ -119,6 +121,53 @@ describe('bestOf', () => {
   });
 });
 
+describe('SUBSETS / categoriesIncluded', () => {
+  it('Two Pair contains Pair', () => {
+    expect(SUBSETS['Two Pair'].has('Pair')).toBe(true);
+  });
+
+  it('Three of a Kind contains Pair', () => {
+    expect(SUBSETS['Three of a Kind'].has('Pair')).toBe(true);
+  });
+
+  it('Full House contains Three of a Kind, Two Pair, and Pair', () => {
+    expect(SUBSETS['Full House'].has('Three of a Kind')).toBe(true);
+    expect(SUBSETS['Full House'].has('Two Pair')).toBe(true);
+    expect(SUBSETS['Full House'].has('Pair')).toBe(true);
+  });
+
+  it('Four of a Kind contains Three of a Kind and Pair (but not Two Pair)', () => {
+    expect(SUBSETS['Four of a Kind'].has('Three of a Kind')).toBe(true);
+    expect(SUBSETS['Four of a Kind'].has('Pair')).toBe(true);
+    // Two Pair requires two distinct paired ranks; quads don't satisfy that.
+    expect(SUBSETS['Four of a Kind'].has('Two Pair')).toBe(false);
+  });
+
+  it('Straight Flush contains Flush and Straight', () => {
+    expect(SUBSETS['Straight Flush'].has('Flush')).toBe(true);
+    expect(SUBSETS['Straight Flush'].has('Straight')).toBe(true);
+  });
+
+  it('Royal Flush contains Straight Flush, Flush, and Straight', () => {
+    expect(SUBSETS['Royal Flush'].has('Straight Flush')).toBe(true);
+    expect(SUBSETS['Royal Flush'].has('Flush')).toBe(true);
+    expect(SUBSETS['Royal Flush'].has('Straight')).toBe(true);
+  });
+
+  it('Pair, Straight, and Flush imply nothing else from the quiz set', () => {
+    expect(SUBSETS['Pair'].size).toBe(0);
+    expect(SUBSETS['Straight'].size).toBe(0);
+    expect(SUBSETS['Flush'].size).toBe(0);
+  });
+
+  it('categoriesIncluded returns the category itself plus its subsets', () => {
+    const inc = categoriesIncluded('Two Pair');
+    expect(inc.has('Two Pair')).toBe(true);
+    expect(inc.has('Pair')).toBe(true);
+    expect(inc.has('Three of a Kind')).toBe(false);
+  });
+});
+
 describe('analyzeQuestion', () => {
   it('AsKs on 2s 7s Jd → made pair of aces? no, no pair. Flush draw: 9 turn outs to Flush', () => {
     const holes = [c('A', '♠'), c('K', '♠')];
@@ -181,6 +230,39 @@ describe('analyzeQuestion', () => {
     const a = analyzeQuestion(holes, flop);
     expect(a.made).toBe('Flush');
     expect(a.reachable.has('Flush')).toBe(true);
+  });
+
+  it('made Two Pair: madeSet includes Pair too — having two pair means you have a pair', () => {
+    // KK + QQ + J = Two Pair on the flop.
+    const holes = [c('K', '♠'), c('Q', '♦')];
+    const flop = [c('K', '♥'), c('Q', '♣'), c('J', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.made).toBe('Two Pair');
+    expect(a.madeSet.has('Two Pair')).toBe(true);
+    expect(a.madeSet.has('Pair')).toBe(true);
+  });
+
+  it('reachable is subset-closed: a reachable Flush implies a reachable Pair-or-better is not auto-added (only the specific subsets)', () => {
+    // Flush draw — reachable should include Flush but NOT inflate Pair just because Flush is reachable
+    // (Flush subset relation is empty — a flush of 5 distinct ranks does not imply any pair).
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.reachable.has('Flush')).toBe(true);
+    // Pair is reachable on independent runouts (paired board / paired hole), so it should still be true:
+    expect(a.reachable.has('Pair')).toBe(true);
+  });
+
+  it('reachable is subset-closed: when Two Pair is reachable, Pair is reachable too', () => {
+    // 77 on K72 rainbow: Three of a Kind already made. Pair is in madeSet.
+    const holes = [c('7', '♠'), c('7', '♥')];
+    const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.madeSet.has('Three of a Kind')).toBe(true);
+    expect(a.madeSet.has('Pair')).toBe(true);
+    // Both should also appear in reachable (subset-closed + made-included).
+    expect(a.reachable.has('Pair')).toBe(true);
+    expect(a.reachable.has('Three of a Kind')).toBe(true);
   });
 });
 

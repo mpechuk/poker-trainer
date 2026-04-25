@@ -34,11 +34,17 @@
   .combos-check:hover:not(.on){background:rgba(201,168,76,.1);border-color:var(--gold)}
 }
 .combos-check.on{background:rgba(46,204,113,.18);border-color:#27ae60;color:#d8f5e0}
+.combos-check.locked{cursor:default;border-style:dashed}
+.combos-check.locked.on{background:rgba(52,152,219,.18);border-color:rgba(52,152,219,.55);color:#cfe6f5}
+.combos-check.locked.on .combos-check-box{background:rgba(52,152,219,.85);border-color:rgba(52,152,219,.85);color:#0c2416}
 .combos-check-box{display:inline-flex;align-items:center;justify-content:center;
   width:22px;height:22px;border-radius:5px;border:1.5px solid var(--gold-dark);
   background:rgba(0,0,0,.3);color:var(--gold-bright);font-weight:700;flex-shrink:0}
 .combos-check.on .combos-check-box{background:#27ae60;border-color:#27ae60;color:#0c2416}
 .combos-check-lbl{flex:1}
+.combos-check-made{font-size:.65rem;padding:.1rem .45rem;border-radius:8px;
+  background:rgba(52,152,219,.25);color:#a8d8f0;text-transform:uppercase;
+  letter-spacing:.06em;font-weight:600;flex-shrink:0}
 
 /* Phase 2: outs inputs */
 .combos-outs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
