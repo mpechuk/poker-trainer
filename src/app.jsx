@@ -8,6 +8,7 @@ import { LimpCharts } from './sections/preflop/LimpCharts.jsx';
 import { RaiseCharts } from './sections/preflop/RaiseCharts.jsx';
 import { PreflopQuiz } from './sections/preflop/Quiz.jsx';
 import { FlopQuiz } from './sections/flop/Quiz.jsx';
+import { CombosQuiz } from './sections/flop/CombosQuiz.jsx';
 import { Dashboard } from './sections/stats/Dashboard.jsx';
 import { Welcome } from './sections/welcome/Welcome.jsx';
 import { Settings } from './sections/settings/Settings.jsx';
@@ -49,6 +50,7 @@ const ROUTES = {
   '/quizzes/terminology': TermQuiz,
   '/quizzes/preflop': PreflopQuiz,
   '/quizzes/flop': FlopQuiz,
+  '/quizzes/flop-combos': CombosQuiz,
   '/stats': Dashboard,
   '/settings': Settings,
 };

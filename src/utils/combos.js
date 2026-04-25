@@ -1,0 +1,173 @@
+// Flop Combos & Outs quiz — hand evaluator, per-question analyzer, deck builder.
+//
+// A "question" is: 2 hole cards + 3 flop cards (all distinct).
+// We report, for every hand category:
+//   made:       the current best category from hole+flop
+//   turnOuts:   cards that, drawn on the turn, make the best 5-card hand exactly
+//               that category (the poker definition of "outs")
+//   reachable:  categories achievable as the final showdown category given any
+//               (turn, river) runout — includes runner-runner draws
+//   riverProb:  exact probability that the final best 5-card category equals C,
+//               over all C(47,2)=1081 runouts
+
+import { FLOP_RANKS, FLOP_SUITS } from './flop.js';
+
+export const CATEGORIES = [
+  'High Card',
+  'Pair',
+  'Two Pair',
+  'Three of a Kind',
+  'Straight',
+  'Flush',
+  'Full House',
+  'Four of a Kind',
+  'Straight Flush',
+  'Royal Flush',
+];
+
+// Categories offered as quiz options (High Card excluded — always trivially
+// reachable on any flop, adds no teaching value).
+export const QUIZ_CATEGORIES = CATEGORIES.slice(1);
+
+function rankIdx(r) { return FLOP_RANKS.indexOf(r); }
+
+function isStraight(sortedIdx) {
+  if (sortedIdx.length !== 5) return false;
+  let consecutive = true;
+  for (let i = 1; i < 5; i++) {
+    if (sortedIdx[i] - sortedIdx[i - 1] !== 1) { consecutive = false; break; }
+  }
+  if (consecutive) return true;
+  // A-2-3-4-5 wheel: ranks index out as [0,1,2,3,12].
+  return sortedIdx[0] === 0 && sortedIdx[1] === 1
+      && sortedIdx[2] === 2 && sortedIdx[3] === 3
+      && sortedIdx[4] === 12;
+}
+
+export function evalFive(cards) {
+  const ranks = cards.map(c => c.rank);
+  const suits = cards.map(c => c.suit);
+  const idxs = [...new Set(ranks.map(rankIdx))].sort((a, b) => a - b);
+  const counts = {};
+  for (const r of ranks) counts[r] = (counts[r] || 0) + 1;
+  const countValues = Object.values(counts).sort((a, b) => b - a);
+
+  const flush = new Set(suits).size === 1;
+  const straight = idxs.length === 5 && isStraight(idxs);
+
+  if (straight && flush) {
+    const top = idxs[4];
+    if (top === 12 && idxs[0] === 8) return { rank: 9, category: 'Royal Flush' };
+    return { rank: 8, category: 'Straight Flush' };
+  }
+  if (countValues[0] === 4) return { rank: 7, category: 'Four of a Kind' };
+  if (countValues[0] === 3 && countValues[1] === 2) return { rank: 6, category: 'Full House' };
+  if (flush) return { rank: 5, category: 'Flush' };
+  if (straight) return { rank: 4, category: 'Straight' };
+  if (countValues[0] === 3) return { rank: 3, category: 'Three of a Kind' };
+  if (countValues[0] === 2 && countValues[1] === 2) return { rank: 2, category: 'Two Pair' };
+  if (countValues[0] === 2) return { rank: 1, category: 'Pair' };
+  return { rank: 0, category: 'High Card' };
+}
+
+export function bestOf(cards) {
+  if (cards.length === 5) return evalFive(cards);
+  let best = { rank: -1, category: null };
+  const n = cards.length;
+  for (let i = 0; i < n - 4; i++)
+    for (let j = i + 1; j < n - 3; j++)
+      for (let k = j + 1; k < n - 2; k++)
+        for (let l = k + 1; l < n - 1; l++)
+          for (let m = l + 1; m < n; m++) {
+            const e = evalFive([cards[i], cards[j], cards[k], cards[l], cards[m]]);
+            if (e.rank > best.rank) best = e;
+          }
+  return best;
+}
+
+function deckMinus(used) {
+  const usedKeys = new Set(used.map(c => c.rank + c.suit));
+  const out = [];
+  for (const r of FLOP_RANKS) {
+    for (const s of FLOP_SUITS) {
+      const k = r + s;
+      if (!usedKeys.has(k)) out.push({ rank: r, suit: s });
+    }
+  }
+  return out;
+}
+
+// Sort out-card lists high-rank first, then by suit, for a stable readable order.
+const SUIT_ORDER = { '♠': 0, '♥': 1, '♦': 2, '♣': 3 };
+function cmpCard(a, b) {
+  const dr = rankIdx(b.rank) - rankIdx(a.rank);
+  if (dr !== 0) return dr;
+  return SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit];
+}
+
+export function analyzeQuestion(holes, flop) {
+  const known = [...holes, ...flop];
+  const remaining = deckMinus(known);
+  const made = bestOf(known).category;
+
+  const turnOuts = {};
+  for (const c of CATEGORIES) turnOuts[c] = { count: 0, cards: [] };
+
+  const withOne = known.slice();
+  withOne.push(null);
+  for (const t of remaining) {
+    withOne[withOne.length - 1] = t;
+    const cat = bestOf(withOne).category;
+    turnOuts[cat].cards.push(t);
+    turnOuts[cat].count += 1;
+  }
+  for (const c of CATEGORIES) turnOuts[c].cards.sort(cmpCard);
+
+  const riverCounts = {};
+  for (const c of CATEGORIES) riverCounts[c] = 0;
+
+  const withTwo = known.slice();
+  withTwo.push(null, null);
+  for (let i = 0; i < remaining.length; i++) {
+    withTwo[withTwo.length - 2] = remaining[i];
+    for (let j = i + 1; j < remaining.length; j++) {
+      withTwo[withTwo.length - 1] = remaining[j];
+      riverCounts[bestOf(withTwo).category] += 1;
+    }
+  }
+  const total = remaining.length * (remaining.length - 1) / 2;
+  const riverProb = {};
+  for (const c of CATEGORIES) riverProb[c] = riverCounts[c] / total;
+
+  const reachable = new Set();
+  for (const c of CATEGORIES) if (riverCounts[c] > 0) reachable.add(c);
+
+  return { made, reachable, turnOuts, riverProb };
+}
+
+function randInt(n) { return Math.floor(Math.random() * n); }
+
+function shufflePick(arr, n) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = randInt(i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
+
+function randomFiveCards() {
+  const all = [];
+  for (const r of FLOP_RANKS) for (const s of FLOP_SUITS) all.push({ rank: r, suit: s });
+  return shufflePick(all, 5);
+}
+
+export function buildCombosDeck(length) {
+  const deck = [];
+  const n = Math.max(1, length | 0);
+  for (let i = 0; i < n; i++) {
+    const five = randomFiveCards();
+    deck.push({ holes: [five[0], five[1]], flop: [five[2], five[3], five[4]] });
+  }
+  return deck;
+}

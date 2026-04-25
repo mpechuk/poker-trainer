@@ -58,6 +58,32 @@ export function initFlopQuizStats() {
   return { totalQuizzes:0, totalQuestions:0, totalCorrect:0, bestStreak:0, byTexture:{}, recentScores:[] };
 }
 
+// Flop Combos & Outs Quiz Stats
+// totalQuestions here = number of hands played; totalCorrect = number of hands
+// answered perfectly (every category judgement in both phases right).
+// phase1/phase2 track finer-grained per-category judgements for diagnostic bars.
+export function getFlopCombosQuizStats() {
+  try { const d = localStorage.getItem('flop-combos-quiz-stats'); return d ? JSON.parse(d) : null; }
+  catch(e) { return null; }
+}
+export function saveFlopCombosQuizStats(s) {
+  try { localStorage.setItem('flop-combos-quiz-stats', JSON.stringify(s)); } catch(e) {}
+}
+export function initFlopCombosQuizStats() {
+  return {
+    totalQuizzes: 0,
+    totalQuestions: 0,
+    totalCorrect: 0,
+    bestStreak: 0,
+    phase1Correct: 0,
+    phase1Total: 0,
+    phase2Correct: 0,
+    phase2Total: 0,
+    byCategory: {},
+    recentScores: [],
+  };
+}
+
 // All-Modes Quiz Stats
 export function getAllModesQuizStats() {
   try { const d = localStorage.getItem('all-modes-quiz-stats'); return d ? JSON.parse(d) : null; }

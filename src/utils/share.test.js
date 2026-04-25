@@ -6,6 +6,7 @@ import {
   encodeTermQuiz, decodeTermQuiz,
   encodePreflopQuiz, decodePreflopQuiz,
   encodeFlopQuiz, decodeFlopQuiz,
+  encodeCombosQuiz, decodeCombosQuiz,
   buildShareUrl, buildScoreMessage,
 } from './share.js';
 
@@ -169,6 +170,39 @@ describe('encodeFlopQuiz / decodeFlopQuiz', () => {
     expect(decodeFlopQuiz({ fq: '' })).toBeNull();
     expect(decodeFlopQuiz({ fq: 'invalid' })).toBeNull();
     expect(decodeFlopQuiz({ fq: 'Xs8s3d' })).toBeNull();
+  });
+});
+
+describe('encodeCombosQuiz / decodeCombosQuiz', () => {
+  const deck = [
+    { holes: [{rank:'A',suit:'♠'},{rank:'K',suit:'♥'}],
+      flop:  [{rank:'2',suit:'♠'},{rank:'7',suit:'♠'},{rank:'J',suit:'♦'}] },
+    { holes: [{rank:'10',suit:'♦'},{rank:'10',suit:'♣'}],
+      flop:  [{rank:'10',suit:'♠'},{rank:'5',suit:'♥'},{rank:'2',suit:'♣'}] },
+  ];
+
+  it('round-trips a deck, preserving exact cards', () => {
+    const encoded = encodeCombosQuiz(deck);
+    expect(encoded).toMatch(/^cq=/);
+    const decoded = decodeCombosQuiz({ cq: encoded.slice(3) });
+    expect(decoded.deck).toHaveLength(2);
+    expect(decoded.deck[0].holes).toEqual(deck[0].holes);
+    expect(decoded.deck[0].flop).toEqual(deck[0].flop);
+    expect(decoded.deck[1].holes).toEqual(deck[1].holes);
+  });
+
+  it('encodes 10 as T so every card is exactly two characters', () => {
+    const encoded = encodeCombosQuiz([deck[1]]);
+    expect(encoded).toBe('cq=TdTcTs5h2c');
+  });
+
+  it('returns null for malformed / missing input', () => {
+    expect(encodeCombosQuiz([])).toBeNull();
+    expect(encodeCombosQuiz(null)).toBeNull();
+    expect(decodeCombosQuiz({})).toBeNull();
+    expect(decodeCombosQuiz({ cq: '' })).toBeNull();
+    expect(decodeCombosQuiz({ cq: 'short' })).toBeNull();
+    expect(decodeCombosQuiz({ cq: 'Xs8s3d2c9h' })).toBeNull();
   });
 });
 

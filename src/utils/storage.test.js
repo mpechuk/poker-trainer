@@ -5,6 +5,7 @@ import {
   getAllModesQuizStats, saveAllModesQuizStats, initAllModesQuizStats,
   getTermQuizStats, saveTermQuizStats, initTermQuizStats,
   getFlopQuizStats, saveFlopQuizStats, initFlopQuizStats,
+  getFlopCombosQuizStats, saveFlopCombosQuizStats, initFlopCombosQuizStats,
   getSettings, saveSettings, resetSettings, DEFAULT_SETTINGS, CARD_SIZES,
   QUIZ_LENGTH_MIN, QUIZ_LENGTH_MAX,
 } from './storage.js';
@@ -74,6 +75,44 @@ describe('initFlopQuizStats', () => {
     expect(loaded.totalQuizzes).toBe(2);
     expect(loaded.bestStreak).toBe(5);
     expect(loaded.byTexture['Paired Flop']).toEqual({ total: 3, correct: 2 });
+  });
+});
+
+describe('initFlopCombosQuizStats', () => {
+  it('returns the expected shape for the Flop Combos & Outs quiz', () => {
+    const s = initFlopCombosQuizStats();
+    expect(s.totalQuizzes).toBe(0);
+    expect(s.totalQuestions).toBe(0);
+    expect(s.totalCorrect).toBe(0);
+    expect(s.bestStreak).toBe(0);
+    expect(s.phase1Total).toBe(0);
+    expect(s.phase1Correct).toBe(0);
+    expect(s.phase2Total).toBe(0);
+    expect(s.phase2Correct).toBe(0);
+    expect(s.byCategory).toEqual({});
+    expect(Array.isArray(s.recentScores)).toBe(true);
+  });
+
+  it('getFlopCombosQuizStats returns null when nothing stored', () => {
+    expect(getFlopCombosQuizStats()).toBeNull();
+  });
+
+  it('save/get round-trips — per-category buckets survive serialization', () => {
+    const s = initFlopCombosQuizStats();
+    s.totalQuizzes = 2;
+    s.totalQuestions = 10;
+    s.totalCorrect = 6;
+    s.phase1Correct = 78;
+    s.phase1Total = 90;
+    s.phase2Correct = 14;
+    s.phase2Total = 22;
+    s.byCategory['Flush'] = { total: 9, correct: 7 };
+    saveFlopCombosQuizStats(s);
+    const loaded = getFlopCombosQuizStats();
+    expect(loaded.totalQuizzes).toBe(2);
+    expect(loaded.phase1Correct).toBe(78);
+    expect(loaded.phase2Total).toBe(22);
+    expect(loaded.byCategory['Flush']).toEqual({ total: 9, correct: 7 });
   });
 });
 

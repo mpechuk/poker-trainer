@@ -1,0 +1,206 @@
+import { describe, it, expect } from 'vitest';
+import {
+  evalFive,
+  bestOf,
+  analyzeQuestion,
+  buildCombosDeck,
+  CATEGORIES,
+  QUIZ_CATEGORIES,
+} from './combos.js';
+
+const c = (rank, suit) => ({ rank, suit });
+
+describe('CATEGORIES', () => {
+  it('are ordered weakest → strongest, Royal Flush last', () => {
+    expect(CATEGORIES[0]).toBe('High Card');
+    expect(CATEGORIES[CATEGORIES.length - 1]).toBe('Royal Flush');
+    expect(CATEGORIES).toHaveLength(10);
+  });
+
+  it('QUIZ_CATEGORIES drops only High Card', () => {
+    expect(QUIZ_CATEGORIES).toHaveLength(9);
+    expect(QUIZ_CATEGORIES).not.toContain('High Card');
+    expect(QUIZ_CATEGORIES).toContain('Royal Flush');
+  });
+});
+
+describe('evalFive', () => {
+  it('identifies High Card', () => {
+    expect(evalFive([c('A', '♠'), c('J', '♣'), c('9', '♦'), c('6', '♥'), c('2', '♣')]).category)
+      .toBe('High Card');
+  });
+
+  it('identifies One Pair', () => {
+    expect(evalFive([c('A', '♠'), c('A', '♣'), c('K', '♦'), c('J', '♥'), c('7', '♠')]).category)
+      .toBe('Pair');
+  });
+
+  it('identifies Two Pair', () => {
+    expect(evalFive([c('K', '♠'), c('K', '♥'), c('Q', '♦'), c('Q', '♣'), c('J', '♠')]).category)
+      .toBe('Two Pair');
+  });
+
+  it('identifies Three of a Kind', () => {
+    expect(evalFive([c('9', '♠'), c('9', '♥'), c('9', '♦'), c('A', '♣'), c('4', '♥')]).category)
+      .toBe('Three of a Kind');
+  });
+
+  it('identifies a normal Straight', () => {
+    expect(evalFive([c('8', '♠'), c('9', '♦'), c('10', '♥'), c('J', '♠'), c('Q', '♣')]).category)
+      .toBe('Straight');
+  });
+
+  it('identifies an Ace-low wheel Straight (A-2-3-4-5)', () => {
+    expect(evalFive([c('A', '♠'), c('2', '♦'), c('3', '♥'), c('4', '♣'), c('5', '♠')]).category)
+      .toBe('Straight');
+  });
+
+  it('does NOT call Q-K-A-2-3 a straight (no wrap-around)', () => {
+    expect(evalFive([c('Q', '♠'), c('K', '♦'), c('A', '♥'), c('2', '♣'), c('3', '♠')]).category)
+      .toBe('High Card');
+  });
+
+  it('identifies a Flush', () => {
+    expect(evalFive([c('A', '♦'), c('J', '♦'), c('9', '♦'), c('6', '♦'), c('2', '♦')]).category)
+      .toBe('Flush');
+  });
+
+  it('identifies a Full House', () => {
+    expect(evalFive([c('K', '♠'), c('K', '♥'), c('K', '♦'), c('7', '♥'), c('7', '♦')]).category)
+      .toBe('Full House');
+  });
+
+  it('identifies Four of a Kind', () => {
+    expect(evalFive([c('A', '♠'), c('A', '♥'), c('A', '♦'), c('A', '♣'), c('K', '♠')]).category)
+      .toBe('Four of a Kind');
+  });
+
+  it('identifies a Straight Flush (non-royal)', () => {
+    expect(evalFive([c('7', '♥'), c('8', '♥'), c('9', '♥'), c('10', '♥'), c('J', '♥')]).category)
+      .toBe('Straight Flush');
+  });
+
+  it('identifies the Steel Wheel (A-2-3-4-5 suited) as a Straight Flush, not Royal', () => {
+    expect(evalFive([c('A', '♠'), c('2', '♠'), c('3', '♠'), c('4', '♠'), c('5', '♠')]).category)
+      .toBe('Straight Flush');
+  });
+
+  it('identifies a Royal Flush', () => {
+    expect(evalFive([c('A', '♠'), c('K', '♠'), c('Q', '♠'), c('J', '♠'), c('10', '♠')]).category)
+      .toBe('Royal Flush');
+  });
+});
+
+describe('bestOf', () => {
+  it('picks the best 5-card category from 7 cards', () => {
+    // AA in hand + AKQJT of spades on board → Royal Flush beats the pair of aces.
+    const seven = [
+      c('A', '♥'), c('A', '♦'),
+      c('A', '♠'), c('K', '♠'), c('Q', '♠'), c('J', '♠'), c('10', '♠'),
+    ];
+    expect(bestOf(seven).category).toBe('Royal Flush');
+  });
+
+  it('finds Full House among 7 cards when two pairs + a triple fit', () => {
+    // 77 hole, flop K72 rainbow, turn 7, river K → Full House (sevens full of kings).
+    const seven = [
+      c('7', '♠'), c('7', '♥'),
+      c('K', '♣'), c('7', '♦'), c('2', '♠'),
+      c('7', '♣'), // wait — four 7s would be quads; adjust.
+      c('K', '♦'),
+    ];
+    // Dedupe: we actually wrote three 7s + the hole 7s = four. Fix input:
+    const fixed = [
+      c('7', '♠'), c('7', '♥'),
+      c('K', '♣'), c('7', '♦'), c('2', '♠'),
+      c('K', '♦'), c('3', '♠'),
+    ];
+    expect(bestOf(fixed).category).toBe('Full House');
+  });
+});
+
+describe('analyzeQuestion', () => {
+  it('AsKs on 2s 7s Jd → made pair of aces? no, no pair. Flush draw: 9 turn outs to Flush', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.made).toBe('High Card');
+    expect(a.reachable.has('Flush')).toBe(true);
+    expect(a.turnOuts['Flush'].count).toBe(9);
+    // Rule-of-4 approximation for 9 outs is ~36%; exact is ~35%.
+    expect(a.riverProb['Flush']).toBeGreaterThan(0.33);
+    expect(a.riverProb['Flush']).toBeLessThan(0.38);
+  });
+
+  it('77 on Kc 7d 2s → Three of a Kind already made; outs-to-Quads = 1 seven left', () => {
+    const holes = [c('7', '♠'), c('7', '♥')];
+    const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.made).toBe('Three of a Kind');
+    expect(a.turnOuts['Four of a Kind'].count).toBe(1);
+    expect(a.turnOuts['Four of a Kind'].cards[0]).toEqual(c('7', '♣'));
+    // Any K or 2 on the turn pairs the board → Full House. 3 kings + 3 twos = 6 turn outs.
+    expect(a.turnOuts['Full House'].count).toBe(6);
+  });
+
+  it('98 on K 6 5 rainbow (gutshot to 9-high straight) → 4 turn outs, exactly the four sevens', () => {
+    const holes = [c('9', '♠'), c('8', '♥')];
+    const flop = [c('K', '♦'), c('6', '♣'), c('5', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.reachable.has('Straight')).toBe(true);
+    expect(a.turnOuts['Straight'].count).toBe(4);
+    for (const card of a.turnOuts['Straight'].cards) expect(card.rank).toBe('7');
+  });
+
+  it('AsKh on 2s 7s Jd (backdoor flush via spade runner-runner) → 0 turn outs to Flush but positive river prob', () => {
+    const holes = [c('A', '♠'), c('K', '♥')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    // 3 spades known, 10 spades left in the deck. One spade on the turn gives us
+    // 4 spades in 6 cards — still not a flush. Two spades on turn+river makes it.
+    expect(a.turnOuts['Flush'].count).toBe(0);
+    expect(a.reachable.has('Flush')).toBe(true);
+    expect(a.riverProb['Flush']).toBeGreaterThan(0);
+    // C(10,2) / C(47,2) = 45/1081 ≈ 4.2%.
+    expect(a.riverProb['Flush']).toBeLessThan(0.08);
+    expect(a.riverProb['Flush']).toBeGreaterThan(0.03);
+  });
+
+  it('riverProb values across all categories sum to 1', () => {
+    const holes = [c('Q', '♣'), c('Q', '♦')];
+    const flop = [c('7', '♠'), c('4', '♥'), c('2', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    let sum = 0;
+    for (const k of Object.keys(a.riverProb)) sum += a.riverProb[k];
+    expect(sum).toBeCloseTo(1, 6);
+  });
+
+  it('made flush (suited hole + 3 of suit on flop) → reachable includes Flush even with no upgrade on some runouts', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.made).toBe('Flush');
+    expect(a.reachable.has('Flush')).toBe(true);
+  });
+});
+
+describe('buildCombosDeck', () => {
+  it('produces the requested number of questions', () => {
+    const deck = buildCombosDeck(7);
+    expect(deck).toHaveLength(7);
+  });
+
+  it('each question has 2 hole cards and 3 flop cards, all distinct', () => {
+    const deck = buildCombosDeck(15);
+    for (const q of deck) {
+      expect(q.holes).toHaveLength(2);
+      expect(q.flop).toHaveLength(3);
+      const keys = new Set([...q.holes, ...q.flop].map(x => x.rank + x.suit));
+      expect(keys.size).toBe(5);
+    }
+  });
+
+  it('never returns a zero-length deck even when asked for 0 (minimum 1 question)', () => {
+    expect(buildCombosDeck(0).length).toBeGreaterThanOrEqual(1);
+  });
+});

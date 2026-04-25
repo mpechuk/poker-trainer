@@ -1,0 +1,81 @@
+/* Flop Combos & Outs quiz */
+
+.combos-cat-list{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.combos-cat-list li{text-align:center}
+.combos-setup-note{font-size:.85rem;max-width:600px;margin:.6rem auto 0;color:var(--muted)}
+
+/* Board display: hole cards + flop, stacked */
+.combos-board{display:flex;flex-direction:column;gap:.9rem;align-items:center;
+  margin-bottom:1.2rem;padding:1.1rem;background:linear-gradient(135deg,#1e3d28,#0c2010);
+  border:1px solid var(--gold-dark);border-radius:14px}
+.combos-board-row{display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.combos-board-lbl{font-size:.7rem;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+
+.combos-phase-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem;
+  flex-wrap:wrap;justify-content:center}
+.combos-phase-tag{display:inline-block;padding:.2rem .7rem;border-radius:12px;
+  background:var(--gold-dark);color:var(--gold-bright);font-size:.75rem;
+  letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.combos-phase-tag.ok{background:rgba(46,204,113,.25);color:#a8f0c6}
+.combos-phase-tag.bad{background:rgba(192,57,43,.25);color:#f0b8b0}
+.combos-phase-q{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text);
+  text-align:center}
+
+/* Phase 1: checkbox grid */
+.combos-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:8px;margin-bottom:1rem}
+.combos-check{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;
+  border-radius:10px;border:1px solid rgba(201,168,76,.3);
+  background:rgba(255,255,255,.04);color:var(--text);font-family:'Crimson Pro',serif;
+  font-size:.95rem;cursor:pointer;transition:all .15s;text-align:left}
+.combos-check:focus{outline:none}
+.combos-check:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (hover:hover) {
+  .combos-check:hover:not(.on){background:rgba(201,168,76,.1);border-color:var(--gold)}
+}
+.combos-check.on{background:rgba(46,204,113,.18);border-color:#27ae60;color:#d8f5e0}
+.combos-check-box{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:5px;border:1.5px solid var(--gold-dark);
+  background:rgba(0,0,0,.3);color:var(--gold-bright);font-weight:700;flex-shrink:0}
+.combos-check.on .combos-check-box{background:#27ae60;border-color:#27ae60;color:#0c2416}
+.combos-check-lbl{flex:1}
+
+/* Phase 2: outs inputs */
+.combos-outs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:8px;margin-bottom:1rem}
+.combos-outs-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.55rem .8rem;border-radius:10px;border:1px solid rgba(201,168,76,.25);
+  background:rgba(255,255,255,.04)}
+.combos-outs-lbl{font-family:'Crimson Pro',serif;color:var(--gold-bright);font-weight:600}
+.combos-outs-input{width:70px;padding:.35rem .5rem;border-radius:6px;
+  border:1px solid var(--gold-dark);background:rgba(0,0,0,.3);color:var(--text);
+  font-family:'Crimson Pro',serif;font-size:1rem;text-align:center}
+.combos-outs-input:focus{outline:none;border-color:var(--gold)}
+.combos-outs-made{font-size:.8rem;padding:.2rem .55rem;border-radius:10px;
+  background:rgba(52,152,219,.18);color:#a8d8f0;border:1px solid rgba(52,152,219,.4)}
+
+/* Feedback list */
+.combos-fb-list{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
+.combos-fb-row{padding:.7rem .85rem;border-radius:10px;
+  border:1px solid rgba(201,168,76,.2);background:rgba(255,255,255,.035)}
+.combos-fb-row.ok{border-color:rgba(46,204,113,.45);background:rgba(46,204,113,.08)}
+.combos-fb-row.bad{border-color:rgba(192,57,43,.5);background:rgba(192,57,43,.08)}
+.combos-fb-row.dim{opacity:.65}
+.combos-fb-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;
+  flex-wrap:wrap}
+.combos-fb-cat{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-bright)}
+.combos-fb-badge{font-size:.7rem;padding:.1rem .5rem;border-radius:10px;
+  text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap}
+.combos-fb-badge.made{background:rgba(52,152,219,.2);color:#a8d8f0}
+.combos-fb-badge.reachable{background:rgba(201,168,76,.2);color:var(--gold-bright)}
+.combos-fb-badge.unreach{background:rgba(255,255,255,.05);color:var(--muted)}
+.combos-fb-line{display:flex;flex-wrap:wrap;gap:.4rem;font-size:.9rem;line-height:1.35;
+  color:var(--text);margin-top:.15rem}
+.combos-fb-k{color:var(--muted);font-size:.8rem;letter-spacing:.05em;min-width:115px}
+.combos-fb-v.ok{color:#a8f0c6}
+.combos-fb-v.bad{color:#f0b8b0}
+.combos-fb-outs{margin-top:.45rem}
+.combos-fb-outs-cards{flex-wrap:wrap;gap:4px !important;justify-content:flex-start}
+
+.combos-summary-sub{font-size:.85rem;color:var(--muted);max-width:500px;
+  margin:.5rem auto 1rem}
