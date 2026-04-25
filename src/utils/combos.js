@@ -29,6 +29,32 @@ export const CATEGORIES = [
 // reachable on any flop, adds no teaching value).
 export const QUIZ_CATEGORIES = CATEGORIES.slice(1);
 
+// Subset relation: which categories are inherently contained in a 5-card hand
+// of the keyed category. Having Two Pair means you also have a Pair; having a
+// Full House means you also have Three of a Kind, Two Pair, and a Pair; etc.
+// Note: Four of a Kind contains a Pair and Three of a Kind, but not Two Pair —
+// "two pair" requires two different paired ranks. Royal Flush / Straight Flush
+// contain Flush and Straight (5 distinct ranks → no pairs implied).
+export const SUBSETS = {
+  'High Card': new Set(),
+  'Pair': new Set(),
+  'Two Pair': new Set(['Pair']),
+  'Three of a Kind': new Set(['Pair']),
+  'Straight': new Set(),
+  'Flush': new Set(),
+  'Full House': new Set(['Three of a Kind', 'Two Pair', 'Pair']),
+  'Four of a Kind': new Set(['Three of a Kind', 'Pair']),
+  'Straight Flush': new Set(['Flush', 'Straight']),
+  'Royal Flush': new Set(['Straight Flush', 'Flush', 'Straight']),
+};
+
+// All categories implied when your best 5-card hand is `cat` (cat itself + its subsets).
+export function categoriesIncluded(cat) {
+  const out = new Set([cat]);
+  for (const s of SUBSETS[cat] || []) out.add(s);
+  return out;
+}
+
 function rankIdx(r) { return FLOP_RANKS.indexOf(r); }
 
 function isStraight(sortedIdx) {
@@ -109,6 +135,8 @@ export function analyzeQuestion(holes, flop) {
   const known = [...holes, ...flop];
   const remaining = deckMinus(known);
   const made = bestOf(known).category;
+  // Made includes subsets: e.g. Two Pair on the flop means you also "have" a Pair.
+  const madeSet = categoriesIncluded(made);
 
   const turnOuts = {};
   for (const c of CATEGORIES) turnOuts[c] = { count: 0, cards: [] };
@@ -139,10 +167,18 @@ export function analyzeQuestion(holes, flop) {
   const riverProb = {};
   for (const c of CATEGORIES) riverProb[c] = riverCounts[c] / total;
 
+  // Reachable is subset-closed: if Two Pair is reachable, Pair is reachable too.
+  // Made categories are always reachable.
   const reachable = new Set();
-  for (const c of CATEGORIES) if (riverCounts[c] > 0) reachable.add(c);
+  for (const c of CATEGORIES) {
+    if (riverCounts[c] > 0) {
+      reachable.add(c);
+      for (const s of SUBSETS[c]) reachable.add(s);
+    }
+  }
+  for (const c of madeSet) reachable.add(c);
 
-  return { made, reachable, turnOuts, riverProb };
+  return { made, madeSet, reachable, turnOuts, riverProb };
 }
 
 function randInt(n) { return Math.floor(Math.random() * n); }

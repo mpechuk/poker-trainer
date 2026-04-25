@@ -58,13 +58,14 @@ export function gradeHand(analysis, p1Selected, p2Outs) {
   let phase1Correct = 0;
   let phase2Correct = 0;
   let phase2Asked = 0;
+  const madeSet = analysis.madeSet || new Set([analysis.made]);
   for (const C of QUIZ_CATEGORIES) {
     const trueReachable = analysis.reachable.has(C);
     const userSelected = p1Selected.has(C);
     const phase1Right = trueReachable === userSelected;
     if (phase1Right) phase1Correct += 1;
 
-    const made = analysis.made === C;
+    const made = madeSet.has(C);
     const askedInP2 = userSelected && !made;
     let phase2Right = null;
     if (askedInP2) {
@@ -112,6 +113,29 @@ export function CombosQuiz({ query }) {
   const current = deck[qIdx];
   const analysis = useMemo(() => (current ? analyzeQuestion(current.holes, current.flop) : null), [current]);
   const isComplete = phase === 'playing' && qIdx >= deck.length && deck.length > 0;
+
+  // When a fresh question becomes the active one (start of phase 1), pre-check
+  // every category already made on the flop — these are guaranteed correct and
+  // not something the user needs to "guess". Includes subsets (e.g. Two Pair
+  // pre-checks Pair too) so the UI matches the grading semantics.
+  useEffect(() => {
+    if (phase !== 'playing' || subphase !== 'p1' || !analysis) return;
+    const made = new Set(
+      [...analysis.madeSet].filter(c => QUIZ_CATEGORIES.includes(c))
+    );
+    setP1Selected(prev => {
+      // Only seed once per question — don't clobber user toggles after they've
+      // started clicking. We detect "fresh question" as: every made category is
+      // missing from prev (or prev is empty).
+      if (prev.size > 0) {
+        const allPresent = [...made].every(c => prev.has(c));
+        if (allPresent) return prev;
+      }
+      const next = new Set(prev);
+      for (const c of made) next.add(c);
+      return next;
+    });
+  }, [qIdx, phase, subphase, analysis]);
 
   // Persist stats exactly once per completed run.
   useEffect(() => {
@@ -224,6 +248,8 @@ export function CombosQuiz({ query }) {
 
   function toggleP1(cat) {
     if (subphase !== 'p1') return;
+    // Made categories (and their subsets) are guaranteed correct — locked on.
+    if (analysis && analysis.madeSet.has(cat)) return;
     setP1Selected(prev => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat); else next.add(cat);
@@ -363,6 +389,7 @@ export function CombosQuiz({ query }) {
 
             {subphase === 'p1' && (
               <Phase1
+                madeSet={analysis.madeSet}
                 p1Selected={p1Selected}
                 onToggle={toggleP1}
                 onNext={goToPhase2}
@@ -397,7 +424,7 @@ export function CombosQuiz({ query }) {
   );
 }
 
-function Phase1({ p1Selected, onToggle, onNext }) {
+function Phase1({ madeSet, p1Selected, onToggle, onNext }) {
   return (
     <>
       <div class="combos-phase-header">
@@ -407,16 +434,20 @@ function Phase1({ p1Selected, onToggle, onNext }) {
       <div class="combos-check-grid">
         {QUIZ_CATEGORIES.map(C => {
           const on = p1Selected.has(C);
+          const locked = madeSet && madeSet.has(C);
           return (
             <button
               key={C}
               type="button"
-              class={'combos-check' + (on ? ' on' : '')}
+              class={'combos-check' + (on ? ' on' : '') + (locked ? ' locked' : '')}
               aria-pressed={on}
+              aria-disabled={locked || undefined}
+              title={locked ? 'Already made on the flop' : undefined}
               onClick={() => onToggle(C)}
             >
               <span class="combos-check-box">{on ? '✓' : ''}</span>
               <span class="combos-check-lbl">{C}</span>
+              {locked && <span class="combos-check-made">made</span>}
             </button>
           );
         })}
@@ -456,7 +487,7 @@ function Phase2({ analysis, p1Selected, p2Outs, setP2Outs, onSubmit }) {
       </div>
       <div class="combos-outs-grid">
         {toAnswer.map(C => {
-          const made = analysis.made === C;
+          const made = analysis.madeSet.has(C);
           return (
             <div key={C} class="combos-outs-row">
               <div class="combos-outs-lbl">{C}</div>

@@ -22,7 +22,7 @@ describe('gradeHand', () => {
     const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C)));
     const p2 = {};
     for (const C of QUIZ_CATEGORIES) {
-      if (p1.has(C) && analysis.made !== C) {
+      if (p1.has(C) && !analysis.madeSet.has(C)) {
         p2[C] = String(analysis.turnOuts[C].count);
       }
     }
@@ -36,7 +36,7 @@ describe('gradeHand', () => {
     const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C) && C !== 'Flush'));
     const p2 = {};
     for (const C of p1) {
-      if (analysis.made !== C) p2[C] = String(analysis.turnOuts[C].count);
+      if (!analysis.madeSet.has(C)) p2[C] = String(analysis.turnOuts[C].count);
     }
     const g = gradeHand(analysis, p1, p2);
     expect(g.handCorrect).toBe(false);
@@ -48,7 +48,7 @@ describe('gradeHand', () => {
     const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C)));
     const p2 = {};
     for (const C of QUIZ_CATEGORIES) {
-      if (p1.has(C) && analysis.made !== C) {
+      if (p1.has(C) && !analysis.madeSet.has(C)) {
         const trueCount = analysis.turnOuts[C].count;
         // Flip one category's answer to be wrong by 1.
         p2[C] = String(C === 'Flush' ? trueCount + 1 : trueCount);
@@ -65,13 +65,36 @@ describe('gradeHand', () => {
     const a = analyzeQuestion(madeHoles, madeFlop);
     expect(a.made).toBe('Three of a Kind');
     const p1 = new Set(QUIZ_CATEGORIES.filter(C => a.reachable.has(C)));
-    // Leave "Three of a Kind" out of p2 — user isn't asked for outs on made hands.
+    // Leave made-or-subset categories out of p2 — outs aren't asked for them.
     const p2 = {};
     for (const C of p1) {
-      if (a.made !== C) p2[C] = String(a.turnOuts[C].count);
+      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
     }
     const g = gradeHand(a, p1, p2);
     expect(g.perCat['Three of a Kind'].phase2Right).toBeNull();
+    expect(g.handCorrect).toBe(true);
+  });
+
+  it('treats subset-made categories as "already made" — Pair is auto-correct when Two Pair is on the flop', () => {
+    // KQ on KQJ: Two Pair on the flop. Pair is a subset of Two Pair, so the
+    // user should not be asked for Pair outs and selecting "Pair" is correct.
+    const madeHoles = [c('K', '♠'), c('Q', '♦')];
+    const madeFlop = [c('K', '♥'), c('Q', '♣'), c('J', '♠')];
+    const a = analyzeQuestion(madeHoles, madeFlop);
+    expect(a.made).toBe('Two Pair');
+    expect(a.madeSet.has('Pair')).toBe(true);
+    expect(a.reachable.has('Pair')).toBe(true);
+
+    const p1 = new Set(QUIZ_CATEGORIES.filter(C => a.reachable.has(C)));
+    const p2 = {};
+    for (const C of p1) {
+      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
+    }
+    const g = gradeHand(a, p1, p2);
+    // Pair is in madeSet → phase2 is not asked, phase2Right is null.
+    expect(g.perCat['Pair'].phase2Right).toBeNull();
+    expect(g.perCat['Pair'].made).toBe(true);
+    expect(g.perCat['Two Pair'].made).toBe(true);
     expect(g.handCorrect).toBe(true);
   });
 
