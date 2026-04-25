@@ -48,7 +48,8 @@ import '../../styles/quiz.css';
 
 const TABS = [
   { path: '/quizzes/preflop', label: 'Preflop' },
-  { path: '/quizzes/flop', label: 'Flop' },
+  { path: '/quizzes/flop', label: 'Flop Texture' },
+  { path: '/quizzes/flop-combos', label: 'Flop Combos' },
   { path: '/quizzes/terminology', label: 'Terminology' },
 ];
 

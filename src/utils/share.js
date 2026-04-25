@@ -171,6 +171,49 @@ export function decodeFlopQuiz(query) {
   return { deck };
 }
 
+// Flop Combos & Outs quiz: encodes 2 hole cards + 3 flop cards per question.
+// Correct answers (made / reachable / outs / probability) are re-derived via
+// analyzeQuestion on decode, so only the cards need to travel in the URL.
+//
+//   #/quizzes/flop-combos?cq=<q1>,<q2>,...
+//     qN = <h1><h2><f1><f2><f3>  (5 cards × 2 chars = 10 chars per question)
+//     rank uses T for 10; suit codes are s/h/d/c.
+export function encodeCombosQuiz(deck) {
+  if (!Array.isArray(deck) || deck.length === 0) return null;
+  const parts = [];
+  for (const q of deck) {
+    if (!q?.holes || q.holes.length !== 2 || !q.flop || q.flop.length !== 3) return null;
+    let s = '';
+    for (const c of [...q.holes, ...q.flop]) {
+      if (!FLOP_RANKS.includes(c.rank) || !FLOP_SUITS.includes(c.suit)) return null;
+      s += encodeRank(c.rank) + SUIT_ENCODE[c.suit];
+    }
+    parts.push(s);
+  }
+  return `cq=${parts.join(',')}`;
+}
+
+export function decodeCombosQuiz(query) {
+  const raw = query?.cq;
+  if (!raw) return null;
+  const deck = [];
+  for (const s of raw.split(',')) {
+    if (s.length !== 10) return null;
+    const cards = [];
+    for (let i = 0; i < 5; i++) {
+      const rawRank = s[i * 2];
+      const rawSuit = s[i * 2 + 1];
+      const rank = decodeRank(rawRank);
+      const suit = SUIT_DECODE[rawSuit];
+      if (!FLOP_RANKS.includes(rank) || !suit) return null;
+      cards.push({ rank, suit });
+    }
+    deck.push({ holes: [cards[0], cards[1]], flop: [cards[2], cards[3], cards[4]] });
+  }
+  if (deck.length === 0) return null;
+  return { deck };
+}
+
 // Build an absolute share URL for the given hash path + encoded query.
 export function buildShareUrl(path, encodedQuery) {
   const { origin, pathname } = window.location;

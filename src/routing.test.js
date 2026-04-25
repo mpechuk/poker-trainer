@@ -66,6 +66,11 @@ describe('routing', () => {
     expect(resolveRoute('/quizzes/flop')).toBe('/quizzes/flop');
   });
 
+  it('/quizzes/flop-combos exists in routes list — combos & outs quiz is reachable', () => {
+    expect(ROUTES_LIST).toContain('/quizzes/flop-combos');
+    expect(resolveRoute('/quizzes/flop-combos')).toBe('/quizzes/flop-combos');
+  });
+
   it('resolves /quizzes shorthand to preflop quiz — preflop is default quiz mode', () => {
     expect(resolveRoute('/quizzes')).toBe('/quizzes/preflop');
   });

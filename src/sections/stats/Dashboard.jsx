@@ -1,8 +1,9 @@
 import { useState } from 'preact/hooks';
 import { TERMS, CATS } from '../../data/terms.js';
 import { RFI_QUIZ_POSITIONS } from '../../data/rfi-ranges.js';
-import { getStudyProgress, initStudyProgress, getTermQuizStats, initTermQuizStats, getRfiQuizStats, initRfiQuizStats, getLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, initAllModesQuizStats, getFlopQuizStats, initFlopQuizStats } from '../../utils/storage.js';
+import { getStudyProgress, initStudyProgress, getTermQuizStats, initTermQuizStats, getRfiQuizStats, initRfiQuizStats, getLimpQuizStats, initLimpQuizStats, getVsRaiseQuizStats, initVsRaiseQuizStats, getAllModesQuizStats, initAllModesQuizStats, getFlopQuizStats, initFlopQuizStats, getFlopCombosQuizStats, initFlopCombosQuizStats } from '../../utils/storage.js';
 import { BOARD_TEXTURES } from '../../utils/flop.js';
+import { QUIZ_CATEGORIES } from '../../utils/combos.js';
 import { LIMP_HERO_POSITIONS, RAISE_HERO_POSITIONS } from '../../data/preflop-ranges.js';
 import { Recommendation } from '../../components/Recommendation.jsx';
 import '../../styles/stats.css';
@@ -18,6 +19,7 @@ export function Dashboard({ path }) {
   const vsRaiseQuiz = getVsRaiseQuizStats() || initVsRaiseQuizStats();
   const allModes   = getAllModesQuizStats() || initAllModesQuizStats();
   const flopQuiz   = getFlopQuizStats()    || initFlopQuizStats();
+  const combosQuiz = getFlopCombosQuizStats() || initFlopCombosQuizStats();
 
   const totalTerms = TERMS.length;
   const cardsSeen = study.cardsSeen.length;
@@ -64,9 +66,21 @@ export function Dashboard({ path }) {
     localStorage.removeItem('flop-quiz-stats');
     refresh();
   }
+  function resetCombosQuiz() {
+    if (!confirm('Reset all Flop Combos & Outs quiz stats? This cannot be undone.')) return;
+    localStorage.removeItem('flop-combos-quiz-stats');
+    refresh();
+  }
 
   const flopAccuracy = flopQuiz.totalQuestions > 0
     ? Math.round(flopQuiz.totalCorrect / flopQuiz.totalQuestions * 100) : 0;
+
+  const combosAccuracy = combosQuiz.totalQuestions > 0
+    ? Math.round(combosQuiz.totalCorrect / combosQuiz.totalQuestions * 100) : 0;
+  const combosPhase1Acc = combosQuiz.phase1Total > 0
+    ? Math.round(combosQuiz.phase1Correct / combosQuiz.phase1Total * 100) : 0;
+  const combosPhase2Acc = combosQuiz.phase2Total > 0
+    ? Math.round(combosQuiz.phase2Correct / combosQuiz.phase2Total * 100) : 0;
 
   return (
     <div class="stats-dashboard">
@@ -281,6 +295,78 @@ export function Dashboard({ path }) {
                 <div class="stats-history-title">Recent Scores</div>
                 {flopQuiz.recentScores.slice(-5).reverse().map((r, i) => {
                   const p = Math.round(r.score / r.total * 100);
+                  return (
+                    <div class="stats-history-row" key={i}>
+                      <span>{r.date}</span>
+                      <span style={{ color: p >= 70 ? '#27ae60' : p >= 50 ? '#c9a84c' : '#c0392b' }}>
+                        {r.score}/{r.total} ({p}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Flop Combos & Outs Quiz */}
+      <div class="stats-section">
+        <div class="stats-section-header">
+          <h3>Flop Combos &amp; Outs Quiz</h3>
+          <button class="stats-reset" onClick={resetCombosQuiz}>Reset</button>
+        </div>
+        {combosQuiz.totalQuizzes === 0 ? (
+          <p class="stats-empty">No quizzes taken yet. <a href="#/quizzes/flop-combos">Take a quiz</a></p>
+        ) : (
+          <>
+            <div class="stats-grid">
+              <div class="stats-card">
+                <div class="stats-val">{combosQuiz.totalQuizzes}</div>
+                <div class="stats-lbl">Quizzes</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosAccuracy}%</div>
+                <div class="stats-lbl">Perfect Hands</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosPhase1Acc}%</div>
+                <div class="stats-lbl">Phase 1 Acc.</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosPhase2Acc}%</div>
+                <div class="stats-lbl">Phase 2 Acc.</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosQuiz.bestStreak}</div>
+                <div class="stats-lbl">Best Streak</div>
+              </div>
+            </div>
+            {combosQuiz.byCategory && Object.keys(combosQuiz.byCategory).length > 0 && (
+              <div class="stats-bars">
+                <div class="stats-bars-title">Accuracy by Category</div>
+                {QUIZ_CATEGORIES.map(cat => {
+                  const ps = combosQuiz.byCategory[cat];
+                  if (!ps || ps.total === 0) return null;
+                  const pct = Math.round(ps.correct / ps.total * 100);
+                  const clr = pct >= 80 ? '#27ae60' : pct >= 60 ? '#c9a84c' : '#c0392b';
+                  return (
+                    <div class="stats-cat-row" key={cat}>
+                      <div class="stats-cat-label">{cat}</div>
+                      <div class="stats-cat-bar">
+                        <div class="stats-cat-bar-fill" style={{ width: pct + '%', background: clr }}></div>
+                        <div class="stats-cat-bar-text">{pct}% ({ps.correct}/{ps.total})</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {combosQuiz.recentScores.length > 0 && (
+              <div class="stats-history">
+                <div class="stats-history-title">Recent Scores</div>
+                {combosQuiz.recentScores.slice(-5).reverse().map((r, i) => {
+                  const p = r.total > 0 ? Math.round(r.score / r.total * 100) : 0;
                   return (
                     <div class="stats-history-row" key={i}>
                       <span>{r.date}</span>
