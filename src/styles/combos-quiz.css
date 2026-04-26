@@ -70,6 +70,8 @@
 @media (max-width:520px){
   .combos-reach-head,.combos-reach-row{grid-template-columns:minmax(0,1fr) 64px 64px;
     gap:.35rem;padding:.4rem .55rem}
+  .combos-reach-head.combos-reach-head-single,
+  .combos-reach-row-single{grid-template-columns:minmax(0,1fr) 64px}
   .combos-reach-cat{font-size:.88rem}
 }
 
