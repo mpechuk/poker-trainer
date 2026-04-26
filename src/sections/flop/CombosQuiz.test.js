@@ -11,50 +11,83 @@ const combosSource = readFileSync(resolve(__dirname, 'CombosQuiz.jsx'), 'utf8');
 const c = (rank, suit) => ({ rank, suit });
 
 describe('gradeHand', () => {
-  // AsKs on 2s 7s Jd — flush draw. Categories reachable: Pair, Two Pair, Trips,
-  // Straight (no — no connected cards to the Broadway), Flush, Full House?, etc.
-  // We use analyzeQuestion so the test stays honest to the real reachability set.
+  // AsKs on 2s 7s Jd — flush draw. We use analyzeQuestion so the test stays
+  // honest to the real reachability set for both turn and river horizons.
   const holes = [c('A', '♠'), c('K', '♠')];
   const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
   const analysis = analyzeQuestion(holes, flop);
 
-  it('scores a perfect hand when every category judgement matches truth', () => {
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C)));
+  function perfectInputs(a) {
+    const p1Turn = new Set(QUIZ_CATEGORIES.filter(C => a.reachableByTurn.has(C)));
+    const p1River = new Set(QUIZ_CATEGORIES.filter(C => a.reachableByRiver.has(C)));
     const p2 = {};
-    for (const C of QUIZ_CATEGORIES) {
-      if (p1.has(C) && !analysis.madeSet.has(C)) {
-        p2[C] = String(analysis.turnOuts[C].count);
-      }
+    for (const C of p1Turn) {
+      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
     }
-    const g = gradeHand(analysis, p1, p2);
+    return { p1Turn, p1River, p2 };
+  }
+
+  it('scores a perfect hand when every turn/river/outs judgement matches truth', () => {
+    const { p1Turn, p1River, p2 } = perfectInputs(analysis);
+    const g = gradeHand(analysis, p1Turn, p1River, p2);
     expect(g.handCorrect).toBe(true);
-    expect(g.phase1Correct).toBe(QUIZ_CATEGORIES.length);
+    expect(g.phase1Correct).toBe(QUIZ_CATEGORIES.length * 2);
+    expect(g.phase1TurnCorrect).toBe(QUIZ_CATEGORIES.length);
+    expect(g.phase1RiverCorrect).toBe(QUIZ_CATEGORIES.length);
     expect(g.phase2Correct).toBe(g.phase2Total);
   });
 
-  it('docks phase 1 when user misses a reachable category', () => {
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C) && C !== 'Flush'));
-    const p2 = {};
-    for (const C of p1) {
-      if (!analysis.madeSet.has(C)) p2[C] = String(analysis.turnOuts[C].count);
-    }
-    const g = gradeHand(analysis, p1, p2);
+  it('docks the turn judgement when user misses a turn-reachable category', () => {
+    const { p1Turn, p1River, p2 } = perfectInputs(analysis);
+    // Flush IS reachable by turn here (flush draw with 9 spade outs). Drop it
+    // from the turn set to force a phase-1 turn miss.
+    p1Turn.delete('Flush');
+    delete p2['Flush'];
+    const g = gradeHand(analysis, p1Turn, p1River, p2);
     expect(g.handCorrect).toBe(false);
-    expect(g.perCat['Flush'].phase1Right).toBe(false);
+    expect(g.perCat['Flush'].turnRight).toBe(false);
+    expect(g.perCat['Flush'].riverRight).toBe(true);
     expect(g.perCat['Flush'].categoryRight).toBe(false);
   });
 
-  it('docks phase 2 when outs are off by one', () => {
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C)));
+  it('docks the river judgement when user misses a river-reachable category', () => {
+    const { p1Turn, p1River, p2 } = perfectInputs(analysis);
+    p1River.delete('Flush');
+    const g = gradeHand(analysis, p1Turn, p1River, p2);
+    expect(g.handCorrect).toBe(false);
+    expect(g.perCat['Flush'].riverRight).toBe(false);
+    expect(g.perCat['Flush'].categoryRight).toBe(false);
+  });
+
+  it('treats backdoor draws as river-only — marking turn for a backdoor is wrong', () => {
+    // AsKh on 2s 7s Jd: backdoor flush via spade runner-runner. Flush is
+    // reachable by river but NOT by turn (0 turn outs).
+    const bdHoles = [c('A', '♠'), c('K', '♥')];
+    const bdFlop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(bdHoles, bdFlop);
+    expect(a.turnOuts['Flush'].count).toBe(0);
+    expect(a.reachableByTurn.has('Flush')).toBe(false);
+    expect(a.reachableByRiver.has('Flush')).toBe(true);
+
+    // User incorrectly marks Flush as turn-reachable.
+    const p1Turn = new Set(QUIZ_CATEGORIES.filter(C => a.reachableByTurn.has(C)));
+    p1Turn.add('Flush');
+    const p1River = new Set(QUIZ_CATEGORIES.filter(C => a.reachableByRiver.has(C)));
     const p2 = {};
-    for (const C of QUIZ_CATEGORIES) {
-      if (p1.has(C) && !analysis.madeSet.has(C)) {
-        const trueCount = analysis.turnOuts[C].count;
-        // Flip one category's answer to be wrong by 1.
-        p2[C] = String(C === 'Flush' ? trueCount + 1 : trueCount);
-      }
+    for (const C of p1Turn) {
+      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
     }
-    const g = gradeHand(analysis, p1, p2);
+    const g = gradeHand(a, p1Turn, p1River, p2);
+    expect(g.perCat['Flush'].turnRight).toBe(false);
+    expect(g.perCat['Flush'].riverRight).toBe(true);
+    expect(g.handCorrect).toBe(false);
+  });
+
+  it('docks phase 2 when outs are off by one', () => {
+    const { p1Turn, p1River, p2 } = perfectInputs(analysis);
+    // Bump the Flush outs answer by 1.
+    p2['Flush'] = String(analysis.turnOuts['Flush'].count + 1);
+    const g = gradeHand(analysis, p1Turn, p1River, p2);
     expect(g.handCorrect).toBe(false);
     expect(g.perCat['Flush'].phase2Right).toBe(false);
   });
@@ -64,46 +97,36 @@ describe('gradeHand', () => {
     const madeFlop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
     const a = analyzeQuestion(madeHoles, madeFlop);
     expect(a.made).toBe('Three of a Kind');
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => a.reachable.has(C)));
-    // Leave made-or-subset categories out of p2 — outs aren't asked for them.
-    const p2 = {};
-    for (const C of p1) {
-      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
-    }
-    const g = gradeHand(a, p1, p2);
+    const { p1Turn, p1River, p2 } = perfectInputs(a);
+    const g = gradeHand(a, p1Turn, p1River, p2);
     expect(g.perCat['Three of a Kind'].phase2Right).toBeNull();
     expect(g.handCorrect).toBe(true);
   });
 
   it('treats subset-made categories as "already made" — Pair is auto-correct when Two Pair is on the flop', () => {
-    // KQ on KQJ: Two Pair on the flop. Pair is a subset of Two Pair, so the
-    // user should not be asked for Pair outs and selecting "Pair" is correct.
+    // KQ on KQJ: Two Pair on the flop. Pair is a subset of Two Pair.
     const madeHoles = [c('K', '♠'), c('Q', '♦')];
     const madeFlop = [c('K', '♥'), c('Q', '♣'), c('J', '♠')];
     const a = analyzeQuestion(madeHoles, madeFlop);
     expect(a.made).toBe('Two Pair');
     expect(a.madeSet.has('Pair')).toBe(true);
-    expect(a.reachable.has('Pair')).toBe(true);
+    expect(a.reachableByTurn.has('Pair')).toBe(true);
+    expect(a.reachableByRiver.has('Pair')).toBe(true);
 
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => a.reachable.has(C)));
-    const p2 = {};
-    for (const C of p1) {
-      if (!a.madeSet.has(C)) p2[C] = String(a.turnOuts[C].count);
-    }
-    const g = gradeHand(a, p1, p2);
-    // Pair is in madeSet → phase2 is not asked, phase2Right is null.
+    const { p1Turn, p1River, p2 } = perfectInputs(a);
+    const g = gradeHand(a, p1Turn, p1River, p2);
     expect(g.perCat['Pair'].phase2Right).toBeNull();
     expect(g.perCat['Pair'].made).toBe(true);
     expect(g.perCat['Two Pair'].made).toBe(true);
     expect(g.handCorrect).toBe(true);
   });
 
-  it('treats empty/blank phase 2 entries as wrong', () => {
-    const p1 = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachable.has(C)));
+  it('treats empty/blank phase 2 entries as wrong when phase-1 turn is selected', () => {
+    const p1Turn = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachableByTurn.has(C)));
+    const p1River = new Set(QUIZ_CATEGORIES.filter(C => analysis.reachableByRiver.has(C)));
     const p2 = {}; // no inputs
-    const g = gradeHand(analysis, p1, p2);
+    const g = gradeHand(analysis, p1Turn, p1River, p2);
     expect(g.handCorrect).toBe(false);
-    // Any reachable-not-made category is now wrong in phase 2.
     const flushPc = g.perCat['Flush'];
     expect(flushPc.phase2Right).toBe(false);
   });

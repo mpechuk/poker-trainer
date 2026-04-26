@@ -49,24 +49,37 @@ function ruleOfFour(outs) {
 
 // Question grading: returns per-category status + whether the hand is perfect.
 // For each category C:
-//   phase1Right: user's "reachable" ✓/✗ matches truth
-//   phase2Right: if category was selected and not made, user's outs exactly match
-//                 actual turn-out count; otherwise null (not applicable)
-//   categoryRight: phase1Right && phase2Right !== false  (all judgements for this category)
-export function gradeHand(analysis, p1Selected, p2Outs) {
+//   turnRight:    user's "reachable by turn" ✓/✗ matches truth
+//   riverRight:   user's "reachable by river" ✓/✗ matches truth
+//   phase2Right:  if category was selected as by-turn and is not made, user's
+//                 outs exactly match actual turn-out count; otherwise null
+//                 (not applicable — no outs to count)
+//   categoryRight: turnRight && riverRight && phase2Right !== false
+//
+// Phase 1 contributes 2 judgements per category (turn + river). Phase 2 only
+// kicks in for categories the user marked as reachable-by-turn and that aren't
+// already made on the flop — those are the ones with concrete turn outs to
+// count. A category marked as river-only (backdoor) has 0 turn outs by
+// definition; we skip the input rather than force "0".
+export function gradeHand(analysis, p1Turn, p1River, p2Outs) {
   const perCat = {};
-  let phase1Correct = 0;
+  let phase1TurnCorrect = 0;
+  let phase1RiverCorrect = 0;
   let phase2Correct = 0;
   let phase2Asked = 0;
   const madeSet = analysis.madeSet || new Set([analysis.made]);
   for (const C of QUIZ_CATEGORIES) {
-    const trueReachable = analysis.reachable.has(C);
-    const userSelected = p1Selected.has(C);
-    const phase1Right = trueReachable === userSelected;
-    if (phase1Right) phase1Correct += 1;
+    const trueByTurn = analysis.reachableByTurn.has(C);
+    const trueByRiver = analysis.reachableByRiver.has(C);
+    const userByTurn = p1Turn.has(C);
+    const userByRiver = p1River.has(C);
+    const turnRight = trueByTurn === userByTurn;
+    const riverRight = trueByRiver === userByRiver;
+    if (turnRight) phase1TurnCorrect += 1;
+    if (riverRight) phase1RiverCorrect += 1;
 
     const made = madeSet.has(C);
-    const askedInP2 = userSelected && !made;
+    const askedInP2 = userByTurn && !made;
     let phase2Right = null;
     if (askedInP2) {
       phase2Asked += 1;
@@ -80,14 +93,28 @@ export function gradeHand(analysis, p1Selected, p2Outs) {
       }
     }
 
-    const categoryRight = phase1Right && phase2Right !== false;
-    perCat[C] = { phase1Right, phase2Right, categoryRight, trueReachable, userSelected, made };
+    const categoryRight = turnRight && riverRight && phase2Right !== false;
+    perCat[C] = {
+      turnRight,
+      riverRight,
+      phase2Right,
+      categoryRight,
+      trueByTurn,
+      trueByRiver,
+      userByTurn,
+      userByRiver,
+      made,
+    };
   }
   const allCorrect = Object.values(perCat).every(x => x.categoryRight);
   return {
     perCat,
-    phase1Correct,
-    phase1Total: QUIZ_CATEGORIES.length,
+    phase1Correct: phase1TurnCorrect + phase1RiverCorrect,
+    phase1Total: QUIZ_CATEGORIES.length * 2,
+    phase1TurnCorrect,
+    phase1RiverCorrect,
+    phase1TurnTotal: QUIZ_CATEGORIES.length,
+    phase1RiverTotal: QUIZ_CATEGORIES.length,
     phase2Correct,
     phase2Total: phase2Asked,
     handCorrect: allCorrect,
@@ -102,7 +129,8 @@ export function CombosQuiz({ query }) {
   const [sharedDeck, setSharedDeck] = useState(() => sharedInit?.deck || null);
   const [deck, setDeck] = useState(() => sharedInit?.deck || []);
   const [qIdx, setQIdx] = useState(0);
-  const [p1Selected, setP1Selected] = useState(() => new Set());
+  const [p1Turn, setP1Turn] = useState(() => new Set());
+  const [p1River, setP1River] = useState(() => new Set());
   const [p2Outs, setP2Outs] = useState({});
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -115,18 +143,19 @@ export function CombosQuiz({ query }) {
   const isComplete = phase === 'playing' && qIdx >= deck.length && deck.length > 0;
 
   // When a fresh question becomes the active one (start of phase 1), pre-check
-  // every category already made on the flop — these are guaranteed correct and
-  // not something the user needs to "guess". Includes subsets (e.g. Two Pair
-  // pre-checks Pair too) so the UI matches the grading semantics.
+  // every category already made on the flop — these are guaranteed correct
+  // (both by-turn and by-river) and not something the user needs to "guess".
+  // Includes subsets (e.g. Two Pair pre-checks Pair too) so the UI matches the
+  // grading semantics.
   useEffect(() => {
     if (phase !== 'playing' || subphase !== 'p1' || !analysis) return;
     const made = new Set(
       [...analysis.madeSet].filter(c => QUIZ_CATEGORIES.includes(c))
     );
-    setP1Selected(prev => {
+    const seed = (prev) => {
       // Only seed once per question — don't clobber user toggles after they've
-      // started clicking. We detect "fresh question" as: every made category is
-      // missing from prev (or prev is empty).
+      // started clicking. We detect "fresh question" as: every made category
+      // is missing from prev (or prev is empty).
       if (prev.size > 0) {
         const allPresent = [...made].every(c => prev.has(c));
         if (allPresent) return prev;
@@ -134,7 +163,9 @@ export function CombosQuiz({ query }) {
       const next = new Set(prev);
       for (const c of made) next.add(c);
       return next;
-    });
+    };
+    setP1Turn(seed);
+    setP1River(seed);
   }, [qIdx, phase, subphase, analysis]);
 
   // Persist stats exactly once per completed run.
@@ -182,7 +213,8 @@ export function CombosQuiz({ query }) {
     setPhase('playing');
     setSubphase('p1');
     setQIdx(0);
-    setP1Selected(new Set());
+    setP1Turn(new Set());
+    setP1River(new Set());
     setP2Outs({});
     setScore(0);
     setStreak(0);
@@ -197,7 +229,8 @@ export function CombosQuiz({ query }) {
     const newDeck = buildCombosDeck(fresh.quizLength);
     setDeck(newDeck);
     setQIdx(0);
-    setP1Selected(new Set());
+    setP1Turn(new Set());
+    setP1River(new Set());
     setP2Outs({});
     setScore(0);
     setStreak(0);
@@ -214,7 +247,8 @@ export function CombosQuiz({ query }) {
     const newDeck = sharedDeck ? sharedDeck : buildCombosDeck(fresh.quizLength);
     setDeck(newDeck);
     setQIdx(0);
-    setP1Selected(new Set());
+    setP1Turn(new Set());
+    setP1River(new Set());
     setP2Outs({});
     setScore(0);
     setStreak(0);
@@ -228,7 +262,8 @@ export function CombosQuiz({ query }) {
     setPhase('setup');
     setSubphase('p1');
     setQIdx(0);
-    setP1Selected(new Set());
+    setP1Turn(new Set());
+    setP1River(new Set());
     setP2Outs({});
     setScore(0);
     setStreak(0);
@@ -246,11 +281,13 @@ export function CombosQuiz({ query }) {
     }
   }
 
-  function toggleP1(cat) {
+  function toggleP1(cat, horizon) {
     if (subphase !== 'p1') return;
-    // Made categories (and their subsets) are guaranteed correct — locked on.
+    // Made categories (and their subsets) are guaranteed correct — locked on
+    // for both horizons.
     if (analysis && analysis.madeSet.has(cat)) return;
-    setP1Selected(prev => {
+    const setter = horizon === 'turn' ? setP1Turn : setP1River;
+    setter(prev => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat); else next.add(cat);
       return next;
@@ -262,7 +299,7 @@ export function CombosQuiz({ query }) {
   }
 
   function submitPhase2() {
-    const grade = gradeHand(analysis, p1Selected, p2Outs);
+    const grade = gradeHand(analysis, p1Turn, p1River, p2Outs);
     if (grade.handCorrect) {
       setScore(s => s + 1);
       setStreak(s => s + 1);
@@ -270,7 +307,13 @@ export function CombosQuiz({ query }) {
       setStreak(0);
     }
     setTotal(t => t + 1);
-    setResults(r => [...r, { analysis, p1Selected: new Set(p1Selected), p2Outs: { ...p2Outs }, grade }]);
+    setResults(r => [...r, {
+      analysis,
+      p1Turn: new Set(p1Turn),
+      p1River: new Set(p1River),
+      p2Outs: { ...p2Outs },
+      grade,
+    }]);
     setSubphase('fb');
   }
 
@@ -278,7 +321,8 @@ export function CombosQuiz({ query }) {
     if (e?.currentTarget?.blur) e.currentTarget.blur();
     const next = qIdx + 1;
     setQIdx(next);
-    setP1Selected(new Set());
+    setP1Turn(new Set());
+    setP1River(new Set());
     setP2Outs({});
     setSubphase('p1');
   }
@@ -294,7 +338,7 @@ export function CombosQuiz({ query }) {
         <div class="rq-panel">
           <h2 class="rq-title">Flop Combos &amp; Outs</h2>
           <p class="rq-sub">
-            Each hand shows 2 hole cards and a 3-card flop. First, pick every hand category you could still make by the river. Then, for each category you picked, enter the number of <strong>single-card outs</strong> &mdash; cards that make the category if they arrive on the turn.
+            Each hand shows 2 hole cards and a 3-card flop. First, classify every hand category twice: is it reachable <strong>by the turn</strong> (one more card) and is it reachable <strong>by the river</strong> (two more cards)? Then, for each category you marked as reachable by the turn, enter the number of <strong>single-card outs</strong> &mdash; cards that make the category if they arrive on the turn.
           </p>
           <div class="rq-setup-label">Categories you'll judge</div>
           <ul class="rq-texture-list combos-cat-list">
@@ -303,7 +347,7 @@ export function CombosQuiz({ query }) {
             ))}
           </ul>
           <p class="rq-sub combos-setup-note">
-            Runner-runner (backdoor) draws count as achievable, but their single-card outs are 0 &mdash; only the river probability reflects them.
+            Backdoor (runner-runner) draws are reachable by the river but not by the turn &mdash; mark only the river column for them.
           </p>
           <div class="rq-start-row">
             <button class="rq-start-btn" onClick={startQuiz}>Start Quiz</button>
@@ -390,7 +434,8 @@ export function CombosQuiz({ query }) {
             {subphase === 'p1' && (
               <Phase1
                 madeSet={analysis.madeSet}
-                p1Selected={p1Selected}
+                p1Turn={p1Turn}
+                p1River={p1River}
                 onToggle={toggleP1}
                 onNext={goToPhase2}
               />
@@ -399,7 +444,7 @@ export function CombosQuiz({ query }) {
             {subphase === 'p2' && (
               <Phase2
                 analysis={analysis}
-                p1Selected={p1Selected}
+                p1Turn={p1Turn}
                 p2Outs={p2Outs}
                 setP2Outs={setP2Outs}
                 onSubmit={submitPhase2}
@@ -424,31 +469,57 @@ export function CombosQuiz({ query }) {
   );
 }
 
-function Phase1({ madeSet, p1Selected, onToggle, onNext }) {
+function Phase1({ madeSet, p1Turn, p1River, onToggle, onNext }) {
   return (
     <>
       <div class="combos-phase-header">
         <span class="combos-phase-tag">Phase 1</span>
-        <span class="combos-phase-q">Which categories are reachable by the river?</span>
+        <span class="combos-phase-q">For each category, mark whether it's reachable by the turn and by the river.</span>
       </div>
-      <div class="combos-check-grid">
+      <div class="combos-reach-table" role="table">
+        <div class="combos-reach-head" role="row">
+          <div class="combos-reach-cat" role="columnheader">Category</div>
+          <div class="combos-reach-col-h" role="columnheader" title="Reachable after one more card">By&nbsp;Turn</div>
+          <div class="combos-reach-col-h" role="columnheader" title="Reachable after both turn and river">By&nbsp;River</div>
+        </div>
         {QUIZ_CATEGORIES.map(C => {
-          const on = p1Selected.has(C);
+          const turnOn = p1Turn.has(C);
+          const riverOn = p1River.has(C);
           const locked = madeSet && madeSet.has(C);
+          const lockTitle = locked ? 'Already made on the flop' : undefined;
           return (
-            <button
-              key={C}
-              type="button"
-              class={'combos-check' + (on ? ' on' : '') + (locked ? ' locked' : '')}
-              aria-pressed={on}
-              aria-disabled={locked || undefined}
-              title={locked ? 'Already made on the flop' : undefined}
-              onClick={() => onToggle(C)}
-            >
-              <span class="combos-check-box">{on ? '✓' : ''}</span>
-              <span class="combos-check-lbl">{C}</span>
-              {locked && <span class="combos-check-made">made</span>}
-            </button>
+            <div class={'combos-reach-row' + (locked ? ' locked' : '')} role="row" key={C}>
+              <div class="combos-reach-cat" role="cell">
+                <span class="combos-reach-cat-lbl">{C}</span>
+                {locked && <span class="combos-check-made">made</span>}
+              </div>
+              <div class="combos-reach-cell" role="cell">
+                <button
+                  type="button"
+                  class={'combos-reach-btn' + (turnOn ? ' on' : '') + (locked ? ' locked' : '')}
+                  aria-pressed={turnOn}
+                  aria-label={`${C} reachable by turn`}
+                  aria-disabled={locked || undefined}
+                  title={lockTitle}
+                  onClick={() => onToggle(C, 'turn')}
+                >
+                  <span class="combos-check-box">{turnOn ? '✓' : ''}</span>
+                </button>
+              </div>
+              <div class="combos-reach-cell" role="cell">
+                <button
+                  type="button"
+                  class={'combos-reach-btn' + (riverOn ? ' on' : '') + (locked ? ' locked' : '')}
+                  aria-pressed={riverOn}
+                  aria-label={`${C} reachable by river`}
+                  aria-disabled={locked || undefined}
+                  title={lockTitle}
+                  onClick={() => onToggle(C, 'river')}
+                >
+                  <span class="combos-check-box">{riverOn ? '✓' : ''}</span>
+                </button>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -461,15 +532,17 @@ function Phase1({ madeSet, p1Selected, onToggle, onNext }) {
   );
 }
 
-function Phase2({ analysis, p1Selected, p2Outs, setP2Outs, onSubmit }) {
-  const toAnswer = QUIZ_CATEGORIES.filter(C => p1Selected.has(C));
+function Phase2({ analysis, p1Turn, p2Outs, setP2Outs, onSubmit }) {
+  // Phase 2 only asks for outs on categories the user marked as reachable
+  // by the turn — those are the ones with concrete turn outs to count.
+  // Categories marked as river-only (backdoor) have 0 turn outs by definition.
+  const toAnswer = QUIZ_CATEGORIES.filter(C => p1Turn.has(C));
   if (toAnswer.length === 0) {
-    // Nothing selected → no outs to enter. Let the user confirm their phase-1 answer.
     return (
       <>
         <div class="combos-phase-header">
           <span class="combos-phase-tag">Phase 2</span>
-          <span class="combos-phase-q">No categories selected — submit to see the answer.</span>
+          <span class="combos-phase-q">No turn-reachable categories selected — submit to see the answer.</span>
         </div>
         <div class="rq-next-row">
           <button class="rq-next" style="display:inline-block" onClick={onSubmit}>
@@ -533,22 +606,35 @@ function Feedback({ result, onNext, isLast }) {
           const actualOuts = analysis.turnOuts[C];
           const prob = analysis.riverProb[C];
           const entered = p2Outs[C];
-          const askedOuts = pc.userSelected && !pc.made;
+          const askedOuts = pc.userByTurn && !pc.made;
+          const anyTouched = pc.trueByTurn || pc.trueByRiver || pc.userByTurn || pc.userByRiver;
           const rowCls = 'combos-fb-row '
-            + (pc.categoryRight ? 'ok' : (pc.trueReachable || pc.userSelected ? 'bad' : 'dim'));
+            + (pc.categoryRight ? 'ok' : (anyTouched ? 'bad' : 'dim'));
+          let badgeLabel, badgeCls;
+          if (pc.made) { badgeLabel = 'Made on flop'; badgeCls = 'made'; }
+          else if (pc.trueByTurn) { badgeLabel = 'Reachable by turn'; badgeCls = 'reachable'; }
+          else if (pc.trueByRiver) { badgeLabel = 'Backdoor (river only)'; badgeCls = 'reachable'; }
+          else { badgeLabel = 'Not reachable'; badgeCls = 'unreach'; }
           return (
             <div key={C} class={rowCls}>
               <div class="combos-fb-head">
                 <span class="combos-fb-cat">{C}</span>
-                {pc.made && <span class="combos-fb-badge made">Made on flop</span>}
-                {pc.trueReachable && !pc.made && <span class="combos-fb-badge reachable">Reachable</span>}
-                {!pc.trueReachable && <span class="combos-fb-badge unreach">Not reachable</span>}
+                <span class={'combos-fb-badge ' + badgeCls}>{badgeLabel}</span>
               </div>
               <div class="combos-fb-line">
-                <span class="combos-fb-k">Your pick:</span>
-                <span class={'combos-fb-v ' + (pc.phase1Right ? 'ok' : 'bad')}>
-                  {pc.userSelected ? 'Reachable' : 'Not reachable'}
-                  {' '}{pc.phase1Right ? '✓' : '✗'}
+                <span class="combos-fb-k">By turn:</span>
+                <span class={'combos-fb-v ' + (pc.turnRight ? 'ok' : 'bad')}>
+                  you said <strong>{pc.userByTurn ? 'yes' : 'no'}</strong>
+                  {' '}&middot; actual <strong>{pc.trueByTurn ? 'yes' : 'no'}</strong>
+                  {' '}{pc.turnRight ? '✓' : '✗'}
+                </span>
+              </div>
+              <div class="combos-fb-line">
+                <span class="combos-fb-k">By river:</span>
+                <span class={'combos-fb-v ' + (pc.riverRight ? 'ok' : 'bad')}>
+                  you said <strong>{pc.userByRiver ? 'yes' : 'no'}</strong>
+                  {' '}&middot; actual <strong>{pc.trueByRiver ? 'yes' : 'no'}</strong>
+                  {' '}{pc.riverRight ? '✓' : '✗'}
                 </span>
               </div>
               {askedOuts && (
@@ -561,7 +647,7 @@ function Feedback({ result, onNext, isLast }) {
                   </span>
                 </div>
               )}
-              {pc.trueReachable && (
+              {(pc.trueByTurn || pc.trueByRiver) && (
                 <div class="combos-fb-line">
                   <span class="combos-fb-k">River probability:</span>
                   <span class="combos-fb-v">

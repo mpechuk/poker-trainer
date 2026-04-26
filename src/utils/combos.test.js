@@ -209,6 +209,9 @@ describe('analyzeQuestion', () => {
     // 4 spades in 6 cards — still not a flush. Two spades on turn+river makes it.
     expect(a.turnOuts['Flush'].count).toBe(0);
     expect(a.reachable.has('Flush')).toBe(true);
+    expect(a.reachableByRiver.has('Flush')).toBe(true);
+    // Backdoor: NOT reachable by the turn even though it is reachable by the river.
+    expect(a.reachableByTurn.has('Flush')).toBe(false);
     expect(a.riverProb['Flush']).toBeGreaterThan(0);
     // C(10,2) / C(47,2) = 45/1081 ≈ 4.2%.
     expect(a.riverProb['Flush']).toBeLessThan(0.08);
@@ -263,6 +266,34 @@ describe('analyzeQuestion', () => {
     // Both should also appear in reachable (subset-closed + made-included).
     expect(a.reachable.has('Pair')).toBe(true);
     expect(a.reachable.has('Three of a Kind')).toBe(true);
+  });
+
+  it('reachableByTurn ⊆ reachableByRiver always — anything reachable by turn is reachable by river', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    for (const C of a.reachableByTurn) {
+      expect(a.reachableByRiver.has(C)).toBe(true);
+    }
+  });
+
+  it('reachableByTurn includes made categories and any with ≥1 turn out', () => {
+    // 77 on K 7 2: Three of a Kind made; turn outs to Quads (1) and Full House (6+).
+    const holes = [c('7', '♠'), c('7', '♥')];
+    const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.reachableByTurn.has('Three of a Kind')).toBe(true);
+    expect(a.reachableByTurn.has('Four of a Kind')).toBe(true);
+    expect(a.reachableByTurn.has('Full House')).toBe(true);
+    // Pair is implied by the Three-of-a-Kind subset closure.
+    expect(a.reachableByTurn.has('Pair')).toBe(true);
+  });
+
+  it('reachable is preserved as an alias of reachableByRiver for backward compatibility', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.reachable).toBe(a.reachableByRiver);
   });
 });
 
