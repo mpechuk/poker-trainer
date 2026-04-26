@@ -52,7 +52,7 @@ poker-trainer/
 │   │   ├── explain.js                  # Quiz feedback rationale (hand features + action logic)
 │   │   ├── share.js                    # Encode/decode quiz config into share-link query strings
 │   │   ├── flop.js                     # Flop generation + classifyFlop() for Board Texture quiz
-│   │   └── combos.js                   # evalFive, bestOf, analyzeQuestion (flop snapshot), analyzeWithTurn (post-turn snapshot) — Flop Combos evaluator
+│   │   └── combos.js                   # evalFive, bestOf, analyzeQuestion (flop snapshot, exposes exampleRunouts for missed-river feedback), analyzeWithTurn (post-turn snapshot) — Flop Combos evaluator
 │   ├── hooks/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle

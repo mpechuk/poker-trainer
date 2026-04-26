@@ -20,6 +20,11 @@
 //   reachable:        alias of reachableByRiver (kept for backward compatibility)
 //   riverProb:        exact probability that the final best 5-card category equals
 //                     C, over all C(47,2)=1081 runouts
+//   exampleRunouts:   for each category C, one concrete (turn, river) pair that
+//                     yields a best 5-card hand whose category set includes C —
+//                     used by the Feedback UI to make backdoor reachability
+//                     concrete ("here's a runout that would make a Straight").
+//                     null when C is not reachable by river.
 //
 // `analyzeWithTurn(holes, flop, turn)` reports the turn snapshot — what the
 // user answers in phases 3 & 4 (after the turn is revealed). It mirrors the
@@ -176,7 +181,11 @@ export function analyzeQuestion(holes, flop) {
   for (const c of CATEGORIES) turnOuts[c].cards.sort(cmpCard);
 
   const riverCounts = {};
-  for (const c of CATEGORIES) riverCounts[c] = 0;
+  const exampleRunouts = {};
+  for (const c of CATEGORIES) {
+    riverCounts[c] = 0;
+    exampleRunouts[c] = null;
+  }
 
   const withTwo = known.slice();
   withTwo.push(null, null);
@@ -184,7 +193,14 @@ export function analyzeQuestion(holes, flop) {
     withTwo[withTwo.length - 2] = remaining[i];
     for (let j = i + 1; j < remaining.length; j++) {
       withTwo[withTwo.length - 1] = remaining[j];
-      riverCounts[bestOf(withTwo).category] += 1;
+      const best = bestOf(withTwo).category;
+      riverCounts[best] += 1;
+      // Subset-closed: a runout whose best 5-card hand is `best` also
+      // demonstrates every category contained in `best`. Record only the first
+      // one we encounter per category so the example is stable & deterministic.
+      for (const cat of categoriesIncluded(best)) {
+        if (!exampleRunouts[cat]) exampleRunouts[cat] = [remaining[i], remaining[j]];
+      }
     }
   }
   const total = remaining.length * (remaining.length - 1) / 2;
@@ -223,6 +239,7 @@ export function analyzeQuestion(holes, flop) {
     reachable: reachableByRiver,
     turnOuts,
     riverProb,
+    exampleRunouts,
   };
 }
 

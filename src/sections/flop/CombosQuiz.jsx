@@ -937,6 +937,16 @@ function Feedback({ result, onNext, isLast }) {
                   {' '}{pc.riverRight ? '✓' : '✗'}
                 </span>
               </div>
+              {pc.trueByRiver && !pc.userByRiver && analysis.exampleRunouts?.[C] && (
+                <div class="combos-fb-line combos-fb-example">
+                  <span class="combos-fb-k">Example runout:</span>
+                  <span class="combos-fb-example-body">
+                    <span class="combos-fb-example-lbl">turn + river</span>
+                    <span class="hand combos-fb-example-cards"
+                          dangerouslySetInnerHTML={{ __html: renderCards(analysis.exampleRunouts[C], 34, 48) }} />
+                  </span>
+                </div>
+              )}
               {askedOuts && (
                 <div class="combos-fb-line">
                   <span class="combos-fb-k">Your outs:</span>
