@@ -10,6 +10,9 @@
   border:1px solid var(--gold-dark);border-radius:14px}
 .combos-board-row{display:flex;flex-direction:column;align-items:center;gap:.35rem}
 .combos-board-lbl{font-size:.7rem;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.combos-board-turn{padding-top:.7rem;border-top:1px dashed rgba(201,168,76,.35);
+  width:100%;align-items:center}
+.combos-board-turn .combos-board-lbl{color:var(--gold-bright)}
 
 .combos-phase-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem;
   flex-wrap:wrap;justify-content:center}
@@ -33,6 +36,8 @@
   border:1px solid rgba(201,168,76,.2)}
 .combos-reach-row.locked{border-style:dashed;border-color:rgba(52,152,219,.4);
   background:rgba(52,152,219,.06)}
+.combos-reach-head.combos-reach-head-single,
+.combos-reach-row-single{grid-template-columns:minmax(0,1fr) 92px}
 .combos-reach-col-h{text-align:center}
 .combos-reach-cat{display:flex;align-items:center;gap:.5rem;
   font-family:'Crimson Pro',serif;font-size:.95rem;color:var(--text);min-width:0}
@@ -104,6 +109,11 @@
 .combos-fb-v.bad{color:#f0b8b0}
 .combos-fb-outs{margin-top:.45rem}
 .combos-fb-outs-cards{flex-wrap:wrap;gap:4px !important;justify-content:flex-start}
+.combos-fb-section-lbl{font-size:.7rem;color:var(--gold);letter-spacing:.1em;
+  text-transform:uppercase;margin:.55rem 0 .15rem;
+  padding-top:.45rem;border-top:1px dashed rgba(201,168,76,.25)}
+.combos-fb-row > .combos-fb-section-lbl:first-of-type{border-top:none;
+  padding-top:.2rem;margin-top:.3rem}
 
 .combos-summary-sub{font-size:.85rem;color:var(--muted);max-width:500px;
   margin:.5rem auto 1rem}

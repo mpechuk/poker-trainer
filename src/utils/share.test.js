@@ -204,6 +204,32 @@ describe('encodeCombosQuiz / decodeCombosQuiz', () => {
     expect(decodeCombosQuiz({ cq: 'short' })).toBeNull();
     expect(decodeCombosQuiz({ cq: 'Xs8s3d2c9h' })).toBeNull();
   });
+
+  it('round-trips a deck that includes a turn card (12-char question)', () => {
+    const deckWithTurn = [
+      {
+        holes: [{rank:'A',suit:'♠'},{rank:'K',suit:'♥'}],
+        flop:  [{rank:'2',suit:'♠'},{rank:'7',suit:'♠'},{rank:'J',suit:'♦'}],
+        turn:  {rank:'9',suit:'♣'},
+      },
+    ];
+    const encoded = encodeCombosQuiz(deckWithTurn);
+    expect(encoded).toBe('cq=AsKh2s7sJd9c');
+    const decoded = decodeCombosQuiz({ cq: encoded.slice(3) });
+    expect(decoded.deck).toHaveLength(1);
+    expect(decoded.deck[0].turn).toEqual(deckWithTurn[0].turn);
+  });
+
+  it('decodes legacy 10-char questions (no turn) without setting a turn — recipient hydrates a fresh one', () => {
+    const decoded = decodeCombosQuiz({ cq: 'AsKh2s7sJd' });
+    expect(decoded.deck).toHaveLength(1);
+    expect(decoded.deck[0].turn).toBeUndefined();
+    expect(decoded.deck[0].holes).toEqual([{rank:'A',suit:'♠'},{rank:'K',suit:'♥'}]);
+  });
+
+  it('rejects a question with an odd partial card (e.g. 11 chars)', () => {
+    expect(decodeCombosQuiz({ cq: 'AsKh2s7sJd9' })).toBeNull();
+  });
 });
 
 describe('buildScoreMessage', () => {

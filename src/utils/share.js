@@ -171,20 +171,27 @@ export function decodeFlopQuiz(query) {
   return { deck };
 }
 
-// Flop Combos & Outs quiz: encodes 2 hole cards + 3 flop cards per question.
+// Flop Combos & Outs quiz: encodes 2 hole + 3 flop + 1 turn card per question.
 // Correct answers (made / reachable / outs / probability) are re-derived via
-// analyzeQuestion on decode, so only the cards need to travel in the URL.
+// analyzeQuestion / analyzeWithTurn on decode, so only the cards need to
+// travel in the URL.
 //
 //   #/quizzes/flop-combos?cq=<q1>,<q2>,...
-//     qN = <h1><h2><f1><f2><f3>  (5 cards × 2 chars = 10 chars per question)
+//     qN = <h1><h2><f1><f2><f3><t>  (6 cards × 2 chars = 12 chars per question)
 //     rank uses T for 10; suit codes are s/h/d/c.
+//
+// Backward compatibility: legacy 10-char questions (no turn) still decode —
+// a fresh turn is rolled at deck-build / phase-3 entry time so old links keep
+// working, the recipient just gets a randomized turn for those questions.
 export function encodeCombosQuiz(deck) {
   if (!Array.isArray(deck) || deck.length === 0) return null;
   const parts = [];
   for (const q of deck) {
     if (!q?.holes || q.holes.length !== 2 || !q.flop || q.flop.length !== 3) return null;
+    const cards = [...q.holes, ...q.flop];
+    if (q.turn) cards.push(q.turn);
     let s = '';
-    for (const c of [...q.holes, ...q.flop]) {
+    for (const c of cards) {
       if (!FLOP_RANKS.includes(c.rank) || !FLOP_SUITS.includes(c.suit)) return null;
       s += encodeRank(c.rank) + SUIT_ENCODE[c.suit];
     }
@@ -198,9 +205,10 @@ export function decodeCombosQuiz(query) {
   if (!raw) return null;
   const deck = [];
   for (const s of raw.split(',')) {
-    if (s.length !== 10) return null;
+    if (s.length !== 10 && s.length !== 12) return null;
+    const nCards = s.length / 2;
     const cards = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < nCards; i++) {
       const rawRank = s[i * 2];
       const rawSuit = s[i * 2 + 1];
       const rank = decodeRank(rawRank);
@@ -208,7 +216,9 @@ export function decodeCombosQuiz(query) {
       if (!FLOP_RANKS.includes(rank) || !suit) return null;
       cards.push({ rank, suit });
     }
-    deck.push({ holes: [cards[0], cards[1]], flop: [cards[2], cards[3], cards[4]] });
+    const question = { holes: [cards[0], cards[1]], flop: [cards[2], cards[3], cards[4]] };
+    if (cards.length === 6) question.turn = cards[5];
+    deck.push(question);
   }
   if (deck.length === 0) return null;
   return { deck };
