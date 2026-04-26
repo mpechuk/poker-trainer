@@ -1,7 +1,11 @@
 // Flop Combos & Outs quiz — hand evaluator, per-question analyzer, deck builder.
 //
-// A "question" is: 2 hole cards + 3 flop cards (all distinct).
-// We report, for every hand category:
+// A "question" is: 2 hole cards + 3 flop cards + 1 turn card (the turn is
+// pre-rolled at deck-build time so shared decks reproduce identically and so a
+// later phase can reveal it without re-randomizing).
+//
+// `analyzeQuestion(holes, flop)` reports the flop snapshot — what the user
+// answers in phases 1 & 2 (before seeing the turn). For every category:
 //   made:             the current best category from hole+flop
 //   turnOuts:         cards that, drawn on the turn, make the best 5-card hand
 //                     contain that category (subset-closed: a card making a
@@ -16,6 +20,14 @@
 //   reachable:        alias of reachableByRiver (kept for backward compatibility)
 //   riverProb:        exact probability that the final best 5-card category equals
 //                     C, over all C(47,2)=1081 runouts
+//
+// `analyzeWithTurn(holes, flop, turn)` reports the turn snapshot — what the
+// user answers in phases 3 & 4 (after the turn is revealed). It mirrors the
+// flop analyzer but for the single card still to come:
+//   made:             best category from hole+flop+turn (6 cards)
+//   riverOuts:        cards that, drawn on the river, make the best 5-card
+//                     hand contain that category (subset-closed)
+//   reachableByRiver: categories with ≥1 river out (subset-closed) ∪ madeSet
 
 import { FLOP_RANKS, FLOP_SUITS } from './flop.js';
 
@@ -214,6 +226,48 @@ export function analyzeQuestion(holes, flop) {
   };
 }
 
+// `analyzeWithTurn` — turn-snapshot analyzer for phases 3 & 4. Mirrors
+// `analyzeQuestion` but with one card already known (the turn) and only one
+// more to come (the river). Returns madeSet, riverOuts (subset-closed), and
+// reachableByRiver (subset-closed ∪ madeSet).
+export function analyzeWithTurn(holes, flop, turn) {
+  const known = [...holes, ...flop, turn];
+  const remaining = deckMinus(known);
+  const made = bestOf(known).category;
+  const madeSet = categoriesIncluded(made);
+
+  const riverOuts = {};
+  for (const c of CATEGORIES) riverOuts[c] = { count: 0, cards: [] };
+
+  const withOne = known.slice();
+  withOne.push(null);
+  for (const r of remaining) {
+    withOne[withOne.length - 1] = r;
+    const strictCat = bestOf(withOne).category;
+    for (const cat of categoriesIncluded(strictCat)) {
+      riverOuts[cat].cards.push(r);
+      riverOuts[cat].count += 1;
+    }
+  }
+  for (const c of CATEGORIES) riverOuts[c].cards.sort(cmpCard);
+
+  const reachableByRiver = new Set();
+  for (const c of CATEGORIES) {
+    if (riverOuts[c].count > 0) {
+      reachableByRiver.add(c);
+      for (const s of SUBSETS[c]) reachableByRiver.add(s);
+    }
+  }
+  for (const c of madeSet) reachableByRiver.add(c);
+
+  return {
+    made,
+    madeSet,
+    riverOuts,
+    reachableByRiver,
+  };
+}
+
 function randInt(n) { return Math.floor(Math.random() * n); }
 
 function shufflePick(arr, n) {
@@ -225,18 +279,30 @@ function shufflePick(arr, n) {
   return copy.slice(0, n);
 }
 
-function randomFiveCards() {
+function randomSixCards() {
   const all = [];
   for (const r of FLOP_RANKS) for (const s of FLOP_SUITS) all.push({ rank: r, suit: s });
-  return shufflePick(all, 5);
+  return shufflePick(all, 6);
+}
+
+// Pick a fresh turn card that is not already in `used`. Used when a shared
+// deck arrives without a turn (legacy 10-char encoding) and we need to
+// hydrate one before phase 3.
+export function randomTurnCard(used) {
+  const remaining = deckMinus(used);
+  return remaining[randInt(remaining.length)];
 }
 
 export function buildCombosDeck(length) {
   const deck = [];
   const n = Math.max(1, length | 0);
   for (let i = 0; i < n; i++) {
-    const five = randomFiveCards();
-    deck.push({ holes: [five[0], five[1]], flop: [five[2], five[3], five[4]] });
+    const six = randomSixCards();
+    deck.push({
+      holes: [six[0], six[1]],
+      flop: [six[2], six[3], six[4]],
+      turn: six[5],
+    });
   }
   return deck;
 }

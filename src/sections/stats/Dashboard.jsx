@@ -81,6 +81,12 @@ export function Dashboard({ path }) {
     ? Math.round(combosQuiz.phase1Correct / combosQuiz.phase1Total * 100) : 0;
   const combosPhase2Acc = combosQuiz.phase2Total > 0
     ? Math.round(combosQuiz.phase2Correct / combosQuiz.phase2Total * 100) : 0;
+  const combosPhase3Total = combosQuiz.phase3Total || 0;
+  const combosPhase3Acc = combosPhase3Total > 0
+    ? Math.round((combosQuiz.phase3Correct || 0) / combosPhase3Total * 100) : 0;
+  const combosPhase4Total = combosQuiz.phase4Total || 0;
+  const combosPhase4Acc = combosPhase4Total > 0
+    ? Math.round((combosQuiz.phase4Correct || 0) / combosPhase4Total * 100) : 0;
 
   return (
     <div class="stats-dashboard">
@@ -336,6 +342,14 @@ export function Dashboard({ path }) {
               <div class="stats-card">
                 <div class="stats-val">{combosPhase2Acc}%</div>
                 <div class="stats-lbl">Phase 2 Acc.</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosPhase3Acc}%</div>
+                <div class="stats-lbl">Phase 3 Acc.</div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-val">{combosPhase4Acc}%</div>
+                <div class="stats-lbl">Phase 4 Acc.</div>
               </div>
               <div class="stats-card">
                 <div class="stats-val">{combosQuiz.bestStreak}</div>

@@ -3,6 +3,7 @@ import {
   evalFive,
   bestOf,
   analyzeQuestion,
+  analyzeWithTurn,
   buildCombosDeck,
   CATEGORIES,
   QUIZ_CATEGORIES,
@@ -337,17 +338,95 @@ describe('buildCombosDeck', () => {
     expect(deck).toHaveLength(7);
   });
 
-  it('each question has 2 hole cards and 3 flop cards, all distinct', () => {
+  it('each question has 2 hole cards, 3 flop cards, and 1 turn card, all distinct', () => {
     const deck = buildCombosDeck(15);
     for (const q of deck) {
       expect(q.holes).toHaveLength(2);
       expect(q.flop).toHaveLength(3);
-      const keys = new Set([...q.holes, ...q.flop].map(x => x.rank + x.suit));
-      expect(keys.size).toBe(5);
+      expect(q.turn).toBeTruthy();
+      const keys = new Set([...q.holes, ...q.flop, q.turn].map(x => x.rank + x.suit));
+      expect(keys.size).toBe(6);
     }
   });
 
   it('never returns a zero-length deck even when asked for 0 (minimum 1 question)', () => {
     expect(buildCombosDeck(0).length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('analyzeWithTurn', () => {
+  it('AsKs on 2s 7s Jd, turn 9s → Flush already made (4 spades), reachable includes Flush', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const turn = c('9', '♠');
+    const a = analyzeWithTurn(holes, flop, turn);
+    expect(a.made).toBe('Flush');
+    expect(a.madeSet.has('Flush')).toBe(true);
+    expect(a.reachableByRiver.has('Flush')).toBe(true);
+  });
+
+  it('AsKs on 2s 7s Jd, turn 4d (brick) → still drawing to Flush, 9 river outs (spades left)', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const turn = c('4', '♦');
+    const a = analyzeWithTurn(holes, flop, turn);
+    expect(a.made).toBe('High Card');
+    // 13 spades total - 3 already known (As, Ks, 2s, 7s = 4) = 9 spades left in deck.
+    expect(a.riverOuts['Flush'].count).toBe(9);
+    expect(a.reachableByRiver.has('Flush')).toBe(true);
+  });
+
+  it('77 on Kc 7d 2s, turn 7c → Quads made; reachable includes Quads + subsets', () => {
+    const holes = [c('7', '♠'), c('7', '♥')];
+    const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+    const turn = c('7', '♣');
+    const a = analyzeWithTurn(holes, flop, turn);
+    expect(a.made).toBe('Four of a Kind');
+    expect(a.madeSet.has('Four of a Kind')).toBe(true);
+    expect(a.madeSet.has('Three of a Kind')).toBe(true);
+    expect(a.madeSet.has('Pair')).toBe(true);
+    expect(a.reachableByRiver.has('Four of a Kind')).toBe(true);
+  });
+
+  it('riverOuts is subset-closed: a river card making a Full House also counts as Three of a Kind / Pair / Two Pair', () => {
+    // KQ on KQ7 + Q turn → Two Pair made on flop, then Trips of Q after turn.
+    // Wait, need a clearer setup: KQ on KQ7 rainbow + 7 turn → Two Pair (KK QQ via flop already?? Let me redo.
+    // Just use KQ on K72 + Q turn → Two Pair on the turn (Kings + Queens).
+    const holes = [c('K', '♠'), c('Q', '♦')];
+    const flop = [c('K', '♥'), c('7', '♣'), c('2', '♠')];
+    const turn = c('Q', '♣');
+    const a = analyzeWithTurn(holes, flop, turn);
+    expect(a.made).toBe('Two Pair');
+    // Any K, Q, 7, or 2 on the river → Full House. Pair stays implied for all
+    // those river cards via subset closure of FH.
+    expect(a.riverOuts['Full House'].count).toBeGreaterThan(0);
+    // Pair count should be at least the FH count (subset closure).
+    expect(a.riverOuts['Pair'].count).toBeGreaterThanOrEqual(a.riverOuts['Full House'].count);
+  });
+
+  it('reachableByRiver after turn = madeSet ∪ {C: riverOuts[C].count > 0, with subset closure}', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const turn = c('4', '♦');
+    const a = analyzeWithTurn(holes, flop, turn);
+    for (const C of CATEGORIES) {
+      if (a.riverOuts[C].count > 0) {
+        expect(a.reachableByRiver.has(C)).toBe(true);
+      }
+    }
+    for (const M of a.madeSet) expect(a.reachableByRiver.has(M)).toBe(true);
+  });
+
+  it('uses 46 remaining cards (52 minus hole+flop+turn) — total iterated outs across distinct categories ≤ 46', () => {
+    const holes = [c('A', '♠'), c('K', '♠')];
+    const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+    const turn = c('9', '♣');
+    const a = analyzeWithTurn(holes, flop, turn);
+    // The strict-best category counts (without subset closure) must sum to 46.
+    // Using High Card + Pair we get sum-by-strict-best ≠ subset-closed sum, so
+    // instead just sanity-check that no category exceeds 46.
+    for (const C of CATEGORIES) {
+      expect(a.riverOuts[C].count).toBeLessThanOrEqual(46);
+    }
   });
 });

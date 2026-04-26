@@ -52,7 +52,7 @@ poker-trainer/
 │   │   ├── explain.js                  # Quiz feedback rationale (hand features + action logic)
 │   │   ├── share.js                    # Encode/decode quiz config into share-link query strings
 │   │   ├── flop.js                     # Flop generation + classifyFlop() for Board Texture quiz
-│   │   └── combos.js                   # evalFive, bestOf, analyzeQuestion — Flop Combos evaluator
+│   │   └── combos.js                   # evalFive, bestOf, analyzeQuestion (flop snapshot), analyzeWithTurn (post-turn snapshot) — Flop Combos evaluator
 │   ├── hooks/
 │   │   ├── useFilters.js               # activeCats state + toggle logic
 │   │   └── useDeck.js                  # deck, idx, flipped, nav, shuffle
@@ -75,7 +75,7 @@ poker-trainer/
 │       │   └── Quiz.jsx                # Raise/fold RFI quiz
 │       ├── flop/
 │       │   ├── Quiz.jsx                # Board-texture classification quiz (3 cards → texture)
-│       │   └── CombosQuiz.jsx          # Flop Combos & Outs quiz (hole + flop → reachable-by-turn / -by-river + outs)
+│       │   └── CombosQuiz.jsx          # Flop Combos & Outs quiz: 4 phases — flop reach (turn+river), turn outs, post-turn river reach, river outs
 │       ├── stats/
 │       │   └── Dashboard.jsx           # Full stats dashboard
 │       └── settings/
@@ -102,7 +102,7 @@ Hash-based routing (`#/path`) for GitHub Pages compatibility.
 | `#/quizzes/terminology` | Terminology Quiz.jsx | Multiple-choice terminology quiz |
 | `#/quizzes/preflop` | Preflop Quiz.jsx | Raise/fold/3-bet preflop quiz (RFI / vs-Limp / vs-Raise / All) |
 | `#/quizzes/flop` | Flop Quiz.jsx | Board-texture classification quiz (3 flop cards → one of 6 textures) |
-| `#/quizzes/flop-combos` | CombosQuiz.jsx | Flop Combos & Outs quiz (hole cards + flop → categories reachable by turn / by river + single-card turn outs) |
+| `#/quizzes/flop-combos` | CombosQuiz.jsx | Flop Combos & Outs quiz (hole cards + flop → categories reachable by turn / by river + single-card turn outs; then a turn card is revealed and the user re-classifies river reachability + counts river outs) |
 | `#/stats` | Dashboard.jsx | Full stats dashboard |
 | `#/settings` | Settings.jsx | User preferences (auto-advance, card image size) |
 
@@ -117,7 +117,7 @@ Quiz routes accept query strings that encode a reproducible quiz:
 | `#/quizzes/terminology` | `?tq=<i,i,i,...>` | Comma-separated indexes into `TERMS`; defines the ordered question deck. |
 | `#/quizzes/preflop` | `?pq=<stackDepth>~<q1>~<q2>...` | Each `qN = <typeCode>.<hand>.<heroPos>.<villainOrDash>.<suitCode>` where typeCode ∈ `{r,l,v}` (rfi, limp, vsRaise) and suitCode ∈ `{s,h,d,c}`. Correct actions are re-derived from the GTO ranges; suits preserve the exact card rendering. The trailing suit field is optional — legacy 4-field links still decode. |
 | `#/quizzes/flop` | `?fq=<q1>,<q2>,...` | Each `qN = <r1><s1><r2><s2><r3><s3>` — three cards with `rN ∈ {2..9,T,J,Q,K,A}` (T for 10) and `sN ∈ {s,h,d,c}`. The correct texture is re-derived by `classifyFlop` at load time, so only the cards need to travel in the URL. |
-| `#/quizzes/flop-combos` | `?cq=<q1>,<q2>,...` | Each `qN = <h1><h2><f1><f2><f3>` — 2 hole cards followed by 3 flop cards, 10 chars per question, same rank/suit alphabet as `fq`. The analysis (reachable-by-turn, reachable-by-river, turn outs, river probabilities) is re-derived by `analyzeQuestion` at load time. |
+| `#/quizzes/flop-combos` | `?cq=<q1>,<q2>,...` | Each `qN = <h1><h2><f1><f2><f3><t>` — 2 hole cards, 3 flop cards, and 1 turn card; 12 chars per question, same rank/suit alphabet as `fq`. The analysis (reachable-by-turn, reachable-by-river, turn outs, river probabilities, post-turn river outs) is re-derived by `analyzeQuestion` + `analyzeWithTurn` at load time. Legacy 10-char questions (no turn) still decode and the recipient gets a freshly-rolled turn for those questions. |
 
 Both quiz types auto-start in the playing phase when loaded from a shared link, bypassing the setup screen so the recipient can't alter the shared deck. "Play Again" replays the same deck; "New Random Quiz" drops out of shared mode and returns the user to the setup screen (topic picker for terminology, mode/stack/positions for preflop). See `src/utils/share.js` and `src/components/ShareButton.jsx`.
 
@@ -179,7 +179,7 @@ Fonts: `'Playfair Display'` for headings, `'Crimson Pro'` for body text.
 | `rfi-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, byPosition, recentScores }` |
 | `term-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, byCategory, recentScores }` |
 | `flop-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, byTexture, recentScores }` |
-| `flop-combos-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, phase1Correct, phase1Total, phase2Correct, phase2Total, byCategory, recentScores }` |
+| `flop-combos-quiz-stats` | `{ totalQuizzes, totalQuestions, totalCorrect, bestStreak, phase1Correct, phase1Total, phase2Correct, phase2Total, phase3Correct, phase3Total, phase4Correct, phase4Total, byCategory, recentScores }` |
 | `study-progress` | `{ cardsSeen: [], totalFlips, byCategory: {} }` |
 | `settings` | `{ autoAdvance, autoAdvanceSeconds, cardSize, quizLength }` |
 

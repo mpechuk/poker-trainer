@@ -60,8 +60,10 @@ export function initFlopQuizStats() {
 
 // Flop Combos & Outs Quiz Stats
 // totalQuestions here = number of hands played; totalCorrect = number of hands
-// answered perfectly (every category judgement in both phases right).
-// phase1/phase2 track finer-grained per-category judgements for diagnostic bars.
+// answered perfectly (every category judgement across all four phases right).
+// phase1..phase4 track finer-grained per-category judgements for diagnostic
+// bars: phase 1+2 cover the flop snapshot; phase 3+4 cover the post-turn
+// snapshot once the turn card is revealed.
 export function getFlopCombosQuizStats() {
   try { const d = localStorage.getItem('flop-combos-quiz-stats'); return d ? JSON.parse(d) : null; }
   catch(e) { return null; }
@@ -79,6 +81,10 @@ export function initFlopCombosQuizStats() {
     phase1Total: 0,
     phase2Correct: 0,
     phase2Total: 0,
+    phase3Correct: 0,
+    phase3Total: 0,
+    phase4Correct: 0,
+    phase4Total: 0,
     byCategory: {},
     recentScores: [],
   };
