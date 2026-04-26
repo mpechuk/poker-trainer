@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-import { gradeHand } from './CombosQuiz.jsx';
+import { gradeHand, toggleReach } from './CombosQuiz.jsx';
 import { analyzeQuestion, QUIZ_CATEGORIES } from '../../utils/combos.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -129,6 +129,52 @@ describe('gradeHand', () => {
     expect(g.handCorrect).toBe(false);
     const flushPc = g.perCat['Flush'];
     expect(flushPc.phase2Right).toBe(false);
+  });
+});
+
+describe('toggleReach', () => {
+  it('selecting "By Turn" auto-selects "By River" — reachable in one card implies reachable in two', () => {
+    const { p1Turn, p1River } = toggleReach(new Set(), new Set(), 'Flush', 'turn');
+    expect(p1Turn.has('Flush')).toBe(true);
+    expect(p1River.has('Flush')).toBe(true);
+  });
+
+  it('selecting "By Turn" leaves an already-on river untouched (returns same reference)', () => {
+    const turn = new Set();
+    const river = new Set(['Flush']);
+    const out = toggleReach(turn, river, 'Flush', 'turn');
+    expect(out.p1Turn.has('Flush')).toBe(true);
+    expect(out.p1River).toBe(river);
+  });
+
+  it('deselecting "By Turn" does not auto-deselect "By River" — keeps backdoor (river-only) selection intact', () => {
+    const turn = new Set(['Flush']);
+    const river = new Set(['Flush']);
+    const out = toggleReach(turn, river, 'Flush', 'turn');
+    expect(out.p1Turn.has('Flush')).toBe(false);
+    expect(out.p1River.has('Flush')).toBe(true);
+  });
+
+  it('toggling "By River" alone does not affect "By Turn"', () => {
+    const turn = new Set();
+    const river = new Set();
+    const on = toggleReach(turn, river, 'Flush', 'river');
+    expect(on.p1Turn).toBe(turn);
+    expect(on.p1River.has('Flush')).toBe(true);
+
+    const off = toggleReach(turn, on.p1River, 'Flush', 'river');
+    expect(off.p1Turn).toBe(turn);
+    expect(off.p1River.has('Flush')).toBe(false);
+  });
+
+  it('returns new Set instances for the changed horizon — does not mutate inputs', () => {
+    const turn = new Set();
+    const river = new Set();
+    const out = toggleReach(turn, river, 'Flush', 'turn');
+    expect(out.p1Turn).not.toBe(turn);
+    expect(out.p1River).not.toBe(river);
+    expect(turn.size).toBe(0);
+    expect(river.size).toBe(0);
   });
 });
 
