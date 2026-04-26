@@ -218,6 +218,40 @@ describe('analyzeQuestion', () => {
     expect(a.riverProb['Flush']).toBeGreaterThan(0.03);
   });
 
+  it('turnOuts is subset-closed: Full House outs also count as Three of a Kind / Two Pair / Pair outs (regression)', () => {
+    // KQ on KQ7 rainbow → Two Pair made. The 4 cards (2 K + 2 Q) that make
+    // Full House on the turn must also be counted as Three of a Kind outs,
+    // since the made FH contains a Three of a Kind. Same for Two Pair and Pair.
+    const holes = [c('K', '♠'), c('Q', '♦')];
+    const flop = [c('K', '♥'), c('Q', '♣'), c('7', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.made).toBe('Two Pair');
+    expect(a.turnOuts['Full House'].count).toBe(4);
+    // Bug being fixed: this used to be 0 because counting was strict-best-only.
+    expect(a.turnOuts['Three of a Kind'].count).toBe(4);
+    // Pair and Two Pair are made; their counts include FH outs plus any other
+    // cards whose best hand contains them. Sanity check: at least the 4 FH outs.
+    expect(a.turnOuts['Two Pair'].count).toBeGreaterThanOrEqual(4);
+    expect(a.turnOuts['Pair'].count).toBeGreaterThanOrEqual(4);
+  });
+
+  it('turnOuts is subset-closed: Four of a Kind outs also count as Three of a Kind / Pair outs (but NOT Two Pair)', () => {
+    // 77 on K72 rainbow → Three of a Kind made. Any turn card keeps the made
+    // hand at ≥ Three of a Kind: 1 card → Quads, 6 cards (Ks/2s) → Full House,
+    // remaining 40 → strict Three of a Kind. Pair is a subset of all three, so
+    // every one of the 47 cards counts as a Pair out. Two Pair is a subset of
+    // Full House (6) but NOT of Quads (only one paired rank) and NOT of strict
+    // Three of a Kind, so its subset-inclusive count is exactly 6.
+    const holes = [c('7', '♠'), c('7', '♥')];
+    const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+    const a = analyzeQuestion(holes, flop);
+    expect(a.turnOuts['Four of a Kind'].count).toBe(1);
+    expect(a.turnOuts['Full House'].count).toBe(6);
+    expect(a.turnOuts['Three of a Kind'].count).toBe(47);
+    expect(a.turnOuts['Two Pair'].count).toBe(6);
+    expect(a.turnOuts['Pair'].count).toBe(47);
+  });
+
   it('riverProb values across all categories sum to 1', () => {
     const holes = [c('Q', '♣'), c('Q', '♦')];
     const flop = [c('7', '♠'), c('4', '♥'), c('2', '♦')];

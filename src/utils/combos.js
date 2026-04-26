@@ -4,7 +4,10 @@
 // We report, for every hand category:
 //   made:             the current best category from hole+flop
 //   turnOuts:         cards that, drawn on the turn, make the best 5-card hand
-//                     exactly that category (the poker definition of "outs")
+//                     contain that category (subset-closed: a card making a
+//                     Full House counts as a turn out for Three of a Kind, Two
+//                     Pair, and Pair too — they're all contained in the made
+//                     hand)
 //   reachableByTurn:  categories achievable as the best 5-card hand after one
 //                     more card (turn) — i.e. categories with ≥1 turn out, plus
 //                     anything already made (subset-closed)
@@ -149,9 +152,14 @@ export function analyzeQuestion(holes, flop) {
   withOne.push(null);
   for (const t of remaining) {
     withOne[withOne.length - 1] = t;
-    const cat = bestOf(withOne).category;
-    turnOuts[cat].cards.push(t);
-    turnOuts[cat].count += 1;
+    const strictCat = bestOf(withOne).category;
+    // Subset-closed: a card whose best 5-card hand is C also produces every
+    // category that C contains. E.g. a Full House card is also a Three of a
+    // Kind / Two Pair / Pair out — the made hand contains all three.
+    for (const cat of categoriesIncluded(strictCat)) {
+      turnOuts[cat].cards.push(t);
+      turnOuts[cat].count += 1;
+    }
   }
   for (const c of CATEGORIES) turnOuts[c].cards.sort(cmpCard);
 
