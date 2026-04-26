@@ -47,6 +47,29 @@ function ruleOfFour(outs) {
   return outs * 4 + '%';
 }
 
+// Toggle one cell of the phase-1 reachability table. When the user turns a
+// category's "By Turn" ON, "By River" auto-selects too — anything reachable
+// in one card is reachable in two. Turning "By Turn" OFF leaves the river
+// selection alone, since the user may still want to flag a backdoor
+// (river-only) draw. River clicks are a plain toggle.
+export function toggleReach(p1Turn, p1River, cat, horizon) {
+  if (horizon === 'turn') {
+    const nextTurn = new Set(p1Turn);
+    if (p1Turn.has(cat)) {
+      nextTurn.delete(cat);
+      return { p1Turn: nextTurn, p1River };
+    }
+    nextTurn.add(cat);
+    if (p1River.has(cat)) return { p1Turn: nextTurn, p1River };
+    const nextRiver = new Set(p1River);
+    nextRiver.add(cat);
+    return { p1Turn: nextTurn, p1River: nextRiver };
+  }
+  const nextRiver = new Set(p1River);
+  if (nextRiver.has(cat)) nextRiver.delete(cat); else nextRiver.add(cat);
+  return { p1Turn, p1River: nextRiver };
+}
+
 // Question grading: returns per-category status + whether the hand is perfect.
 // For each category C:
 //   turnRight:    user's "reachable by turn" ✓/✗ matches truth
@@ -286,12 +309,9 @@ export function CombosQuiz({ query }) {
     // Made categories (and their subsets) are guaranteed correct — locked on
     // for both horizons.
     if (analysis && analysis.madeSet.has(cat)) return;
-    const setter = horizon === 'turn' ? setP1Turn : setP1River;
-    setter(prev => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
+    const { p1Turn: nextTurn, p1River: nextRiver } = toggleReach(p1Turn, p1River, cat, horizon);
+    if (nextTurn !== p1Turn) setP1Turn(nextTurn);
+    if (nextRiver !== p1River) setP1River(nextRiver);
   }
 
   function goToPhase2() {
