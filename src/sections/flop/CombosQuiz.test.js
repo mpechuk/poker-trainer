@@ -307,4 +307,15 @@ describe('Feedback rendering', () => {
     );
     expect(ruleOfFourGate, 'rule-of-4 / runner-runner suffix should be gated on !pc.made').not.toBeNull();
   });
+
+  it('renders an example runout only when the user missed a river-reachable category', () => {
+    // The example block is the teaching moment for backdoor draws the user
+    // wrote off as unreachable. Gate: pc.trueByRiver && !pc.userByRiver.
+    // (No example when actual=no, since there's nothing to demonstrate, and
+    // no example when the user already said yes — they got it right.)
+    const exampleGate = combosSource.match(
+      /\{pc\.trueByRiver && !pc\.userByRiver && analysis\.exampleRunouts\?\.\[C\] && \(/
+    );
+    expect(exampleGate, 'example runout should be gated on missed-by-river').not.toBeNull();
+  });
 });

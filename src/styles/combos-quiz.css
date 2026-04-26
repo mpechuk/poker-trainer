@@ -70,6 +70,8 @@
 @media (max-width:520px){
   .combos-reach-head,.combos-reach-row{grid-template-columns:minmax(0,1fr) 64px 64px;
     gap:.35rem;padding:.4rem .55rem}
+  .combos-reach-head.combos-reach-head-single,
+  .combos-reach-row-single{grid-template-columns:minmax(0,1fr) 64px}
   .combos-reach-cat{font-size:.88rem}
 }
 
@@ -109,6 +111,11 @@
 .combos-fb-v.bad{color:#f0b8b0}
 .combos-fb-outs{margin-top:.45rem}
 .combos-fb-outs-cards{flex-wrap:wrap;gap:4px !important;justify-content:flex-start}
+.combos-fb-example .combos-fb-example-body{display:inline-flex;align-items:center;
+  gap:.5rem;flex-wrap:wrap}
+.combos-fb-example-lbl{font-size:.72rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em}
+.combos-fb-example-cards{gap:4px !important;justify-content:flex-start}
 .combos-fb-section-lbl{font-size:.7rem;color:var(--gold);letter-spacing:.1em;
   text-transform:uppercase;margin:.55rem 0 .15rem;
   padding-top:.45rem;border-top:1px dashed rgba(201,168,76,.25)}

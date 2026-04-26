@@ -330,6 +330,76 @@ describe('analyzeQuestion', () => {
     const a = analyzeQuestion(holes, flop);
     expect(a.reachable).toBe(a.reachableByRiver);
   });
+
+  describe('exampleRunouts', () => {
+    it('backdoor straight (3,5 + 7,K,Q) → example contains exactly a 4 and a 6', () => {
+      // Hand from the user's bug report: with hole 3♣5♣ and flop 7♥KdQ♣ the
+      // straight is reachable runner-runner but never on the turn alone. The
+      // example runout for Straight should be a 4 and a 6 (in either order),
+      // matching the only 5-card straight 3-4-5-6-7 the player can make.
+      const holes = [c('3', '♣'), c('5', '♣')];
+      const flop = [c('7', '♥'), c('K', '♦'), c('Q', '♣')];
+      const a = analyzeQuestion(holes, flop);
+      expect(a.reachableByTurn.has('Straight')).toBe(false);
+      expect(a.reachableByRiver.has('Straight')).toBe(true);
+      const example = a.exampleRunouts['Straight'];
+      expect(example).toHaveLength(2);
+      const ranks = example.map(x => x.rank).sort();
+      expect(ranks).toEqual(['4', '6']);
+    });
+
+    it('made categories also have an example runout (the first runout we encounter, since it still demonstrates the category)', () => {
+      // 77 on K72 → Three of a Kind is already made; every runout demonstrates it.
+      const holes = [c('7', '♠'), c('7', '♥')];
+      const flop = [c('K', '♣'), c('7', '♦'), c('2', '♠')];
+      const a = analyzeQuestion(holes, flop);
+      expect(a.exampleRunouts['Three of a Kind']).toBeTruthy();
+      expect(a.exampleRunouts['Three of a Kind']).toHaveLength(2);
+    });
+
+    it('unreachable categories have a null example runout', () => {
+      // 22 on 22A is Three of a Kind on the flop, but Royal Flush is unreachable
+      // (the flop has unsuited 2/2/A — runner-runner can't make a Royal because
+      // T-J-Q-K of any suit are 4 cards needed, only 2 to come).
+      const holes = [c('2', '♠'), c('2', '♥')];
+      const flop = [c('2', '♦'), c('2', '♣'), c('A', '♠')];
+      const a = analyzeQuestion(holes, flop);
+      expect(a.reachableByRiver.has('Royal Flush')).toBe(false);
+      expect(a.exampleRunouts['Royal Flush']).toBeNull();
+    });
+
+    it('subset closure: example for Pair exists whenever any higher category is reachable', () => {
+      // AsKs on 2s 7s Jd: Flush reachable. Any flush runout also demonstrates
+      // Pair closure? No — flush of 5 distinct ranks contains no pair. But other
+      // pair-making runouts are abundant. Verify Pair has an example.
+      const holes = [c('A', '♠'), c('K', '♠')];
+      const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+      const a = analyzeQuestion(holes, flop);
+      expect(a.exampleRunouts['Pair']).toBeTruthy();
+      // Sanity: the example pair, evaluated, should give a hand whose category
+      // set includes Pair.
+      const [r, s] = a.exampleRunouts['Pair'];
+      const seven = [...holes, ...flop, r, s];
+      const best = bestOf(seven).category;
+      expect(['Pair', 'Two Pair', 'Three of a Kind', 'Straight', 'Flush',
+              'Full House', 'Four of a Kind', 'Straight Flush', 'Royal Flush'])
+        .toContain(best);
+    });
+
+    it('example runout cards are drawn from the cards still in the deck (not hole/flop)', () => {
+      const holes = [c('A', '♠'), c('K', '♠')];
+      const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
+      const a = analyzeQuestion(holes, flop);
+      const known = new Set([...holes, ...flop].map(x => x.rank + x.suit));
+      for (const C of CATEGORIES) {
+        const ex = a.exampleRunouts[C];
+        if (!ex) continue;
+        expect(known.has(ex[0].rank + ex[0].suit)).toBe(false);
+        expect(known.has(ex[1].rank + ex[1].suit)).toBe(false);
+        expect(ex[0].rank + ex[0].suit).not.toBe(ex[1].rank + ex[1].suit);
+      }
+    });
+  });
 });
 
 describe('buildCombosDeck', () => {
