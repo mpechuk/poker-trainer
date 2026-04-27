@@ -60,34 +60,46 @@ export function Settings() {
 
       <section class="settings-section">
         <div class="rq-setup-label">Quiz length</div>
-        <p class="settings-sub" style="margin:.2rem 0 .6rem">Number of questions per quiz run.</p>
-        <div class="rq-selector-group">
-          {[5, 10, 20, 30, 50].map(n => (
-            <button
-              key={n}
-              type="button"
-              class={`rq-selector-btn${settings.quizLength === n ? ' active' : ''}`}
-              onClick={() => update({ quizLength: n })}
-            >{n}</button>
-          ))}
-        </div>
-        <div class="settings-timeout">
-          <label for="settings-quiz-length-input">Custom</label>
-          <input
-            id="settings-quiz-length-input"
-            type="number"
-            min={QUIZ_LENGTH_MIN}
-            max={QUIZ_LENGTH_MAX}
-            step="1"
-            value={settings.quizLength}
-            onInput={(e) => {
-              const n = Number(e.currentTarget.value);
-              if (Number.isFinite(n) && n >= QUIZ_LENGTH_MIN && n <= QUIZ_LENGTH_MAX) {
-                update({ quizLength: Math.round(n) });
-              }
-            }}
-          />
-        </div>
+        <p class="settings-sub" style="margin:.2rem 0 .8rem">Number of questions per quiz run, configured per quiz type.</p>
+        {[
+          { key: 'quizLengthTerminology', label: 'Terminology' },
+          { key: 'quizLengthPreflop',     label: 'Preflop'     },
+          { key: 'quizLengthFlop',        label: 'Board Texture' },
+          { key: 'quizLengthCombos',      label: 'Flop Combos' },
+        ].map(({ key, label }) => (
+          <div key={key} class="settings-quiz-length-row">
+            <div class="settings-quiz-length-label">{label}</div>
+            <div class="settings-quiz-length-controls">
+              <div class="rq-selector-group">
+                {[5, 10, 20, 30, 50].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    class={`rq-selector-btn${settings[key] === n ? ' active' : ''}`}
+                    onClick={() => update({ [key]: n })}
+                  >{n}</button>
+                ))}
+              </div>
+              <div class="settings-timeout">
+                <label for={`settings-${key}-input`}>Custom</label>
+                <input
+                  id={`settings-${key}-input`}
+                  type="number"
+                  min={QUIZ_LENGTH_MIN}
+                  max={QUIZ_LENGTH_MAX}
+                  step="1"
+                  value={settings[key]}
+                  onInput={(e) => {
+                    const n = Number(e.currentTarget.value);
+                    if (Number.isFinite(n) && n >= QUIZ_LENGTH_MIN && n <= QUIZ_LENGTH_MAX) {
+                      update({ [key]: Math.round(n) });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
       </section>
 
       <section class="settings-section">

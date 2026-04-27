@@ -118,7 +118,11 @@ export const DEFAULT_SETTINGS = {
   autoAdvance: false,       // off by default — users asked to read the explanation at their own pace
   autoAdvanceSeconds: 10,   // only used when autoAdvance is true
   cardSize: 'medium',
-  quizLength: 10,           // number of questions per quiz run
+  quizLength: 10,           // legacy global fallback (kept for backward compat)
+  quizLengthTerminology: 10,
+  quizLengthPreflop: 10,
+  quizLengthFlop: 10,
+  quizLengthCombos: 10,
 };
 
 function normalizeSettings(raw) {
@@ -133,6 +137,12 @@ function normalizeSettings(raw) {
   s.quizLength = Number.isFinite(ql) && ql >= QUIZ_LENGTH_MIN && ql <= QUIZ_LENGTH_MAX
     ? Math.round(ql)
     : DEFAULT_SETTINGS.quizLength;
+  for (const key of ['quizLengthTerminology', 'quizLengthPreflop', 'quizLengthFlop', 'quizLengthCombos']) {
+    const v = Number(s[key]);
+    s[key] = Number.isFinite(v) && v >= QUIZ_LENGTH_MIN && v <= QUIZ_LENGTH_MAX
+      ? Math.round(v)
+      : DEFAULT_SETTINGS[key];
+  }
   return s;
 }
 

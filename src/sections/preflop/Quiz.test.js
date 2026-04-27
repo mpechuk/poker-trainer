@@ -194,7 +194,7 @@ describe('PreflopQuiz — default mode', () => {
   });
 
   it('initial deck is built with the resolved initialMode (so default-all hits all hand generators)', () => {
-    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'(?:,\s*settings\.quizLength)?\)/);
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all'(?:,\s*settings\.quizLengthPreflop)?\)/);
   });
 });
 
@@ -240,11 +240,11 @@ describe('PreflopQuiz — configurable quiz length', () => {
     expect(deck.length).toBe(RFI_QUIZ_LENGTH);
   });
 
-  it('component reads settings.quizLength and threads it through buildDeck', () => {
+  it('component reads settings.quizLengthPreflop and threads it through buildDeck', () => {
     // Regression: if buildDeck is called without the length arg, the preflop
     // quiz silently ignores the Settings page "Quiz length" choice.
-    expect(quizSource).toMatch(/buildDeck\([^)]*,\s*fresh\.quizLength\)/);
-    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all',\s*settings\.quizLength\)/);
+    expect(quizSource).toMatch(/buildDeck\([^)]*,\s*fresh\.quizLengthPreflop\)/);
+    expect(quizSource).toMatch(/buildDeck\(initialMode,\s*'100BB',\s*'all',\s*'all',\s*settings\.quizLengthPreflop\)/);
   });
 
   it('component renders deck.length in playing/complete UI (not a hardcoded constant)', () => {

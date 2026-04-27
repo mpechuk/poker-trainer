@@ -350,7 +350,7 @@ export function CombosQuiz({ query }) {
   function startQuiz() {
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = buildCombosDeck(fresh.quizLength);
+    const newDeck = buildCombosDeck(fresh.quizLengthCombos);
     setDeck(newDeck);
     setQIdx(0);
     setP1Turn(new Set());
@@ -370,7 +370,7 @@ export function CombosQuiz({ query }) {
   function restart() {
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = sharedDeck ? sharedDeck : buildCombosDeck(fresh.quizLength);
+    const newDeck = sharedDeck ? sharedDeck : buildCombosDeck(fresh.quizLengthCombos);
     setDeck(newDeck);
     setQIdx(0);
     setP1Turn(new Set());

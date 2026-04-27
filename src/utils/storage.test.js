@@ -240,6 +240,70 @@ describe('Settings', () => {
     expect(QUIZ_LENGTH_MIN).toBeLessThanOrEqual(5);
     expect(QUIZ_LENGTH_MAX).toBeGreaterThanOrEqual(100);
   });
+
+  it('DEFAULT_SETTINGS includes per-quiz-type length keys defaulting to 10', () => {
+    expect(DEFAULT_SETTINGS.quizLengthTerminology).toBe(10);
+    expect(DEFAULT_SETTINGS.quizLengthPreflop).toBe(10);
+    expect(DEFAULT_SETTINGS.quizLengthFlop).toBe(10);
+    expect(DEFAULT_SETTINGS.quizLengthCombos).toBe(10);
+  });
+
+  it('getSettings returns per-quiz-type keys with defaults when nothing stored', () => {
+    const s = getSettings();
+    expect(s.quizLengthTerminology).toBe(10);
+    expect(s.quizLengthPreflop).toBe(10);
+    expect(s.quizLengthFlop).toBe(10);
+    expect(s.quizLengthCombos).toBe(10);
+  });
+
+  it('persists each per-quiz-type length independently', () => {
+    saveSettings({ quizLengthTerminology: 20, quizLengthPreflop: 30, quizLengthFlop: 15, quizLengthCombos: 5 });
+    const s = getSettings();
+    expect(s.quizLengthTerminology).toBe(20);
+    expect(s.quizLengthPreflop).toBe(30);
+    expect(s.quizLengthFlop).toBe(15);
+    expect(s.quizLengthCombos).toBe(5);
+  });
+
+  it('changing one per-quiz-type length leaves others at their saved value', () => {
+    saveSettings({ quizLengthTerminology: 20, quizLengthPreflop: 30, quizLengthFlop: 15, quizLengthCombos: 5 });
+    saveSettings({ ...getSettings(), quizLengthTerminology: 50 });
+    const s = getSettings();
+    expect(s.quizLengthTerminology).toBe(50);
+    expect(s.quizLengthPreflop).toBe(30);
+    expect(s.quizLengthFlop).toBe(15);
+    expect(s.quizLengthCombos).toBe(5);
+  });
+
+  it('clamps invalid per-quiz-type lengths back to the default', () => {
+    for (const key of ['quizLengthTerminology', 'quizLengthPreflop', 'quizLengthFlop', 'quizLengthCombos']) {
+      saveSettings({ [key]: 0 });
+      expect(getSettings()[key]).toBe(DEFAULT_SETTINGS[key]);
+
+      saveSettings({ [key]: QUIZ_LENGTH_MAX + 1 });
+      expect(getSettings()[key]).toBe(DEFAULT_SETTINGS[key]);
+
+      saveSettings({ [key]: 'bad' });
+      expect(getSettings()[key]).toBe(DEFAULT_SETTINGS[key]);
+    }
+  });
+
+  it('rounds non-integer per-quiz-type lengths', () => {
+    saveSettings({ quizLengthTerminology: 12.7, quizLengthPreflop: 9.1 });
+    const s = getSettings();
+    expect(s.quizLengthTerminology).toBe(13);
+    expect(s.quizLengthPreflop).toBe(9);
+  });
+
+  it('resetSettings restores all per-quiz-type lengths to defaults', () => {
+    saveSettings({ quizLengthTerminology: 50, quizLengthPreflop: 30, quizLengthFlop: 20, quizLengthCombos: 5 });
+    resetSettings();
+    const s = getSettings();
+    expect(s.quizLengthTerminology).toBe(DEFAULT_SETTINGS.quizLengthTerminology);
+    expect(s.quizLengthPreflop).toBe(DEFAULT_SETTINGS.quizLengthPreflop);
+    expect(s.quizLengthFlop).toBe(DEFAULT_SETTINGS.quizLengthFlop);
+    expect(s.quizLengthCombos).toBe(DEFAULT_SETTINGS.quizLengthCombos);
+  });
 });
 
 describe('initTermQuizStats', () => {
