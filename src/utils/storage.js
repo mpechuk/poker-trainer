@@ -111,7 +111,7 @@ export const CARD_SIZES = {
   xlarge: { w: 100, h: 140, label: 'Extra Large' },
 };
 
-export const QUIZ_LENGTH_MIN = 5;
+export const QUIZ_LENGTH_MIN = 1;
 export const QUIZ_LENGTH_MAX = 100;
 
 export const DEFAULT_SETTINGS = {

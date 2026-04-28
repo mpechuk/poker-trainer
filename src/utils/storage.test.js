@@ -221,7 +221,7 @@ describe('Settings', () => {
   });
 
   it('clamps invalid quizLength back to the default', () => {
-    saveSettings({ quizLength: 0 });
+    saveSettings({ quizLength: 0 }); // 0 is below QUIZ_LENGTH_MIN (1)
     expect(getSettings().quizLength).toBe(DEFAULT_SETTINGS.quizLength);
 
     saveSettings({ quizLength: QUIZ_LENGTH_MAX + 1 });
@@ -236,9 +236,13 @@ describe('Settings', () => {
     expect(getSettings().quizLength).toBe(13);
   });
 
-  it('quiz length range is at least 5..100', () => {
-    expect(QUIZ_LENGTH_MIN).toBeLessThanOrEqual(5);
+  it('quiz length minimum is 1 (any positive integer allowed)', () => {
+    expect(QUIZ_LENGTH_MIN).toBe(1);
     expect(QUIZ_LENGTH_MAX).toBeGreaterThanOrEqual(100);
+    saveSettings({ quizLength: 1 });
+    expect(getSettings().quizLength).toBe(1);
+    saveSettings({ quizLength: 0 });
+    expect(getSettings().quizLength).toBe(DEFAULT_SETTINGS.quizLength);
   });
 
   it('DEFAULT_SETTINGS includes per-quiz-type length keys defaulting to 10', () => {
@@ -277,7 +281,7 @@ describe('Settings', () => {
 
   it('clamps invalid per-quiz-type lengths back to the default', () => {
     for (const key of ['quizLengthTerminology', 'quizLengthPreflop', 'quizLengthFlop', 'quizLengthCombos']) {
-      saveSettings({ [key]: 0 });
+      saveSettings({ [key]: 0 }); // 0 is below QUIZ_LENGTH_MIN (1)
       expect(getSettings()[key]).toBe(DEFAULT_SETTINGS[key]);
 
       saveSettings({ [key]: QUIZ_LENGTH_MAX + 1 });
