@@ -19,6 +19,10 @@
 .settings-timeout input[type=number]:disabled{cursor:not-allowed}
 .settings-timeout input[type=number]:focus{outline:none;border-color:var(--gold)}
 
+.settings-quiz-length-row{display:flex;align-items:center;gap:.8rem;margin:.5rem 0;flex-wrap:wrap}
+.settings-quiz-length-label{width:110px;font-size:.9rem;color:var(--muted);text-align:right;flex-shrink:0}
+.settings-quiz-length-controls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+
 .settings-card-preview{display:flex;justify-content:center;align-items:center;gap:8px;
   min-height:160px;margin-top:.8rem;padding:.6rem;
   background:rgba(0,0,0,.25);border-radius:10px}

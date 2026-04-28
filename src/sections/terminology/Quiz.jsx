@@ -80,7 +80,7 @@ export function Quiz({ path, query }) {
     // without requiring a reload.
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = buildDeck(activeCats, fresh.quizLength);
+    const newDeck = buildDeck(activeCats, fresh.quizLengthTerminology);
     setQuizDeck(newDeck);
     setQIdx(0);
     setScore(0);
@@ -98,7 +98,7 @@ export function Quiz({ path, query }) {
     // Shared quizzes replay the same deck so the share link stays reproducible.
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = sharedDeck ? sharedDeck : buildDeck(activeCats, fresh.quizLength);
+    const newDeck = sharedDeck ? sharedDeck : buildDeck(activeCats, fresh.quizLengthTerminology);
     setQuizDeck(newDeck);
     setQIdx(0);
     setScore(0);

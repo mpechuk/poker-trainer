@@ -309,7 +309,7 @@ export function PreflopQuiz({ query }) {
   const [settings, setSettings]     = useState(() => getSettings());
   const [sharedDeck, setSharedDeck] = useState(() => (shared ? hydrateSharedDeck(shared.deck) : null));
   const [deck, setDeck]             = useState(() => (
-    shared ? hydrateSharedDeck(shared.deck) : buildDeck(initialMode, '100BB', 'all', 'all', settings.quizLength)
+    shared ? hydrateSharedDeck(shared.deck) : buildDeck(initialMode, '100BB', 'all', 'all', settings.quizLengthPreflop)
   ));
   const [qIdx, setQIdx]             = useState(0);
   const [score, setScore]           = useState(0);
@@ -323,7 +323,7 @@ export function PreflopQuiz({ query }) {
     // takes effect the next time the user starts a quiz without a reload.
     const fresh = getSettings();
     setSettings(fresh);
-    setDeck(buildDeck(mode, depth, pos, villainPos, fresh.quizLength));
+    setDeck(buildDeck(mode, depth, pos, villainPos, fresh.quizLengthPreflop));
     setQIdx(0); setScore(0); setAnswered(false); setChoseAction(null); setResults([]);
   }
 

@@ -120,11 +120,11 @@ describe('Quiz — setup phase', () => {
     expect(quizSource).toMatch(/<FilterChips\s+activeCats=\{activeCats\}\s+onToggle=\{toggleCat\}\s*\/>/);
   });
 
-  it('startQuiz() re-reads settings and threads fresh.quizLength into buildDeck', () => {
+  it('startQuiz() re-reads settings and threads fresh.quizLengthTerminology into buildDeck', () => {
     // Entering the playing phase must pick up the latest Settings page values
-    // (quizLength, autoAdvance) — otherwise changes wouldn't take effect
+    // (quizLengthTerminology, autoAdvance) — otherwise changes wouldn't take effect
     // without a reload.
-    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)[\s\S]*?setPhase\(['"]playing['"]\)/);
+    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLengthTerminology\)[\s\S]*?setPhase\(['"]playing['"]\)/);
   });
 
   it('exitQuiz() returns to the setup phase — lets the user re-pick topics mid-quiz', () => {
@@ -209,18 +209,18 @@ describe('Quiz — configurable quiz length', () => {
     expect(quizSource).toMatch(/import\s*\{[^}]*getSettings[^}]*\}\s*from\s*['"][^'"]*\/utils\/storage\.js['"]/);
   });
 
-  it('startQuiz() reads settings.quizLength — the Start button respects the Settings page choice', () => {
+  it('startQuiz() reads settings.quizLengthTerminology — the Start button respects the Settings page choice', () => {
     // Regression: if startQuiz builds the deck without passing the length arg,
     // the terminology quiz silently ignores the Settings page "Quiz length"
     // choice and always uses the filtered pool's full size.
-    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
+    expect(quizSource).toMatch(/function\s+startQuiz[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLengthTerminology\)/);
   });
 
-  it('restart() re-reads settings and threads fresh.quizLength into buildDeck — Play Again reflects latest setting', () => {
+  it('restart() re-reads settings and threads fresh.quizLengthTerminology into buildDeck — Play Again reflects latest setting', () => {
     // Regression: if restart() captured the stale settings state instead of
-    // calling getSettings(), changing quizLength in Settings wouldn't take
+    // calling getSettings(), changing quizLengthTerminology in Settings wouldn't take
     // effect on "Play Again" without a full remount.
-    expect(quizSource).toMatch(/function\s+restart[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLength\)/);
+    expect(quizSource).toMatch(/function\s+restart[\s\S]*?getSettings\(\)[\s\S]*?buildDeck\(activeCats,\s*fresh\.quizLengthTerminology\)/);
   });
 });
 

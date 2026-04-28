@@ -95,7 +95,7 @@ export function FlopQuiz({ query }) {
   function startQuiz() {
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = buildFlopDeck(fresh.quizLength);
+    const newDeck = buildFlopDeck(fresh.quizLengthFlop);
     setDeck(newDeck);
     setQIdx(0);
     setScore(0);
@@ -111,7 +111,7 @@ export function FlopQuiz({ query }) {
   function restart() {
     const fresh = getSettings();
     setSettings(fresh);
-    const newDeck = sharedDeck ? sharedDeck : buildFlopDeck(fresh.quizLength);
+    const newDeck = sharedDeck ? sharedDeck : buildFlopDeck(fresh.quizLengthFlop);
     setDeck(newDeck);
     setQIdx(0);
     setScore(0);
