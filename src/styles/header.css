@@ -7,6 +7,8 @@ header{
 .suits-row{font-size:2rem;letter-spacing:0.6rem;margin-bottom:0.8rem;
   animation:suitFade 3s ease-in-out infinite alternate}
 @keyframes suitFade{from{opacity:.5}to{opacity:1}}
+.suits-row a{text-decoration:none;display:inline-block;transition:transform .2s ease,filter .2s ease}
+.suits-row a:hover,.suits-row a:focus-visible{transform:translateY(-1px);filter:brightness(1.15)}
 .suits-row .s,.suits-row .c{color:#f0e8d0}
 .suits-row .h,.suits-row .d{color:#c0392b}
 h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.8rem,5vw,3rem);

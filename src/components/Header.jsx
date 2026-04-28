@@ -10,6 +10,13 @@ const NAV_ITEMS = [
   { href: '#/settings', label: 'Settings', section: 'settings' },
 ];
 
+const SUIT_LINKS = [
+  { href: '#/terminology/study', suit: '\u2660', className: 's', label: 'Terminology' },
+  { href: '#/preflop/charts', suit: '\u2665', className: 'h', label: 'Preflop Strategy' },
+  { href: '#/quizzes/preflop', suit: '\u2666', className: 'd', label: 'Quizzes' },
+  { href: '#/stats', suit: '\u2663', className: 'c', label: 'Stats' },
+];
+
 export function Header() {
   const [currentPath, setCurrentPath] = useState(window.location.hash.slice(1) || '/welcome');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -71,10 +78,11 @@ export function Header() {
       </nav>
 
       <div class="suits-row">
-        <span class="s">{'\u2660'}</span>
-        <span class="h">{'\u2665'}</span>
-        <span class="d">{'\u2666'}</span>
-        <span class="c">{'\u2663'}</span>
+        {SUIT_LINKS.map(item => (
+          <a key={item.href} href={item.href} class={item.className} aria-label={item.label}>
+            {item.suit}
+          </a>
+        ))}
       </div>
       {isWelcome && (
         <>

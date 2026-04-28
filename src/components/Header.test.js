@@ -37,6 +37,13 @@ describe('Header — hamburger menu', () => {
     }
   });
 
+  it('maps the suit icons to quick links for key sections', () => {
+    expect(source).toContain("'#/terminology/study'");
+    expect(source).toContain("'#/preflop/charts'");
+    expect(source).toContain("'#/quizzes/preflop'");
+    expect(source).toContain("'#/stats'");
+  });
+
   it('includes a backdrop that closes the menu when clicked outside', () => {
     expect(source).toMatch(/nav-backdrop/);
     // The backdrop's onClick must also call setMenuOpen(false)
