@@ -308,6 +308,14 @@ describe('Feedback rendering', () => {
     expect(ruleOfFourGate, 'rule-of-4 / runner-runner suffix should be gated on !pc.made').not.toBeNull();
   });
 
+
+  it('shows post-turn river probability using exact one-card outs math', () => {
+    const postTurnProb = combosSource.match(
+      /\{turnRiverActual && \(pc\.trueRiverPostTurn \|\| pc\.madePostTurn\) && \(\s*<div class="combos-fb-line">[\s\S]*?River probability:[\s\S]*?exactOneCardPct\(turnRiverActual\.count\)/
+    );
+    expect(postTurnProb, 'after-turn feedback should show river probability from river outs').not.toBeNull();
+  });
+
   it('renders an example runout only when the user missed a river-reachable category', () => {
     // The example block is the teaching moment for backdoor draws the user
     // wrote off as unreachable. Gate: pc.trueByRiver && !pc.userByRiver.
