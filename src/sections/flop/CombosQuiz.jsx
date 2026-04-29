@@ -49,6 +49,11 @@ function ruleOfFour(outs) {
   return outs * 4 + '%';
 }
 
+function exactOneCardPct(outs, unseen = 46) {
+  if (!Number.isFinite(outs) || outs <= 0) return '0.0%';
+  return ((outs / unseen) * 100).toFixed(1) + '%';
+}
+
 // Toggle one cell of the phase-1 reachability table. When the user turns a
 // category's "By Turn" ON, "By River" auto-selects too — anything reachable
 // in one card is reachable in two. Turning "By Turn" OFF leaves the river
@@ -1000,6 +1005,17 @@ function Feedback({ result, onNext, isLast }) {
                         {enteredRiverOuts === '' || enteredRiverOuts == null ? '—' : enteredRiverOuts}
                         {' '}vs. actual <strong>{turnRiverActual.count}</strong>
                         {' '}{pc.phase4Right ? '✓' : '✗'}
+                      </span>
+                    </div>
+                  )}
+                  {turnRiverActual && (pc.trueRiverPostTurn || pc.madePostTurn) && (
+                    <div class="combos-fb-line">
+                      <span class="combos-fb-k">River probability:</span>
+                      <span class="combos-fb-v">
+                        <strong>{pc.madePostTurn ? '100.0%' : exactOneCardPct(turnRiverActual.count)}</strong>
+                        {!pc.madePostTurn && turnRiverActual.count > 0 && (
+                          <> &middot; 1-card exact ({turnRiverActual.count}/46)</>
+                        )}
                       </span>
                     </div>
                   )}
