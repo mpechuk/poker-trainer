@@ -487,6 +487,16 @@ describe('analyzeWithTurn', () => {
     for (const M of a.madeSet) expect(a.reachableByRiver.has(M)).toBe(true);
   });
 
+
+  it('when six known cards are all different ranks, Pair has 18 river outs (3 per known rank) even if some rivers also make a stronger hand', () => {
+    const holes = [c('K', '♥'), c('2', '♠')];
+    const flop = [c('10', '♥'), c('6', '♥'), c('J', '♥')];
+    const turn = c('Q', '♣');
+    const a = analyzeWithTurn(holes, flop, turn);
+    expect(a.made).toBe('High Card');
+    expect(a.riverOuts['Pair'].count).toBe(18);
+    expect(a.reachableByRiver.has('Pair')).toBe(true);
+  });
   it('uses 46 remaining cards (52 minus hole+flop+turn) — total iterated outs across distinct categories ≤ 46', () => {
     const holes = [c('A', '♠'), c('K', '♠')];
     const flop = [c('2', '♠'), c('7', '♠'), c('J', '♦')];
