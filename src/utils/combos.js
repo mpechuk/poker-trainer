@@ -135,6 +135,21 @@ export function bestOf(cards) {
   return best;
 }
 
+
+function categoriesPresent(cards) {
+  if (cards.length === 5) return categoriesIncluded(evalFive(cards).category);
+  const present = new Set();
+  const n = cards.length;
+  for (let i = 0; i < n - 4; i++)
+    for (let j = i + 1; j < n - 3; j++)
+      for (let k = j + 1; k < n - 2; k++)
+        for (let l = k + 1; l < n - 1; l++)
+          for (let m = l + 1; m < n; m++) {
+            const cat = evalFive([cards[i], cards[j], cards[k], cards[l], cards[m]]).category;
+            for (const c of categoriesIncluded(cat)) present.add(c);
+          }
+  return present;
+}
 function deckMinus(used) {
   const usedKeys = new Set(used.map(c => c.rank + c.suit));
   const out = [];
@@ -260,8 +275,8 @@ export function analyzeWithTurn(holes, flop, turn) {
   withOne.push(null);
   for (const r of remaining) {
     withOne[withOne.length - 1] = r;
-    const strictCat = bestOf(withOne).category;
-    for (const cat of categoriesIncluded(strictCat)) {
+    const present = categoriesPresent(withOne);
+    for (const cat of present) {
       riverOuts[cat].cards.push(r);
       riverOuts[cat].count += 1;
     }
